@@ -17,7 +17,7 @@ services:
 	# Security ================
 	nette.userStorage:
 		setup:
-			- setNamespace("Webapp")
+			- setNamespace("SpravMiSlizbu")
 
 	security.passwords: App\Model\Security\Passwords
 	security.user: App\Model\Security\SecurityUser

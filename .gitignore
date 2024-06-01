@@ -14,3 +14,5 @@
 /tests/*.log
 /tests/tmp
 /tests/coverage.html
+
+/.idea

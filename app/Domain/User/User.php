@@ -19,6 +19,15 @@ class User
 {
 	use TId, TDateCreated, TDateModified, TDateDeleted, TCreatedBy, TDeletedBy;
 
+	public const ROLE_ADMIN = 'admin';
+	public const ROLE_USER = 'user';
+
+	public const STATE_FRESH = 1;
+	public const STATE_ACTIVATED = 2;
+	public const STATE_BLOCKED = 3;
+
+	public const STATES = [self::STATE_FRESH, self::STATE_BLOCKED, self::STATE_ACTIVATED];
+
 	/**
 	 * @ORM\Column(type="string", length=100)
 	 */

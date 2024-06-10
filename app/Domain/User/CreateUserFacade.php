@@ -33,7 +33,7 @@ class CreateUserFacade
 
 		// Set role
 		if (isset($data['role'])) {
-			$user->setRole((string) $data['role']);
+			$user->setLoginRole(1);
 		}
 
 		// Save user

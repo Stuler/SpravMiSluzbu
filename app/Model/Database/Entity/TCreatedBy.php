@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait TCreatedBy
 {
 	/**
-	 * @ORM\Column(type="integer")
+	 * @ORM\Column(type="integer", nullable=true)
 	 */
 	private int $createdBy;
 

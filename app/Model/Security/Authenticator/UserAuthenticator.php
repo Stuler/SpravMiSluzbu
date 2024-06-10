@@ -38,7 +38,7 @@ final class UserAuthenticator implements Authenticator
 			throw new AuthenticationException('The password is incorrect.', self::InvalidCredential);
 		}
 
-		$user->changeLoggedAt();
+		$user->setDateLastLogin();
 		$this->em->flush();
 
 		return $this->createIdentity($user);

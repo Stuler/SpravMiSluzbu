@@ -17,15 +17,18 @@ class UserFixture extends AbstractFixture
 	public function load(ObjectManager $manager): void
 	{
 		foreach ($this->getUsers() as $user) {
+			$loginRole = $this->getReference(LoginRoleFixture::ADMIN_ROLE);
+
 			$entity = new User(
 				$user['name'],
 				$user['surname'],
 				$user['email'],
 				$user['username'],
-				$this->container->getByType(Passwords::class)->hash('admin')
+				$this->container->getByType(Passwords::class)->hash($user['password']),
+				$loginRole
 			);
 			$entity->activate();
-			$entity->setRole($user['role']);
+			$entity->setLoginRole($loginRole);
 
 			$manager->persist($entity);
 		}
@@ -37,7 +40,15 @@ class UserFixture extends AbstractFixture
 	 */
 	protected function getUsers(): iterable
 	{
-		yield ['email' => 'admin@admin.cz', 'name' => 'Contributte', 'surname' => 'Admin', 'username' => 'contributte', 'role' => User::ROLE_ADMIN];
+		yield [
+			'email' => 'admin@admin.cz',
+			'name' => 'padmin',
+			'surname' => 'Admin',
+			'username' => 'adminpj',
+			'role' => User::ROLE_ADMIN,
+			'password' => 'password',
+			'loginRole' => 1,
+		];
 	}
 
 }

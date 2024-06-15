@@ -22,11 +22,11 @@ class User
 	use TId, TDateCreated, TDateModified, TDateDeleted, TCreatedBy, TDeletedBy;
 
 	public const ROLE_ADMIN = 'admin';
-	public const ROLE_ADMIN_ID = 1;
 	public const ROLE_MEMBER = 'member';
-	public const ROLE_MEMBER_ID = 2;
 	public const ROLE_GUEST = 'guest';
-	public const ROLE_GUEST_ID = 3;
+	public const ROLE_PREMIUM = 'premium';
+	public const ROLE_PROVIDER = 'provider';
+	public const ROLE_PRO = 'pro';
 
 	public const STATE_FRESH = 1;
 	public const STATE_ACTIVATED = 2;

@@ -23,7 +23,12 @@ final class StaticAuthorizator extends Permission
 	 */
 	protected function addRoles(): void
 	{
-		$this->addRole(User::ROLE_ADMIN);
+		$this->addRole(User::ROLE_GUEST);
+		$this->addRole(User::ROLE_MEMBER, User::ROLE_GUEST);
+		$this->addRole(User::ROLE_PREMIUM, User::ROLE_MEMBER);
+		$this->addRole(User::ROLE_PROVIDER, User::ROLE_MEMBER);
+		$this->addRole(User::ROLE_PRO, User::ROLE_PROVIDER);
+		$this->addRole(User::ROLE_ADMIN, [User::ROLE_GUEST, User::ROLE_MEMBER, User::ROLE_PREMIUM, User::ROLE_PROVIDER, User::ROLE_PRO]);
 	}
 
 	/**

@@ -28,30 +28,20 @@ jobs:
 
             - name: Deploy to test environment
               if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
-              env:
-                  FTP_SERVER: ${{ secrets.TEST_FTP_SERVER }}
-                  FTP_USERNAME: ${{ secrets.TEST_FTP_USERNAME }}
-                  FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
-              run: |
-                  apt-get update && apt-get install -y lftp
-                  lftp -f "
-                  open $FTP_SERVER
-                  user $FTP_USERNAME $FTP_PASSWORD
-                  mirror --reverse --delete --verbose ./ /www/spravmisluzbu
-                  bye
-                  "
+              uses: SamKirkland/FTP-Deploy-Action@4.3.1
+              with:
+                  ftp-server: ${{ secrets.TEST_FTP_SERVER }}
+                  ftp-username: ${{ secrets.TEST_FTP_USERNAME }}
+                  ftp-password: ${{ secrets.TEST_FTP_PASSWORD }}
+                  local-dir: ./ # Directory to upload
+                  server-dir: /www/spravmisluzbu # Directory on server
 
             - name: Deploy to production
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              env:
-                  FTP_SERVER: ${{ secrets.PROD_FTP_SERVER }}
-                  FTP_USERNAME: ${{ secrets.PROD_FTP_USERNAME }}
-                  FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
-              run: |
-                  apt-get update && apt-get install -y lftp
-                  lftp -f "
-                  open $FTP_SERVER
-                  user $FTP_USERNAME $FTP_PASSWORD
-                  mirror --reverse --delete --verbose ./ /www
-                  bye
-                  "
+              uses: SamKirkland/FTP-Deploy-Action@4.3.1
+              with:
+                  ftp-server: ${{ secrets.PROD_FTP_SERVER }}
+                  ftp-username: ${{ secrets.PROD_FTP_USERNAME }}
+                  ftp-password: ${{ secrets.PROD_FTP_PASSWORD }}
+                  local-dir: ./ # Directory to upload
+                  server-dir: /www # Directory on server

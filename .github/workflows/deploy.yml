@@ -26,6 +26,11 @@ jobs:
             - name: Install dependencies
               run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
 
+            - name: Remove vendor and node_modules
+              run: |
+                  rm -rf vendor
+                  rm -rf node_modules
+
             - name: Deploy to test environment
               if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
               uses: SamKirkland/FTP-Deploy-Action@4.3.1
@@ -33,7 +38,7 @@ jobs:
                   server: ${{ secrets.TEST_FTP_SERVER }}
                   username: ${{ secrets.TEST_FTP_USERNAME }}
                   password: ${{ secrets.TEST_FTP_PASSWORD }}
-                  local-dir: ./
+                  local-dir: ./ # Directory to upload
                   server-dir: /www/spravmisluzbu/ # Directory on server
 
             - name: Deploy to production
@@ -44,4 +49,14 @@ jobs:
                   username: ${{ secrets.PROD_FTP_USERNAME }}
                   password: ${{ secrets.PROD_FTP_PASSWORD }}
                   local-dir: ./ # Directory to upload
-                  server-dir: /www # Directory on server
+                  server-dir: /www/ # Directory on server
+
+            - name: Install dependencies on server (Test environment)
+              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+              run: |
+                  ssh ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} "cd /www/spravmisluzbu && composer install --no-dev --optimize-autoloader"
+
+            - name: Install dependencies on server (Production environment)
+              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+              run: |
+                  ssh ${{ secrets.PROD_FTP_USERNAME }}@${{ secrets.PROD_FTP_SERVER }} "cd /www && composer install --no-dev --optimize-autoloader"

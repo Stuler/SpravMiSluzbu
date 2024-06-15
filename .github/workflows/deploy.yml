@@ -33,7 +33,7 @@ jobs:
                   server: ${{ secrets.TEST_FTP_SERVER }}
                   username: ${{ secrets.TEST_FTP_USERNAME }}
                   password: ${{ secrets.TEST_FTP_PASSWORD }}
-                  local-dir: ./ # Directory to upload
+                  local-dir: ./
                   server-dir: /www/spravmisluzbu # Directory on server
 
             - name: Deploy to production

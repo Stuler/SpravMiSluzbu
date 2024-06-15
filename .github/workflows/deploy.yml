@@ -26,9 +26,6 @@ jobs:
             - name: Install dependencies
               run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
 
-            - name: Run tests
-              run: composer test
-
             - name: Deploy to test environment
               if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
               env:

@@ -34,7 +34,7 @@ jobs:
                   username: ${{ secrets.TEST_FTP_USERNAME }}
                   password: ${{ secrets.TEST_FTP_PASSWORD }}
                   local-dir: ./
-                  server-dir: /www/spravmisluzbu # Directory on server
+                  server-dir: /www/spravmisluzbu/ # Directory on server
 
             - name: Deploy to production
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'

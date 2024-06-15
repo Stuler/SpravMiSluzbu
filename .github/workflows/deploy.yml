@@ -51,12 +51,26 @@ jobs:
                   local-dir: ./ # Directory to upload
                   server-dir: /www/ # Directory on server
 
+            - name: Debug SSH connection (Test environment)
+              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+              run: |
+                  echo "$SSH_PRIVATE_KEY" > ssh_key
+                  chmod 600 ssh_key
+                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} "echo 'SSH connection successful'"
+
             - name: Install dependencies on server (Test environment)
               if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
               run: |
-                  ssh ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} "cd /www/spravmisluzbu && composer install --no-dev --optimize-autoloader"
+                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} "cd /www/spravmisluzbu && composer install --no-dev --optimize-autoloader"
+
+            - name: Debug SSH connection (Production environment)
+              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+              run: |
+                  echo "$SSH_PRIVATE_KEY" > ssh_key
+                  chmod 600 ssh_key
+                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.PROD_FTP_USERNAME }}@${{ secrets.PROD_FTP_SERVER }} "echo 'SSH connection successful'"
 
             - name: Install dependencies on server (Production environment)
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'
               run: |
-                  ssh ${{ secrets.PROD_FTP_USERNAME }}@${{ secrets.PROD_FTP_SERVER }} "cd /www && composer install --no-dev --optimize-autoloader"
+                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.PROD_FTP_USERNAME }}@${{ secrets.PROD_FTP_SERVER }} "cd /www && composer install --no-dev --optimize-autoloader"

@@ -24,7 +24,7 @@ jobs:
                   php-version: '8.2'
 
             - name: Install dependencies
-              uses: php-actions/composer@v6
+              uses: ramsey/composer-install@v2
               with:
                   args: install --prefer-dist --optimize-autoloader
 

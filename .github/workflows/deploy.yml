@@ -22,16 +22,12 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: '8.2'
-
-            - name: Install GD library
-              run: sudo apt-get update && sudo apt-get install -y php8.2-gd
+                  extensions: mbstring, gd
 
             - name: Install dependencies
-              uses: php-actions/composer@v6
+              uses: ramsey/composer-install@v2
               with:
-                  php_version: '8.2'
-                  command: 'install'
-                  args: '--prefer-dist --optimize-autoloader'
+                  composer-options: '--prefer-dist --optimize-autoloader'
 
             - name: Remove node_modules
               run: |

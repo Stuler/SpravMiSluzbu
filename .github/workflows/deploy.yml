@@ -24,9 +24,6 @@ jobs:
                   php-version: '8.2'
                   extensions: mbstring, gd
 
-            - name: Install GD library
-              run: sudo apt-get install -y php8.2-gd
-
             - name: Install dependencies
               uses: php-actions/composer@v6
               with:

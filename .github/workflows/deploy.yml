@@ -43,7 +43,7 @@ jobs:
                   port: 21
                   protocol: ftp
                   local-dir: ./ # Directory to upload
-                  server-dir: /www/domains/stuly/ # Directory on server
+                  server-dir: /www/domains/stuly.sk/ # Directory on server
 
             - name: Deploy to production
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -57,20 +57,20 @@ jobs:
                   local-dir: ./ # Directory to upload
                   server-dir: /www/ # Directory on server
 
-            - name: Apply database migrations on server (Test environment)
-              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
-              env:
-                  SSH_PRIVATE_KEY: ${{ secrets.TEST_FTP_PASSWORD }}
-              run: |
-                  echo "${SSH_PRIVATE_KEY}" > ssh_key
-                  chmod 600 ssh_key
-                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} 'cd /www/spravmisluzbu && php bin/console.php migrations:migrate'
-
-            - name: Apply database migrations on server (Production environment)
-              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              env:
-                  SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-              run: |
-                  echo "${SSH_PRIVATE_KEY}" > ssh_key
-                  chmod 600 ssh_key
-                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.PROD_SSH_USERNAME }}@${{ secrets.PROD_SSH_SERVER }} 'cd /www && php bin/console.php migrations:migrate'
+#            - name: Apply database migrations on server (Test environment)
+#              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+#              env:
+#                  SSH_PRIVATE_KEY: ${{ secrets.TEST_FTP_PASSWORD }}
+#              run: |
+#                  echo "${SSH_PRIVATE_KEY}" > ssh_key
+#                  chmod 600 ssh_key
+#                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.TEST_FTP_USERNAME }}@${{ secrets.TEST_FTP_SERVER }} 'cd /www/spravmisluzbu && php bin/console.php migrations:migrate'
+#
+#            - name: Apply database migrations on server (Production environment)
+#              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#              env:
+#                  SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+#              run: |
+#                  echo "${SSH_PRIVATE_KEY}" > ssh_key
+#                  chmod 600 ssh_key
+#                  ssh -i ssh_key -o StrictHostKeyChecking=no ${{ secrets.PROD_SSH_USERNAME }}@${{ secrets.PROD_SSH_SERVER }} 'cd /www && php bin/console.php migrations:migrate'

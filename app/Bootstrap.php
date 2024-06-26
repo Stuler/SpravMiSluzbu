@@ -21,8 +21,7 @@ final class Bootstrap
 			$compiler->addConfig(['parameters' => $configurator->getEnvironmentParameters()]);
 		};
 
-		// According to NETTE_DEBUG env;
-		$configurator->setDebugMode( getenv('NETTE_DEBUG', true) === '1');
+		$configurator->setDebugMode('192.168.0.201');
 
 		// Enable tracy and configure it
 		$configurator->enableTracy(__DIR__ . '/../var/log');

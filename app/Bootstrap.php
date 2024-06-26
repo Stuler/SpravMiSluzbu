@@ -22,7 +22,7 @@ final class Bootstrap
 		};
 
 		// According to NETTE_DEBUG env;
-		$configurator->setDebugMode(true);
+		$configurator->setDebugMode( getenv('NETTE_DEBUG', true) === '1');
 
 		// Enable tracy and configure it
 		$configurator->enableTracy(__DIR__ . '/../var/log');

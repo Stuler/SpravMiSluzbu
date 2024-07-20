@@ -1,0 +1,85 @@
+// main: ../main.scss
+/*--------------------------------------------------------------
+# Team Section
+--------------------------------------------------------------*/
+.team {
+  .team-member {
+    background-color: var(--surface-color);
+    box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-radius: 5px;
+
+    .member-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      height: 40px;
+      opacity: 0;
+      transition: ease-in-out 0.3s;
+      background: color-mix(in srgb, var(--background-color), transparent 20%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      a {
+        transition: color 0.3s;
+        color: var(--heading-color);
+        margin: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          line-height: 0;
+        }
+
+        &:hover {
+          color: var(--accent-color);
+        }
+      }
+
+      i {
+        font-size: 18px;
+        margin: 0 2px;
+      }
+    }
+
+    .member-info {
+      padding: 25px 15px;
+      text-align: center;
+
+      h4 {
+        font-weight: 700;
+        margin-bottom: 5px;
+        font-size: 18px;
+        color: color-mix(in srgb, var(--default-color), transparent 20%);
+      }
+
+      span {
+        display: block;
+        font-size: 13px;
+        font-weight: 400;
+        color: color-mix(in srgb, var(--default-color), transparent 40%);
+      }
+
+      p {
+        font-style: italic;
+        font-size: 14px;
+        line-height: 26px;
+        color: color-mix(in srgb, var(--default-color), transparent 40%);
+      }
+    }
+
+    &:hover {
+      .social {
+        opacity: 1;
+      }
+    }
+  }
+}

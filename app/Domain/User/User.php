@@ -40,12 +40,6 @@ class User
 	/** @ORM\Column(type="string", length=255, nullable=FALSE, unique=false) */
 	private string $surname;
 
-
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
-	private string $username;
-
 	/**
 	 * @ORM\Column(type="string", length=100)
 	 */
@@ -55,9 +49,9 @@ class User
 	private int $state;
 
 	/**
-	 * @ORM\Column(type="string", length=100, nullable=true)
+	 * @ORM\Column(type="string", length=100, nullable=FALSE)
 	 */
-	private ?string $password = null;
+	private string $password;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Domain\LoginRole\LoginRole")
@@ -70,20 +64,37 @@ class User
 	 */
 	private \DateTime $dateLastLogin;
 
-	/** @ORM\Column(type="string", length=255, nullable=FALSE) */
-	private string $role;
-
 	/**
 	 * @ORM\Column(type="text", nullable=true)
 	 */
 	private ?string $note = null;
 
+	/**
+	 * Street number
+	 * @ORM\Column(type="string", length=100, nullable=FALSE)
+	 */
+	private string $streetNo;
+
+	/**
+	 * City
+	 * @ORM\Column(type="string", length=100, nullable=FALSE)
+	 */
+	private string $city;
+
+	/**
+	 * Zip code
+	 * @ORM\Column(type="string", length=100, nullable=FALSE)
+	 */
+	private string $zipCode;
+
 	public function __construct(
 		string $name,
 		string $surname,
 		string $email,
-		string $username,
 		string $passwordHash,
+		string $streetNo,
+		string $city,
+		string $zipCode,
 		LoginRole $loginRole
 
 	)
@@ -91,21 +102,25 @@ class User
 		$this->name = $name;
 		$this->surname = $surname;
 		$this->email = $email;
-		$this->username = $username;
 		$this->password = $passwordHash;
 		$this->dateCreated = new \DateTime();
 		$this->loginRole = $loginRole;
+		$this->streetNo = $streetNo;
+		$this->city = $city;
+		$this->zipCode = $zipCode;
 	}
 
 	// Getters and setters...
-	public function getUsername(): string
-	{
-		return $this->nick;
+	public function getName(): string {
+		return $this->name;
 	}
 
-	public function setUsername(string $nick): void
-	{
-		$this->nick = $nick;
+	public function getSurname(): string {
+		return $this->surname;
+	}
+
+	public function getFullName(): string {
+		return $this->name . ' ' . $this->surname;
 	}
 
 	public function getEmail(): string

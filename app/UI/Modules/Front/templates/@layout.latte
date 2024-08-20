@@ -31,7 +31,7 @@
 				<li class="dropdown login-btn" style="padding-right: 18px"><a href="#"><span>Môj účet<i class="fa-regular fa-user toggle-dropdown"></i></span></a>
 				  <ul>
 					<li><a href="#">Prihlásiť</a></li>
-					<li><a href="#">Vytvoriť nový účet</a></li>
+					<li><a n:href="Sign:up">Vytvoriť nový účet</a></li>
 				  </ul>
 				</li>
 			  </ul>
@@ -60,14 +60,9 @@
 
 		  <!-- Section Title -->
 		  <div class="container section-title" data-aos="fade-up">
-			<h2>Starter Section</h2>
-			<p><span>Section Title</span> <span class="description-title">
-			Direda Flowed</span></p>
+		  {include #content}
 		  </div><!-- End Section Title -->
 
-		  <div class="container" data-aos="fade-up">
-			<p>Use this page as a starter for your own custom pages.</p>
-		  </div>
 
 		</section><!-- /Starter Section Section -->
 	</main>
@@ -151,6 +146,6 @@
   <script src="https://kit.fontawesome.com/ceef537ffd.js" crossorigin="anonymous"></script>
 {$basePath}/
   <!-- Main JS File -->
-  <script src="assets/js/main.js"></script>
+  <script src="{$basePath}/assets/js/main.js"></script>
 
 {/}

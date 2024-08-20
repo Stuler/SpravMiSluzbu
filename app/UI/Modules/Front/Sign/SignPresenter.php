@@ -2,19 +2,24 @@
 
 namespace App\UI\Modules\Front\Sign;
 
+use App\Domain\User\CreateUserFacade;
 use App\Model\App;
 use App\Model\Exception\Runtime\AuthenticationException;
 use App\UI\Form\BaseForm;
 use App\UI\Form\FormFactory;
-use App\UI\Modules\Admin\BaseAdminPresenter;
+use App\UI\Modules\Front\BaseFrontPresenter;
+use Nette\DI\Attributes\Inject;
 
-final class SignPresenter extends BaseAdminPresenter
+final class SignPresenter extends BaseFrontPresenter
 {
 
 	public string $backlink;
 
-	/** @var FormFactory @inject */
+	#[Inject]
 	public FormFactory $formFactory;
+
+	#[Inject]
+	public CreateUserFacade $createUserFacade;
 
 	public function checkRequirements(mixed $element): void
 	{
@@ -25,8 +30,48 @@ final class SignPresenter extends BaseAdminPresenter
 
 	}
 
-	public function createComponentSignUpForm() {
+	/**
+	 * Basic registration form
+	 */
+	public function createComponentSignUpForm(): BaseForm {
 
+		$form = $this->formFactory->forFrontend();
+		$form->addText('email', 'Email')
+			->setRequired();
+		$form->addText('name', 'Name')
+			->setRequired();
+		$form->addText('surname', 'Surname')
+			->setRequired();
+		$form->addText('street', 'Street')
+			->setRequired();
+		$form->addText('city', 'City')
+			->setRequired();
+		$form->addText('zipCode', 'Zip code')
+			->setRequired();
+		$form->addPassword('password', 'Password')
+			->setRequired();
+		$form->addPassword('password2', 'Password again')
+			->setRequired();
+		$form->addSubmit('submit', 'Sign up');
+
+		$form->onSuccess[] = [$this, 'processSignUpForm'];
+
+		return $form;
+	}
+
+	/**
+	 * Process registration form
+	 */
+	public function processSignUpForm(BaseForm $form): void {
+		$values = $form->getValues();
+		try {
+			$user = $this->createUserFacade->createUser((array) $values);
+		} catch (\Exception $e) {
+			$form->addError($e->getMessage());
+			return;
+		}
+		$this->flashSuccess('You have been successfully registered');
+		$this->redirect(App::DESTINATION_AFTER_SIGN_UP);
 	}
 
 	public function actionUpPro() {
@@ -68,13 +113,13 @@ final class SignPresenter extends BaseAdminPresenter
 		$this->redirect(App::DESTINATION_AFTER_SIGN_IN);
 	}
 
-	protected function createComponentLoginForm(): BaseForm
+	protected function createComponentSignInForm(): BaseForm
 	{
 		$form = $this->formFactory->forBackend();
 		$form->addEmail('email')
-			->setRequired(true);
+			->setRequired();
 		$form->addPassword('password')
-			->setRequired(true);
+			->setRequired();
 		$form->addCheckbox('remember')
 			->setDefaultValue(true);
 		$form->addSubmit('submit');

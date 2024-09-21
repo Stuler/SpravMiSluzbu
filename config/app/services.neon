@@ -33,6 +33,7 @@ services:
 	# Domain =================
 	- App\Domain\User\CreateUserFacade
 	- App\Model\Mail\MailSender
+	- App\Domain\CategoryService\CategoryServiceFacade
 
 	# Console ================
 	- App\Console\HelloCommand

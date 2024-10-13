@@ -3,12 +3,22 @@
 <section class="section">
 	<div class="row">
 		<div class="col-lg">
-
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">{$title}</h5>
-					<a n:href="CategoryService:edit" class="btn btn-primary">+ Pridať kategóriu</a>
-				</div>
+			<div class="card-body">
+				<div class="pagetitle">
+					<h1>{$title}</h1>
+				</div><!-- End Page Title -->
+				<a n:href="CategoryService:edit" class="btn btn-primary">+ Pridať kategóriu</a>
+			</div>
+			<div class="col-12">
+				{foreach $mainCategories as $category}
+					<div class="card mt-4">
+						<div class="card-body">
+							<h5 class="card-title">{$category->getName()}</h5>
+							{var $category_id = $category->getId()}
+							{control "categoryServiceViewer-$category_id"}
+						</div>
+					</div>
+				{/foreach}
 			</div>
 		</div>
 	</div>

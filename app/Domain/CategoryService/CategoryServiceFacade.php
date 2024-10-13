@@ -6,7 +6,7 @@ use App\Domain\User\User;
 use App\Model\Database\EntityManagerDecorator;
 use App\Model\Security\Identity;
 use Nette\Security\User as NetteUser;
-use Nette\DI\Attributes\Inject;
+use Nette\Utils\ArrayHash;
 
 readonly class CategoryServiceFacade
 {
@@ -18,23 +18,28 @@ readonly class CategoryServiceFacade
 	{
 	}
 
+	/**
+	 * Get all categories with parent_id = null
+	 */
 	public function getParentCategories(): array
 	{
-		$categories = $this->em->getRepository(CategoryService::class)->findAll();
+		$categories = $this->em->getRepository(CategoryService::class)->findBy(['parent' => null]);
 		$categoriesArray = [];
 		foreach ($categories as $category) {
-			$categoriesArray[] = [
-				'id' => $category->getId(),
-				'name' => $category->getName(),
-			];
+			$categoriesArray[$category->getId()] = $category->getName();
 		}
 		return $categoriesArray;
 	}
 
-	public function createCategory(array $values): void
+	public function saveCategory(ArrayHash $values): void
 	{
-		$parent = $values['parentId'] !== null
-			? $this->em->getRepository(CategoryService::class)->find($values['parentId'])
+		if ($values['id'] !== null) {
+			$this->updateCategory($values);
+			return;
+		}
+
+		$parent = $values['parent_id'] !== null
+			? $this->em->getRepository(CategoryService::class)->find($values['parent_id'])
 			: null;
 
 		/** @var Identity $identity */
@@ -43,7 +48,7 @@ readonly class CategoryServiceFacade
 		/** @var User $userEntity */
 		$userEntity = $this->em->getRepository(User::class)->find($identity->getId());
 
-		$category = new CategoryService($values['name'], $values['description'], $parent, $userEntity);
+		$category = new CategoryService($values['name'], $values['description'] ?? null, $parent, $userEntity);
 		$this->em->persist($category);
 		$this->em->flush();
 	}
@@ -51,6 +56,46 @@ readonly class CategoryServiceFacade
 	public function getCategory(?int $id): ?CategoryService
 	{
 		return $this->em->getRepository(CategoryService::class)->find($id);
+	}
+
+	public function deleteCategory(int $id): void
+	{
+		$category = $this->em->getRepository(CategoryService::class)->find($id);
+		$category->setDateDeleted(new \DateTime());
+		$category->setDeletedBy($this->user->getId());
+		$this->em->flush();
+	}
+
+	/**
+	 * Get all categories with parent_id = null
+	 * @return array
+	 */
+	public function getMainCategories(): array
+	{
+		return $this->em->getRepository(CategoryService::class)->findBy(['parent' => null]);
+	}
+
+	/**
+	 * Get all categories with parent_id = $categoryId
+	 * @param int $categoryId
+	 * @return array
+	 */
+	public function getCategoriesByMainCategoryId(int $categoryId): array
+	{
+		return $this->em->getRepository(CategoryService::class)
+			->findBy([
+				'parent' => $categoryId,
+				'dateDeleted' => null
+			]);
+	}
+
+	public function updateCategory($values): void
+	{
+		$category = $this->em->getRepository(CategoryService::class)->find($values['id']);
+		$category->setName($values['name']);
+		$category->setDescription($values['description']);
+		$category->setDateModified(new \DateTime());
+		$this->em->flush();
 	}
 
 }

@@ -40,6 +40,9 @@ services:
 
 	- App\Model\Database\QueryManager
 
+	# Components =============
+	- App\UI\Control\Component\CategoryServiceViewer\CategoryServiceViewerCompFactory
+
 latte:
 	macros:
 		- App\Model\Latte\Macros::register

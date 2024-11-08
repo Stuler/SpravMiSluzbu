@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "es2015",
+    "baseUrl": "./react/Dashboard",
+    "lib": [
+      "dom",
+      "es2015",
+      "es2017"
+    ],
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "paths": {
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react-dom": [
+        "./node_modules/react-dom"
+      ]
+    }
+  },
+  "include": [
+    "www/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "app",
+    "bin",
+    "config",
+    "css",
+    "docs",
+    "images",
+    "log",
+    "temp",
+    "vendor",
+    "web"
+  ]
+}

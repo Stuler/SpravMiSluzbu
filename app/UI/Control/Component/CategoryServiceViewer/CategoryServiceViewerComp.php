@@ -49,9 +49,13 @@ class CategoryServiceViewerComp extends BaseControl
 			);
 
 		$grid->addInlineEdit()
+			->setClass('btn btn-primary ajax')
 			->onControlAdd[] = function ($container): void {
 			$container->addText('id', '')->setAttribute('readonly');
 			$container->addText('name', 'Názov');
+
+			$this->flashMessage("Edit");
+			$this->redrawControl();
 		};
 
 
@@ -64,8 +68,10 @@ class CategoryServiceViewerComp extends BaseControl
 		};
 
 		$grid->getInlineAdd()->onSubmit[] = function ($values) use ($grid) {
-			$this->categoryServiceFacade->saveCategory($values);
-			$grid->setDataSource($this->categoryServiceFacade->getCategoriesByMainCategoryId($this->categoryId));
+//			$this->categoryServiceFacade->saveCategory($values);
+//			$grid->setDataSource($this->categoryServiceFacade->getCategoriesByMainCategoryId($this->categoryId));
+			bdump($values);
+			$this->flashMessage("Add");
 			$this->redrawControl();
 		};
 
@@ -74,6 +80,7 @@ class CategoryServiceViewerComp extends BaseControl
 
 	public function columnNameEdited()
 	{
+		bdump('edit');
 		$this->categoryServiceFacade->updateCategory($values);
 		$this->flashMessage('Názov kategórie bol úspešne zmenený', 'success');
 		$this->redrawControl();

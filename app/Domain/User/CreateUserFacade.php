@@ -2,45 +2,64 @@
 
 namespace App\Domain\User;
 
+use App\Domain\LoginRole\LoginRole;
 use App\Model\Database\EntityManagerDecorator;
+use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
 
-class CreateUserFacade
+readonly class CreateUserFacade
 {
 
-	private EntityManagerDecorator $em;
 
 	public function __construct(
-		EntityManagerDecorator $em
+		private EntityManagerDecorator $em,
+		private MailSender $mailSender,
 	)
 	{
-		$this->em = $em;
 	}
 
 	/**
 	 * @param array<string, scalar> $data
+	 * @throws \Exception
 	 */
 	public function createUser(array $data): User
 	{
-		// Create User
+		$this->validateInputs($data);
+
+		$loginRole = $data['role'] ?? User::ROLE_MEMBER;
+		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
 		$user = new User(
-			(string) $data['name'],
-			(string) $data['surname'],
-			(string) $data['email'],
-			(string) $data['username'],
-			Passwords::create()->hash(strval($data['password'] ?? md5(microtime())))
+			name: (string) $data['name'],
+			surname: (string) $data['surname'],
+			email: (string) $data['email'],
+			passwordHash: Passwords::create()->hash(strval($data['password'] ?? md5(microtime()))),
+			streetNo: (string) $data['street'],
+			city: (string) $data['city'],
+			zipCode: (string) $data['zipCode'],
+			loginRole: $loginRoleEntity,
 		);
+		$user->activate();
 
-		// Set role
-		if (isset($data['role'])) {
-			$user->setLoginRole(1);
-		}
-
-		// Save user
 		$this->em->persist($user);
 		$this->em->flush();
 
+		$this->mailSender->sendActivationEmail($user->getEmail(), $user->getName());
+
 		return $user;
+	}
+
+	/**
+	 * @throws \Exception
+	 */
+	private function validateInputs(array $data): void {
+		if ($data['password']!==$data['password2']) {
+			throw new \Exception('Passwords do not match');
+		}
+
+		$existingUser = $this->em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+		if ($existingUser) {
+			throw new \Exception('User with this email already exists');
+		}
 	}
 
 }

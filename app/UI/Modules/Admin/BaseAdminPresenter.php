@@ -3,10 +3,15 @@
 namespace App\UI\Modules\Admin;
 
 use App\Model\App;
+use App\Model\Database\EntityManagerDecorator;
 use App\UI\Modules\Base\SecuredPresenter;
+use Nette\DI\Attributes\Inject;
 
 abstract class BaseAdminPresenter extends SecuredPresenter
 {
+
+	#[Inject]
+	public EntityManagerDecorator $em;
 
 	public function checkRequirements(mixed $element): void
 	{

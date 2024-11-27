@@ -31,7 +31,7 @@
 				<li class="dropdown login-btn" style="padding-right: 18px"><a href="#"><span>Môj účet<i class="fa-regular fa-user toggle-dropdown"></i></span></a>
 				  <ul>
 					<li><a href="#">Prihlásiť</a></li>
-					<li><a href="#">Vytvoriť nový účet</a></li>
+					<li><a n:href="Sign:up">Vytvoriť nový účet</a></li>
 				  </ul>
 				</li>
 			  </ul>
@@ -44,9 +44,13 @@
 	<main role="main" class="main">
 		<!-- Starter Section Section -->
 		<section id="starter-section" class="starter-section section">
-			<div class="container section-title" data-aos="fade-up">
-				<img src="{$basePath}/assets/img/Under.jpg" alt="Starter Section Background" class="section-bg">
-			</div>
+
+		  <!-- Section Title -->
+		  <div class="container section-title" data-aos="fade-up">
+		  {include #content}
+		  </div><!-- End Section Title -->
+
+
 		</section><!-- /Starter Section Section -->
 	</main>
 
@@ -80,6 +84,6 @@
   <script src="https://kit.fontawesome.com/ceef537ffd.js" crossorigin="anonymous"></script>
 {$basePath}/
   <!-- Main JS File -->
-  <script src="assets/js/main.js"></script>
+  <script src="{$basePath}/assets/js/main.js"></script>
 
 {/}

@@ -5,10 +5,12 @@ on:
         branches:
             - main
             - beta
+            - dev
     pull_request:
         branches:
             - main
             - beta
+            - dev
 
 jobs:
     build:
@@ -32,6 +34,19 @@ jobs:
             - name: Remove node_modules
               run: |
                   rm -rf node_modules
+
+            - name: Deploy to dev environment
+              if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+              uses: SamKirkland/FTP-Deploy-Action@4.3.1
+              with:
+                  server: ${{ secrets.DEV_FTP_SERVER }}
+                  username: ${{ secrets.DEV_FTP_USERNAME }}
+                  password: ${{ secrets.DEV_FTP_PASSWORD }}
+                  port: 21
+                  protocol: ftp
+                  local-dir: ./ # Directory to upload
+                  server-dir: /www/subdom/test/ # Directory on server
+
 
             - name: Deploy to test environment
               if: github.ref == 'refs/heads/beta' && github.event_name == 'push'

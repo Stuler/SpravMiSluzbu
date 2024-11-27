@@ -33,11 +33,15 @@ services:
 	# Domain =================
 	- App\Domain\User\CreateUserFacade
 	- App\Model\Mail\MailSender
+	- App\Domain\CategoryService\CategoryServiceFacade
 
 	# Console ================
 	- App\Console\HelloCommand
 
 	- App\Model\Database\QueryManager
+
+	# Components =============
+	- App\UI\Control\Component\CategoryServiceViewer\CategoryServiceViewerCompFactory
 
 latte:
 	macros:

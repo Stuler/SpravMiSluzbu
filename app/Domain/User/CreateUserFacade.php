@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\Domain\User;
 
@@ -6,6 +6,7 @@ use App\Domain\LoginRole\LoginRole;
 use App\Model\Database\EntityManagerDecorator;
 use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
+use Exception;
 
 readonly class CreateUserFacade
 {
@@ -13,14 +14,14 @@ readonly class CreateUserFacade
 
 	public function __construct(
 		private EntityManagerDecorator $em,
-		private MailSender $mailSender,
+		private MailSender             $mailSender,
 	)
 	{
 	}
 
 	/**
 	 * @param array<string, scalar> $data
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function createUser(array $data): User
 	{
@@ -29,13 +30,13 @@ readonly class CreateUserFacade
 		$loginRole = $data['role'] ?? User::ROLE_MEMBER;
 		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
 		$user = new User(
-			name: (string) $data['name'],
-			surname: (string) $data['surname'],
-			email: (string) $data['email'],
+			name: (string)$data['name'],
+			surname: (string)$data['surname'],
+			email: (string)$data['email'],
 			passwordHash: Passwords::create()->hash(strval($data['password'] ?? md5(microtime()))),
-			streetNo: (string) $data['street'],
-			city: (string) $data['city'],
-			zipCode: (string) $data['zipCode'],
+			streetNo: (string)$data['street'],
+			city: (string)$data['city'],
+			zipCode: (string)$data['zipCode'],
 			loginRole: $loginRoleEntity,
 		);
 		$user->activate();
@@ -49,16 +50,17 @@ readonly class CreateUserFacade
 	}
 
 	/**
-	 * @throws \Exception
+	 * @throws Exception
 	 */
-	private function validateInputs(array $data): void {
-		if ($data['password']!==$data['password2']) {
-			throw new \Exception('Passwords do not match');
+	private function validateInputs(array $data): void
+	{
+		if ($data['password'] !== $data['password2']) {
+			throw new Exception('Passwords do not match');
 		}
 
 		$existingUser = $this->em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 		if ($existingUser) {
-			throw new \Exception('User with this email already exists');
+			throw new Exception('User with this email already exists');
 		}
 	}
 

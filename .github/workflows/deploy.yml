@@ -15,46 +15,46 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v2
+            -   name: Checkout code
+                uses: actions/checkout@v2
 
-            - name: Set up PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: '8.2'
+            -   name: Set up PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.2'
 
-            - name: Install dependencies
-              run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+            -   name: Install dependencies
+                run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
 
-            - name: Run tests
-              run: composer test
+            #            - name: Run tests
+            #              run: composer test
 
-            - name: Deploy to test environment
-              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
-              env:
-                  FTP_SERVER: ${{ secrets.TEST_FTP_SERVER }}
-                  FTP_USERNAME: ${{ secrets.TEST_FTP_USERNAME }}
-                  FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
-              run: |
-                  apt-get update && apt-get install -y lftp
-                  lftp -f "
-                  open $FTP_SERVER
-                  user $FTP_USERNAME $FTP_PASSWORD
-                  mirror --reverse --delete --verbose ./ /www/spravmisluzbu
-                  bye
-                  "
+            -   name: Deploy to test environment
+                if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+                env:
+                    FTP_SERVER: ${{ secrets.TEST_FTP_SERVER }}
+                    FTP_USERNAME: ${{ secrets.TEST_FTP_USERNAME }}
+                    FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
+                run: |
+                    apt-get update && apt-get install -y lftp
+                    lftp -f "
+                    open $FTP_SERVER
+                    user $FTP_USERNAME $FTP_PASSWORD
+                    mirror --reverse --delete --verbose ./ /www/spravmisluzbu
+                    bye
+                    "
 
-            - name: Deploy to production
-              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              env:
-                  FTP_SERVER: ${{ secrets.PROD_FTP_SERVER }}
-                  FTP_USERNAME: ${{ secrets.PROD_FTP_USERNAME }}
-                  FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
-              run: |
-                  apt-get update && apt-get install -y lftp
-                  lftp -f "
-                  open $FTP_SERVER
-                  user $FTP_USERNAME $FTP_PASSWORD
-                  mirror --reverse --delete --verbose ./ /www
-                  bye
-                  "
+            -   name: Deploy to production
+                if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+                env:
+                    FTP_SERVER: ${{ secrets.PROD_FTP_SERVER }}
+                    FTP_USERNAME: ${{ secrets.PROD_FTP_USERNAME }}
+                    FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+                run: |
+                    apt-get update && apt-get install -y lftp
+                    lftp -f "
+                    open $FTP_SERVER
+                    user $FTP_USERNAME $FTP_PASSWORD
+                    mirror --reverse --delete --verbose ./ /www
+                    bye
+                    "

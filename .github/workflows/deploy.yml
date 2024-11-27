@@ -47,9 +47,9 @@ jobs:
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                 env:
-                    FTP_SERVER: ${{ secrets.PROD_FTP_SERVER }}
-                    FTP_USERNAME: ${{ secrets.PROD_FTP_USERNAME }}
-                    FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+                    FTP_SERVER: ${{ secrets.TEST_FTP_SERVER }}
+                    FTP_USERNAME: ${{ secrets.TEST_FTP_USERNAME }}
+                    FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
                 run: |
                     apt-get update && apt-get install -y lftp
                     lftp -f "

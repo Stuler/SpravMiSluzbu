@@ -33,7 +33,7 @@ nettrine.dbal:
 nettrine.orm:
 	entityManagerDecoratorClass: App\Model\Database\EntityManagerDecorator
 	configuration:
-		autoGenerateProxyClasses: %debugMode%
+		autoGenerateProxyClasses: true
 
 nettrine.orm.annotations:
 	mapping:

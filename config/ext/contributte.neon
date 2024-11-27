@@ -18,7 +18,7 @@ contributte.console:
 contributte.mailing:
 	template:
 		config:
-			layout: %appDir%/resources/mail/@layout.latte
+			layout: %rootDir%/resources/mail/@layout.latte
 
 contributte.monolog:
 	holder:
@@ -28,7 +28,7 @@ contributte.monolog:
 	channel:
 		default:
 			handlers:
-				- Monolog\Handler\RotatingFileHandler(%appDir%/../var/log/syslog.log, 30, Monolog\Logger::WARNING)
+				- Monolog\Handler\RotatingFileHandler(%rootDir%/../var/log/syslog.log, 30, Monolog\Logger::WARNING)
 			processors:
 				- Monolog\Processor\WebProcessor()
 				- Monolog\Processor\IntrospectionProcessor()

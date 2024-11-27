@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="sk">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -7,7 +7,7 @@
 	<link rel="shortcut icon" href="{$basePath}/favicon.ico">
 
 	<!-- Seo -->
-	<title>{block #title|stripHtml|trim}Webapp Skeleton{/} | Contributte</title>
+	<title>{block #title|stripHtml|trim}Sprav Mi Službu{/} | Všetko pre Tvoj projekt</title>
 
 	<!-- Meta -->
 	<meta name="description" n:ifset="#description" content="{include #description}">
@@ -18,7 +18,8 @@
 
 	{block #head}{/}
 </head>
-<body>
+<body class="index-page">
+
 {block #main}
 	<div class="container">
 		{include #content}

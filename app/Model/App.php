@@ -10,5 +10,6 @@ final class App
 	public const DESTINATION_SIGN_IN = ':Admin:Sign:in';
 	public const DESTINATION_AFTER_SIGN_IN = self::DESTINATION_ADMIN_HOMEPAGE;
 	public const DESTINATION_AFTER_SIGN_OUT = self::DESTINATION_FRONT_HOMEPAGE;
+	const DESTINATION_AFTER_SIGN_UP = ':Front:Sign:in';
 
 }

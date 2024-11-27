@@ -1,38 +1,96 @@
 {layout '../../Base/templates/@layout.latte'}
 
 {block #head}
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" defer/>
-	<link rel="stylesheet" href="{$basePath}/assets/front.css" defer/>
-	<script src="{$basePath}/assets/front.js" defer></script>
+	<!-- Favicons -->
+	<link href="{$basePath}/assets_front/img/favicon.png" rel="icon">
+	<link href="{$basePath}/assets_front/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+	<!-- Fonts -->
+	<link href="https://fonts.googleapis.com" rel="preconnect">
+	<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Main CSS File -->
+	<link href="{$basePath}/bundle/front.bundle.css" rel="stylesheet">
 {/}
 
 {block #main}
-	<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-		<header class="masthead mb-auto">
-			<div class="inner">
-				<h3 class="masthead-brand">Webapp</h3>
-				<nav class="nav nav-masthead justify-content-center">
-					<a n:class="$presenter->isLinkCurrent(':Front:Home:') ? active, nav-link" n:href=":Front:Home:">Home</a>
-					<a n:class="$presenter->isLinkCurrent(':Admin:Home:') ? active, nav-link" n:href=":Admin:Home:">Admin</a>
-					<a n:class="$presenter->isLinkCurrent(':Pdf:Home:') ? active, nav-link" n:href=":Pdf:Home:">PDF example</a>
-				</nav>
+	<header id="header" class="header sticky-top">
+		<div class="topbar d-flex align-items-center">
+		  <div class="container d-flex justify-content-center justify-content-md-between">
+			<div class="contact-info d-flex align-items-center">
+			  <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:info@spravmisluzbu.sk">info@spravmisluzbu.sk</a></i>
 			</div>
-		</header>
+			<div class="social-links d-none d-md-flex align-items-center">
+			  <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+			  <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+			  <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+			  <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+			</div>
+		  </div>
+		</div><!-- End Top Bar -->
 
-		<main role="main" class="inner cover">
-			<h1 class="cover-heading">Webapp skeleton.</h1>
-			<p class="lead">This is example project based on <a href="https://nette.org">Nette Framework</a></p>
-			<p class="lead">And also many <a href="https://contributte.org">Contributte + Nettrine</a> packages.</p>
-			<div class="lead">
-				<a href="https://github.com/contributte/webapp-skeleton" class="btn btn-lg btn-secondary">Learn more in docs</a>
-			</div>
-		</main>
+		<div class="branding d-flex align-items-cente">
 
-		<footer class="mastfoot mt-auto">
-			<div class="inner">
-				<p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by
-					<a href="https://twitter.com/mdo">@mdo</a>.</p>
-			</div>
-		</footer>
-	</div>
+		  <div class="container position-relative d-flex align-items-center justify-content-between">
+			<a href="index.html" class="logo d-flex align-items-center">
+			  <img src="{$basePath}/assets_front/img/logo/logo_sprav mi sluzbu_2_bez textu.png" alt="Sprav mi službu.sk">
+			  <h1 class="sitename">Sprav Mi Službu</h1>
+			</a>
+
+			<nav id="navmenu" class="navmenu">
+			  <ul>
+				<li><span class="description-title"><a n:href="Home:default">Pridaj sa k profíkom!</a></span></li>
+				<li class="dropdown login-btn" style="padding-right: 18px"><a href="#"><span>Môj účet<i class="fa-regular fa-user toggle-dropdown"></i></span></a>
+				  <ul>
+					<li><a href="#">Prihlásiť</a></li>
+					<li><a n:href="Sign:up">Vytvoriť nový účet</a></li>
+				  </ul>
+				</li>
+			  </ul>
+			  <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+			</nav>
+		  </div>
+		</div>
+	</header>
+
+	<main role="main" class="main">
+		<!-- Starter Section Section -->
+		<section id="starter-section" class="starter-section section">
+
+		  <!-- Section Title -->
+		  <div class="container section-title" data-aos="fade-up">
+		  {include #content}
+		  </div><!-- End Section Title -->
+
+
+		</section><!-- /Starter Section Section -->
+	</main>
+
+	<footer id="footer" class="footer">
+		<div class="container copyright text-center mt-4">
+		  <p>© <span>Copyright</span> <strong class="px-1 sitename">Stuler</strong> <span>Všetky práva vyhradené</span></p>
+		</div>
+  	</footer>
+
+  	<!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="https://kit.fontawesome.com/ceef537ffd.js" crossorigin="anonymous"></script>
+  <script src="{$basePath}/assets_front/vendor/aos/aos.js"></script>
+  <script src="{$basePath}/assets_front/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="{$basePath}/assets_front/vendor/purecounter/purecounter_vanilla.js"></script>
+  <!-- Main JS File -->
+  <script src="{$basePath}/bundle/front.bundle.js"></script>
+
 {/}

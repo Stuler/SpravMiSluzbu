@@ -10,4 +10,9 @@ nettrine.cache:
 
 # Services ===================
 services:
-	mail.mailer: Contributte\Mail\Mailer\TraceableMailer(Contributte\Mail\Mailer\FileMailer(%tempDir%/mails))
+	mail.mailer:
+			class: Contributte\Mail\Mailer\SendmailMailer
+			setup:
+				- setBounceMail(mail@contributte.org)
+	mailBuilder: Contributte\Mailing\MailBuilder
+

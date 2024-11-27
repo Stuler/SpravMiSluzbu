@@ -19,7 +19,7 @@ parameters:
 
 	# File
 	files:
-		root: %appDir%/../data/files
+		root: %rootDir%/data/files
 
 	# Mailing
 	mailing:

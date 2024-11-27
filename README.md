@@ -58,7 +58,8 @@ composer create-project -s dev contributte/webapp-skeleton acme
    composer create-project -s dev contributte/webapp-skeleton
    ```
 
-2) After that, you have to setup Postgres >= 10 database. You can start it manually or use docker image `dockette/postgres:12`.
+2) After that, you have to setup Postgres >= 10 database. You can start it manually or use docker
+   image `dockette/postgres:12`.
 
    ```
    docker run -it -p 5432:5432 -e POSTGRES_PASSWORD=webapp -e POSTGRES_USER=webapp dockette/postgres:12
@@ -83,7 +84,8 @@ composer create-project -s dev contributte/webapp-skeleton acme
 
 4) Ok database is now running and application is configured to connect to it. Let's create initial data.
 
-   Run `NETTE_DEBUG=1 bin/console migrations:migrate` to create tables. Run `NETTE_DEBUG=1 bin/console doctrine:fixtures:load --append` to create first user(s).
+   Run `NETTE_DEBUG=1 bin/console migrations:migrate` to create tables.
+   Run `NETTE_DEBUG=1 bin/console doctrine:fixtures:load --append` to create first user(s).
 
    Or via task `make build`.
 
@@ -94,8 +96,8 @@ composer create-project -s dev contributte/webapp-skeleton acme
 6) Open http://localhost and enjoy!
 
    Take a look at:
-    - http://localhost:8000.
-    - http://localhost:8000/admin (admin@admin.cz / admin)
+	- http://localhost:8000.
+	- http://localhost:8000/admin (admin@admin.cz / admin)
 
 ### Install using [docker-compose](https://https://github.com/docker/compose/)
 
@@ -125,8 +127,8 @@ composer create-project -s dev contributte/webapp-skeleton acme
 4) Open http://localhost and enjoy!
 
    Take a look at:
-    - http://localhost.
-    - http://localhost/admin (admin@admin.cz / admin)
+	- http://localhost.
+	- http://localhost/admin (admin@admin.cz / admin)
 
 ## Features
 
@@ -134,40 +136,42 @@ Here is a list of all features you can find in this project.
 
 - PHP 8.0+
 - :package: Packages
-    - Nette 3+
-    - Contributte
-    - Nettrine
+	- Nette 3+
+	- Contributte
+	- Nettrine
 - :deciduous_tree: Structure
-    - `app`
-        - `config` - configuration files
-            - `env` - prod/dev/test environments
-            - `app` - application configs
-            - `ext` - extensions configs
-            - `local.neon` - local runtime config
-            - `local.neon.dist` - template for local config
-        - `domain` - business logic and domain specific classes
-        - `model` - application backbone
-        - `modules` - Front/Admin module, presenters and components
-        - `resources` - static content for mails and others
-        - `ui` - UI components and base classes
-        - `bootstrap.php` - Nette entrypoint
-    - `bin` - console entrypoint (`bin/console`)
-    - `db` - database files
-        - `fixtures` - PHP fixtures
-        - `migrations` - migrations files
-    - `docs` - documentation
-    - `var`
-        - `log` - runtime and error logs
-        - `tmp` - tmp files and cache
-    - `tests` - test engine and unit/integration tests
-    - `vendor` - composer's folder
-    - `www` - public content
+	- `app`
+		- `config` - configuration files
+			- `env` - prod/dev/test environments
+			- `app` - application configs
+			- `ext` - extensions configs
+			- `local.neon` - local runtime config
+			- `local.neon.dist` - template for local config
+		- `domain` - business logic and domain specific classes
+		- `model` - application backbone
+		- `modules` - Front/Admin module, presenters and components
+		- `resources` - static content for mails and others
+		- `ui` - UI components and base classes
+		- `bootstrap.php` - Nette entrypoint
+	- `bin` - console entrypoint (`bin/console`)
+	- `db` - database files
+		- `fixtures` - PHP fixtures
+		- `migrations` - migrations files
+	- `docs` - documentation
+	- `var`
+		- `log` - runtime and error logs
+		- `tmp` - tmp files and cache
+	- `tests` - test engine and unit/integration tests
+	- `vendor` - composer's folder
+	- `www` - public content
 - :exclamation: Tracy
-    - Cool error 500 page
+	- Cool error 500 page
 
 ### Notable changes
 
-- `$user` variable in templates [is renamed](https://github.com/contributte/webapp-skeleton/blob/master/app/model/Latte/TemplateFactory.php) to `$_user`
+- `$user` variable in
+  templates [is renamed](https://github.com/contributte/webapp-skeleton/blob/master/app/model/Latte/TemplateFactory.php)
+  to `$_user`
 
 ### Composer packages
 
@@ -232,4 +236,7 @@ This package is currently maintaining by these authors.
 
 -----
 
-Consider to [support](https://contributte.org/partners.html) **contributte** development team. Also thank you for using this project.
+Consider to [support](https://contributte.org/partners.html) **contributte** development team. Also thank you for using
+this project.
+
+TODO: Update readme

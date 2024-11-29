@@ -58,7 +58,7 @@ jobs:
                     port: 21
                     protocol: ftp
                     local-dir: ./ # Directory to upload
-                    server-dir: /www/test/ # Directory on server
+                    server-dir: /www/subdom/test/ # Directory on server
 
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'

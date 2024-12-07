@@ -48,11 +48,11 @@ class TestAuthPresenter extends Presenter
 		// Check the password
 		if ($password === $this->settings->testPassword) {
 			$this->flashMessage('Password is correct.', 'success');
+			$this->redirectUrl($this->settings->testUrl);
 		} else {
 			$this->flashMessage('Password is incorrect.', 'danger');
 		}
 
-		$this->redirectUrl($this->settings->testUrl);
 
 	}
 

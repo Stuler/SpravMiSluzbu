@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App;
 
@@ -7,6 +7,7 @@ use Nette\Application\Application as NetteApplication;
 use Nette\DI\Compiler;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Tracy\Debugger;
+
 require 'bootstrapConstants.php';
 
 final class Bootstrap
@@ -33,6 +34,7 @@ final class Bootstrap
 			'rootDir' => realpath(__DIR__ . '/..'),
 			'appDir' => __DIR__,
 			'wwwDir' => realpath(__DIR__ . '/../www'),
+			'logDir' => realpath(__DIR__ . '/../var/log'),
 		]);
 
 		// Load development or production config

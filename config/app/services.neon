@@ -39,6 +39,13 @@ services:
 	- App\Console\HelloCommand
 
 	- App\Model\Database\QueryManager
+	- App\Settings(
+		%debugMode%,
+		%appDir%,
+		%wwwDir%,
+		%testPassword%,
+		%testUrl%
+	)
 
 	# Components =============
 	- App\UI\Control\Component\CategoryServiceViewer\CategoryServiceViewerCompFactory

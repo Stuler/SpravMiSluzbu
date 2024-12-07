@@ -1,12 +1,32 @@
 # Host Config
 parameters:
+	testPassword: 'generatedPass'
+	testUrl: 'test url'
 
 	# Database
 	database:
-		host: 0.0.0.0
-		dbname: contributte
-		user: contributte
-		password: contributte
+		host: 127.0.0.1
+		dbname: sprav_mi_sluzbu
+		user: root
+		password: root
+		driver: mysqli
+		port: 3306
+
+	smtp:
+		host: wes1-smtp.wedos.net
+		username: info@spravmisluzbu.sk
+		password: "GRo6ic=5s[4H,!77O"
+		port: 587
+		secure: tls
+
+tracy:
+	bar:
+		- Nextras\MailPanel\MailPanel(%tempDir%/mail-panel-latte)
+
+services:
+	nette.mailer:
+		class: Nette\Mail\Mailer
+		factory: Nextras\MailPanel\FileMailer(%tempDir%/mail-panel-mails)
 
 # For 0.0.0.0 instead of localhost
 # php -S 0.0.0.0:8000 -t www
@@ -15,8 +35,3 @@ parameters:
 
 # STMP server
 # E.q. mailtrap is cool.
-#	smtp:
-#		host: smtp.mailtrap.io
-#		username: "***"
-#		password: ***
-#		port: 2525

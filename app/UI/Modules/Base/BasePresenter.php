@@ -10,6 +10,7 @@ use App\UI\Control\TFlashMessage;
 use App\UI\Control\TModuleUtils;
 use Contributte\Application\UI\Presenter\StructuredTemplates;
 use Nette\Application\UI\Presenter;
+use Nette\DI\Attributes\Inject;
 use Nette\Http\Session;
 
 /**
@@ -23,9 +24,11 @@ abstract class BasePresenter extends Presenter
 	use TFlashMessage;
 	use TModuleUtils;
 
+	#[Inject]
+	public Session $session;
+
 	public function __construct(
 		private readonly Settings $settings,
-		private Session           $session
 	)
 	{
 		parent::__construct();

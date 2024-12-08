@@ -10,6 +10,7 @@ use App\UI\Control\TFlashMessage;
 use App\UI\Control\TModuleUtils;
 use Contributte\Application\UI\Presenter\StructuredTemplates;
 use Nette\Application\UI\Presenter;
+use Nette\Http\Session;
 
 /**
  * @property-read TemplateProperty $template
@@ -24,6 +25,7 @@ abstract class BasePresenter extends Presenter
 
 	public function __construct(
 		private readonly Settings $settings,
+		private Session           $session
 	)
 	{
 		parent::__construct();
@@ -36,8 +38,7 @@ abstract class BasePresenter extends Presenter
 
 		// Check the current presenter and action to avoid infinite redirect
 		// get access_granted setting from session
-		$session = $this->getSession();
-		$accessGranted = $session->get('access_granted');
+		$accessGranted = $this->session->getSection('default')->access_granted ?? false;
 		if ($host === $this->settings->testUrl && $accessGranted !== true) {
 			// Redirect to the TestAuthPresenter:default action
 			$this->redirect(App::DESTINATION_TEST_ACCESS);

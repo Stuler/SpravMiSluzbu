@@ -35,7 +35,10 @@ abstract class BasePresenter extends Presenter
 		$host = $this->getHttpRequest()->getUrl()->getHost();
 
 		// Check the current presenter and action to avoid infinite redirect
-		if ($host === $this->settings->testUrl) {
+		// get access_granted setting from session
+		$session = $this->getSession();
+		$accessGranted = $session->get('access_granted');
+		if ($host === $this->settings->testUrl && $accessGranted !== true) {
 			// Redirect to the TestAuthPresenter:default action
 			$this->redirect(App::DESTINATION_TEST_ACCESS);
 		}

@@ -46,8 +46,13 @@ class TestAuthPresenter extends Presenter
 		$password = $values->password;
 
 		// Check the password
-		if ($password === $this->settings->testPassword) {
+		if ($password == $this->settings->testPassword) {
 			$this->flashMessage('Password is correct.', 'success');
+			// set to session access_granted = true
+			// get session
+			$session = $this->getSession();
+			$session->set('access_granted', true);
+			// redirect to testUrl
 			$this->redirectUrl($this->settings->testUrl);
 		} else {
 			$this->flashMessage('Password is incorrect.', 'danger');

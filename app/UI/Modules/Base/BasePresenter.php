@@ -24,14 +24,20 @@ abstract class BasePresenter extends Presenter
 	use TFlashMessage;
 	use TModuleUtils;
 
-	#[Inject]
 	public Session $session;
 
 	public function __construct(
 		private readonly Settings $settings,
+
 	)
 	{
 		parent::__construct();
+	}
+
+	protected function startup(): void
+	{
+		parent::startup();
+		$this->session = $this->getSession();
 	}
 
 	public function beforeRender(): void
@@ -41,7 +47,8 @@ abstract class BasePresenter extends Presenter
 
 		// Check the current presenter and action to avoid infinite redirect
 		// get access_granted setting from session
-		$accessGranted = $this->session->getSection('default')->access_granted ?? false;
+		$section = $this->getSession('test_access');
+		$accessGranted = $section->get('access_granted');
 		if ($host === $this->settings->testUrl && $accessGranted !== true) {
 			// Redirect to the TestAuthPresenter:default action
 			$this->redirect(App::DESTINATION_TEST_ACCESS);

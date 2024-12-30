@@ -3,88 +3,93 @@
 # Global Header
 --------------------------------------------------------------*/
 .header {
-  color: var(--default-color);
-  transition: all 0.5s;
-  z-index: 997;
-  background-color: var(--background-color);
+	color: var(--default-color);
+	transition: all 0.5s;
+	z-index: 997;
+	background-color: var(--background-color);
 
-  .topbar {
-    background-color: var(--accent-color);
-    height: 40px;
-    padding: 0;
-    font-size: 14px;
-    transition: all 0.5s;
+	.topbar {
+		background-color: var(--accent-color);
+		height: 40px;
+		padding: 0;
+		font-size: 14px;
+		transition: all 0.5s;
 
-    .contact-info {
-      i {
-        font-style: normal;
-        color: var(--contrast-color);
+		.contact-info {
+			i {
+				font-style: normal;
+				color: var(--contrast-color);
 
-        a,
-        span {
-          padding-left: 5px;
-          color: var(--contrast-color);
+				a,
+				span {
+					padding-left: 5px;
+					color: var(--contrast-color);
 
-          @media (max-width: 575px) {
-            font-size: 13px;
-          }
-        }
+					@media (max-width: 575px) {
+						font-size: 13px;
+					}
+				}
 
-        a {
-          line-height: 0;
-          transition: 0.3s;
+				a {
+					line-height: 0;
+					transition: 0.3s;
 
-          &:hover {
-            color: var(--contrast-color);
-            text-decoration: underline;
-          }
-        }
-      }
-    }
+					&:hover {
+						color: var(--contrast-color);
+						text-decoration: underline;
+					}
+				}
+			}
+		}
 
-    .social-links {
-      a {
-        color: color-mix(in srgb, var(--contrast-color), transparent 40%);
-        line-height: 0;
-        transition: 0.3s;
-        margin-left: 20px;
+		.social-links {
+			a {
+				color: color-mix(in srgb, var(--contrast-color), transparent 40%);
+				line-height: 0;
+				transition: 0.3s;
+				margin-left: 20px;
 
-        &:hover {
-          color: var(--contrast-color);
-        }
-      }
-    }
-  }
+				&:hover {
+					color: var(--contrast-color);
+				}
+			}
+		}
+	}
 
-  .branding {
-    background-color: var(--background-color);
-    min-height: 60px;
-    padding: 10px 0;
-  }
+	.branding {
+		background-color: var(--background-color);
+		min-height: 60px;
+		padding: 10px 0;
+	}
 
-  .logo {
-    line-height: 1;
+	.logo {
+		line-height: 1;
+		text-decoration: none;
 
-    img {
-      max-height: 46px;
-      margin-right: 8px;
-    }
+		img {
+			max-height: 46px;
+			margin-right: 8px;
+		}
 
-    h1 {
-      font-size: 30px;
-      margin: 0;
-      font-weight: 700;
-      color: var(--heading-color);
-    }
-  }
+		h1 {
+			font-size: 30px;
+			margin: 0;
+			font-weight: 700;
+			color: var(--heading-color);
+		}
+	}
 
-  .scrolled & {
-    box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1);
+	.logo-link {
+		text-decoration: none;
+	}
 
-    .topbar {
-      height: 0;
-      visibility: hidden;
-      overflow: hidden;
-    }
-  }
+	.scrolled & {
+		box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1);
+
+		.topbar {
+			height: 0;
+			visibility: hidden;
+			overflow: hidden;
+		}
+	}
 }

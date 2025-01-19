@@ -1,0 +1,4 @@
+php console orm:schema-tool:update --dump-sql > ..\db\ManualMigrations\190120251720.sql
+php console orm:clear-cache:metadata
+php console migrations:diff
+php console migrations:migrate

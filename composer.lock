@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6fd6b41d15e0c7dd4516dcd829c25049",
+    "content-hash": "4845d1813ceff4559c9a7cede0941c9c",
     "packages": [
         {
             "name": "contributte/application",
@@ -686,6 +686,146 @@
                 }
             ],
             "time": "2022-11-13T17:22:04+00:00"
+        },
+        {
+            "name": "contributte/forms-bootstrap",
+            "version": "v0.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/contributte/forms-bootstrap.git",
+                "reference": "f4a182f96c5db5dae098849d4a04831eaae15162"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/contributte/forms-bootstrap/zipball/f4a182f96c5db5dae098849d4a04831eaae15162",
+                "reference": "f4a182f96c5db5dae098849d4a04831eaae15162",
+                "shasum": ""
+            },
+            "require": {
+                "nette/application": "^3.0",
+                "nette/forms": "3.2.3",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "contributte/qa": "^v0.3",
+                "phpstan/phpstan": "^1.10",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-nette": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.9.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Contributte\\FormsBootstrap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dalibor Korpar",
+                    "email": "dalibor.korpar@gmail.com"
+                }
+            ],
+            "description": "Nette extension for Bootstrap forms",
+            "homepage": "https://github.com/contributte/forms-bootstrap",
+            "keywords": [
+                "Forms",
+                "bootstrap",
+                "library",
+                "nette"
+            ],
+            "support": {
+                "issues": "https://github.com/contributte/forms-bootstrap/issues",
+                "source": "https://github.com/contributte/forms-bootstrap/tree/v0.8.1"
+            },
+            "funding": [
+                {
+                    "url": "https://contributte.org/partners.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/f3l1x",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-05-13T12:47:38+00:00"
+        },
+        {
+            "name": "contributte/forms-wizard",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/contributte/forms-wizard.git",
+                "reference": "8faf21c2885c4e75d0c0b4879fe66a4f4d26fd10"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/contributte/forms-wizard/zipball/8faf21c2885c4e75d0c0b4879fe66a4f4d26fd10",
+                "reference": "8faf21c2885c4e75d0c0b4879fe66a4f4d26fd10",
+                "shasum": ""
+            },
+            "require": {
+                "nette/forms": "^3.1.14",
+                "nette/http": "^3.2.3",
+                "php": ">=8.1"
+            },
+            "conflict": {
+                "nette/component-model": "<3.0.3"
+            },
+            "require-dev": {
+                "contributte/phpstan": "^0.1",
+                "contributte/qa": "^0.4",
+                "contributte/tester": "^0.3",
+                "latte/latte": "^3.0.12",
+                "mockery/mockery": "^1.6.7",
+                "nette/application": "^3.1.14",
+                "nette/di": "^3.1.8"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Contributte\\FormWizard\\": [
+                        "src/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "description": "Wizard component for nette/forms",
+            "keywords": [
+                "Forms",
+                "contributte",
+                "nette",
+                "wizard"
+            ],
+            "support": {
+                "issues": "https://github.com/contributte/forms-wizard/issues",
+                "source": "https://github.com/contributte/forms-wizard/tree/4.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://contributte.org/partners.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/f3l1x",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-01-03T12:31:46+00:00"
         },
         {
             "name": "contributte/http",

@@ -40,7 +40,9 @@
     "nettrine/migrations": "^0.9.1",
     "nettrine/fixtures": "^0.8.0",
     "ublaboo/datagrid": "^6.10",
-    "nextras/mail-panel": "^2.6"
+    "nextras/mail-panel": "^2.6",
+    "contributte/forms-bootstrap": "^0.8.1",
+    "contributte/forms-wizard": "^4.0"
   },
   "require-dev": {
     "contributte/qa": "^0.3",

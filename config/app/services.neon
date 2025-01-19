@@ -32,6 +32,7 @@ services:
 
 	# Domain =================
 	- App\Domain\User\CreateUserFacade
+	- App\Domain\Provider\CreateProviderFacade
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade
 
@@ -49,6 +50,7 @@ services:
 
 	# Components =============
 	- App\UI\Control\Component\CategoryServiceViewer\CategoryServiceViewerCompFactory
+	- App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormComp
 
 latte:
 	macros:

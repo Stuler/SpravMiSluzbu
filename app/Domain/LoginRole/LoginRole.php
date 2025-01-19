@@ -5,17 +5,20 @@ namespace App\Domain\LoginRole;
 use App\Model\Database\Entity\TId;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="login_role")
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'login_role')]
 class LoginRole
 {
 	use TId;
 
-	/**
-	 * @ORM\Column(type="string", length=64)
-	 */
+	public const ROLE_MEMBER = 'member';
+	public const ROLE_PRO = 'pro';
+	public const ROLE_PROVIDER = 'provider';
+	public const ROLE_GUEST = 'guest';
+	public const ROLE_PREMIUM = 'premium';
+	public const ROLE_ADMIN = 'admin';
+
+	#[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
 	private string $name;
 
 	// Getters and setters...

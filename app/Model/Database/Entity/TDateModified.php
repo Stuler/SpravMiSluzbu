@@ -6,9 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait TDateModified
 {
-	/**
-	 * @ORM\Column(type="datetime", nullable=true, options={"default": "CURRENT_TIMESTAMP"})
-	 */
+	#[ORM\Column(type: 'datetime', nullable: true)]
 	private ?\DateTime $dateModified = null;
 
 	public function getDateModified(): ?\DateTime
@@ -16,7 +14,7 @@ trait TDateModified
 		return $this->dateModified;
 	}
 
-	public function setDateModified(?\DateTime $dateModified): void
+	public function setDateModified(\DateTime $dateModified): void
 	{
 		$this->dateModified = $dateModified;
 	}

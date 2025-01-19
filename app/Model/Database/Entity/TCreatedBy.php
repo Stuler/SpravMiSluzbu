@@ -1,26 +1,20 @@
 <?php declare(strict_types=1);
 
-// src/Model/Database/Entity/TCreatedBy.php
-
 namespace App\Model\Database\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Domain\User\User;
 
 trait TCreatedBy
 {
-	/**
-	 * @ORM\ManyToOne(targetEntity="App\Domain\User\User")
-	 * @ORM\JoinColumn(name="created_by", referencedColumnName="id", nullable=true)
-	 */
-	private ?User $createdBy = null;
+	#[ORM\Column(type: 'string', length: 255, nullable: true)]
+	private ?string $createdBy = null;
 
-	public function getCreatedBy(): ?User
+	public function getCreatedBy(): ?string
 	{
 		return $this->createdBy;
 	}
 
-	public function setCreatedBy(?User $createdBy): void
+	public function setCreatedBy(?string $createdBy): void
 	{
 		$this->createdBy = $createdBy;
 	}

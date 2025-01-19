@@ -6,9 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait TDateDeleted
 {
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+	#[ORM\Column(type: 'datetime', nullable: true)]
 	private ?\DateTime $dateDeleted = null;
 
 	public function getDateDeleted(): ?\DateTime

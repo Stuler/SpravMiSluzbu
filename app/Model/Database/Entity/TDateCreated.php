@@ -6,9 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait TDateCreated
 {
-	/**
-	 * @ORM\Column(type="datetime", options={"default": "CURRENT_TIMESTAMP"})
-	 */
+	#[ORM\Column(type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
 	private \DateTime $dateCreated;
 
 	public function getDateCreated(): \DateTime

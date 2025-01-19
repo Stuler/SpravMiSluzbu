@@ -3,6 +3,8 @@
 namespace App\Domain\User;
 
 use App\Domain\LoginRole\LoginRole;
+use App\Domain\StateUser\StateUser;
+use App\Domain\StateUser\StateUserRepository;
 use App\Model\Database\Entity\TCreatedBy;
 use App\Model\Database\Entity\TDateCreated;
 use App\Model\Database\Entity\TDateDeleted;
@@ -13,113 +15,65 @@ use App\Model\Exception\Logic\InvalidArgumentException;
 use App\Model\Security\Identity;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="user")
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'user')]
 class User
 {
 	use TId, TDateCreated, TDateModified, TDateDeleted, TCreatedBy, TDeletedBy;
 
-	public const ROLE_ADMIN = 'admin';
-	public const ROLE_MEMBER = 'member';
-	public const ROLE_GUEST = 'guest';
-	public const ROLE_PREMIUM = 'premium';
-	public const ROLE_PROVIDER = 'provider';
-	public const ROLE_PRO = 'pro';
-
-	public const STATE_FRESH = 1;
-	public const STATE_ACTIVATED = 2;
-	public const STATE_BLOCKED = 3;
-
-	public const STATES = [self::STATE_FRESH, self::STATE_BLOCKED, self::STATE_ACTIVATED];
-
-	/** @ORM\Column(type="string", length=255, nullable=FALSE, unique=false) */
-	private string $name;
-
-	/** @ORM\Column(type="string", length=255, nullable=FALSE, unique=false) */
-	private string $surname;
-
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
-	private string $email;
-
-	/** @ORM\Column(type="integer", length=10, nullable=FALSE) */
-	private int $state;
-
-	/**
-	 * @ORM\Column(type="string", length=100, nullable=FALSE)
-	 */
-	private string $password;
-
-	/**
-	 * @ORM\ManyToOne(targetEntity="App\Domain\LoginRole\LoginRole")
-	 * @ORM\JoinColumn(name="login_role_id", referencedColumnName="id")
-	 */
-	private LoginRole $loginRole;
-
-	/**
-	 * @ORM\Column(type="datetime", options={"default": "CURRENT_TIMESTAMP"}, nullable=true)
-	 */
-	private \DateTime $dateLastLogin;
-
-	/**
-	 * @ORM\Column(type="text", nullable=true)
-	 */
-	private ?string $note = null;
-
-	/**
-	 * Street number
-	 * @ORM\Column(type="string", length=100, nullable=FALSE)
-	 */
-	private string $streetNo;
-
-	/**
-	 * City
-	 * @ORM\Column(type="string", length=100, nullable=FALSE)
-	 */
-	private string $city;
-
-	/**
-	 * Zip code
-	 * @ORM\Column(type="string", length=100, nullable=FALSE)
-	 */
-	private string $zipCode;
-
 	public function __construct(
-		string $name,
-		string $surname,
-		string $email,
-		string $passwordHash,
-		string $streetNo,
-		string $city,
-		string $zipCode,
-		LoginRole $loginRole
+		#[ORM\Column(type: 'string', length: 255, nullable: false)]
+		private string    $name,
 
+		#[ORM\Column(type: 'string', length: 255, nullable: false)]
+		private string    $surname,
+
+		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		private string    $email,
+
+		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		private string    $password,
+
+		#[ORM\ManyToOne(targetEntity: LoginRole::class)]
+		#[ORM\JoinColumn(name: 'login_role_id', referencedColumnName: 'id')]
+		private LoginRole $loginRole,
+
+		#[ORM\ManyToOne(targetEntity: StateUser::class)]
+		#[ORM\JoinColumn(name: 'state_user_id', referencedColumnName: 'id')]
+		private StateUser $stateUser,
+
+		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		private string    $streetNo,
+
+		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		private string    $city,
+
+		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		private string    $zipCode,
+
+		#[ORM\Column(type: 'datetime', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
+		private \DateTime $dateLastLogin = new \DateTime(),
+
+		#[ORM\Column(type: 'text', nullable: true)]
+		private ?string   $note = null
 	)
 	{
-		$this->name = $name;
-		$this->surname = $surname;
-		$this->email = $email;
-		$this->password = $passwordHash;
 		$this->dateCreated = new \DateTime();
-		$this->loginRole = $loginRole;
-		$this->streetNo = $streetNo;
-		$this->city = $city;
-		$this->zipCode = $zipCode;
 	}
 
 	// Getters and setters...
-	public function getName(): string {
+	public function getName(): string
+	{
 		return $this->name;
 	}
 
-	public function getSurname(): string {
+	public function getSurname(): string
+	{
 		return $this->surname;
 	}
 
-	public function getFullName(): string {
+	public function getFullName(): string
+	{
 		return $this->name . ' ' . $this->surname;
 	}
 
@@ -153,6 +107,16 @@ class User
 		$this->loginRole = $loginRole;
 	}
 
+	public function getStateUser(): StateUser
+	{
+		return $this->stateUser;
+	}
+
+	public function setStateUser(StateUser $stateUser): void
+	{
+		$this->stateUser = $stateUser;
+	}
+
 	public function getDateLastLogin(): \DateTime
 	{
 		return $this->dateLastLogin;
@@ -175,21 +139,22 @@ class User
 
 	public function activate(): void
 	{
-		$this->state = self::STATE_ACTIVATED;
+		// set stateUser to activated
+		$this->stateUser->setId(StateUserRepository::STATE_ACTIVATED);
 	}
 
-	public function setState(int $state): void
+	public function setState(StateUser $stateUser): void
 	{
-		if (!in_array($state, self::STATES, true)) {
-			throw new InvalidArgumentException(sprintf('Unsupported state %s', $state));
+		if (!in_array($stateUser->getId(), StateUserRepository::STATES, true)) {
+			throw new InvalidArgumentException(sprintf('Unsupported state %s', $stateUser->getId()));
 		}
 
-		$this->state = $state;
+		$this->stateUser = $stateUser;
 	}
 
 	public function isActivated(): bool
 	{
-		return $this->state === self::STATE_ACTIVATED;
+		return $this->stateUser->getId() === StateUserRepository::STATE_ACTIVATED;
 	}
 
 	public function toIdentity(): Identity
@@ -198,7 +163,7 @@ class User
 			'email' => $this->email,
 			'name' => $this->name,
 			'surname' => $this->surname,
-			'state' => $this->state,
+			'state' => $this->stateUser->getId(),
 			'gravatar' => $this->getGravatar(),
 		]);
 	}
@@ -207,5 +172,4 @@ class User
 	{
 		return 'https://www.gravatar.com/avatar/' . md5($this->email);
 	}
-
 }

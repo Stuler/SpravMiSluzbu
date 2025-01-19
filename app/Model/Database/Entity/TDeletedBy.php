@@ -6,17 +6,15 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait TDeletedBy
 {
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
-	private ?int $deletedBy = null;
+	#[ORM\Column(type: 'string', length: 255, nullable: true)]
+	private ?string $deletedBy = null;
 
-	public function getDeletedBy(): ?int
+	public function getDeletedBy(): ?string
 	{
 		return $this->deletedBy;
 	}
 
-	public function setDeletedBy(?int $deletedBy): void
+	public function setDeletedBy(?string $deletedBy): void
 	{
 		$this->deletedBy = $deletedBy;
 	}

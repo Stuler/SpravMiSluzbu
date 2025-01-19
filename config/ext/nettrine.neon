@@ -14,7 +14,7 @@ extensions:
 	nettrine.orm: Nettrine\ORM\DI\OrmExtension
 	nettrine.orm.cache: Nettrine\ORM\DI\OrmCacheExtension
 	nettrine.orm.console: Nettrine\ORM\DI\OrmConsoleExtension(%consoleMode%)
-	nettrine.orm.annotations: Nettrine\ORM\DI\OrmAnnotationsExtension
+	nettrine.orm.attributes: Nettrine\ORM\DI\OrmAttributesExtension
 
 nettrine.dbal:
 	debug:
@@ -35,7 +35,7 @@ nettrine.orm:
 	configuration:
 		autoGenerateProxyClasses: true
 
-nettrine.orm.annotations:
+nettrine.orm.attributes:
 	mapping:
 		App\Domain: %appDir%/Domain
 

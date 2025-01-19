@@ -1,7 +1,8 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Database\Fixtures;
 
+use App\Domain\LoginRole\LoginRole;
 use App\Domain\User\User;
 use App\Model\Security\Passwords;
 use Doctrine\Persistence\ObjectManager;
@@ -25,6 +26,7 @@ class UserFixture extends AbstractFixture
 				$user['email'],
 				$user['username'],
 				$this->container->getByType(Passwords::class)->hash($user['password']),
+				$user['zipCode'],
 				$loginRole
 			);
 			$entity->activate();
@@ -45,7 +47,7 @@ class UserFixture extends AbstractFixture
 			'name' => 'padmin',
 			'surname' => 'Admin',
 			'username' => 'adminpj',
-			'role' => User::ROLE_ADMIN,
+			'role' => LoginRole::ROLE_ADMIN,
 			'password' => 'password',
 			'loginRole' => 1,
 		];

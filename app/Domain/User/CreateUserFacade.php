@@ -3,6 +3,8 @@
 namespace App\Domain\User;
 
 use App\Domain\LoginRole\LoginRole;
+use App\Domain\StateUser\StateUser;
+use App\Domain\StateUser\StateUserRepository;
 use App\Model\Database\EntityManagerDecorator;
 use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
@@ -27,20 +29,20 @@ readonly class CreateUserFacade
 	{
 		$this->validateInputs($data);
 
-		$loginRole = $data['role'] ?? User::ROLE_MEMBER;
+		$loginRole = $data['role'] ?? LoginRole::ROLE_MEMBER;
 		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
+		$stateUserFresh = $this->em->getRepository(StateUser::class)->findOneBy(['id' => StateUserRepository::STATE_FRESH]);
 		$user = new User(
 			name: (string)$data['name'],
 			surname: (string)$data['surname'],
 			email: (string)$data['email'],
-			passwordHash: Passwords::create()->hash(strval($data['password'] ?? md5(microtime()))),
+			password: Passwords::create()->hash(strval($data['password'] ?? md5(microtime()))),
+			loginRole: $loginRoleEntity,
+			stateUser: $stateUserFresh,
 			streetNo: (string)$data['street'],
 			city: (string)$data['city'],
 			zipCode: (string)$data['zipCode'],
-			loginRole: $loginRoleEntity,
 		);
-		$user->activate();
-
 		$this->em->persist($user);
 		$this->em->flush();
 

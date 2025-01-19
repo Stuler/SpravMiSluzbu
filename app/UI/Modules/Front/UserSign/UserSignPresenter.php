@@ -1,6 +1,6 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
-namespace App\UI\Modules\Front\Sign;
+namespace App\UI\Modules\Front\UserSign;
 
 use App\Domain\User\CreateUserFacade;
 use App\Model\App;
@@ -10,7 +10,7 @@ use App\UI\Form\FormFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Nette\DI\Attributes\Inject;
 
-final class SignPresenter extends BaseFrontPresenter
+final class UserSignPresenter extends BaseFrontPresenter
 {
 
 	public string $backlink;
@@ -26,14 +26,16 @@ final class SignPresenter extends BaseFrontPresenter
 		// Disable auth
 	}
 
-	public function actionUp() {
+	public function actionUp()
+	{
 
 	}
 
 	/**
 	 * Basic registration form
 	 */
-	public function createComponentSignUpForm(): BaseForm {
+	public function createComponentSignUpForm(): BaseForm
+	{
 
 		$form = $this->formFactory->forFrontend();
 		$form->addText('email', 'Email')
@@ -62,23 +64,26 @@ final class SignPresenter extends BaseFrontPresenter
 	/**
 	 * Process registration form
 	 */
-	public function processSignUpForm(BaseForm $form): void {
+	public function processSignUpForm(BaseForm $form): void
+	{
 		$values = $form->getValues();
 		try {
-			$user = $this->createUserFacade->createUser((array) $values);
+			$user = $this->createUserFacade->createUser((array)$values);
 		} catch (\Exception $e) {
 			$form->addError($e->getMessage());
 			return;
 		}
 		$this->flashSuccess('You have been successfully registered');
-		$this->redirect(App::DESTINATION_AFTER_SIGN_UP);
+		$this->redirect(App::DESTINATION_AFTER_SIGN_UP_USER);
 	}
 
-	public function actionUpPro() {
+	public function actionUpPro()
+	{
 
 	}
 
-	public function createComponentFormSignUpPro() {
+	public function createComponentFormSignUpPro()
+	{
 
 	}
 

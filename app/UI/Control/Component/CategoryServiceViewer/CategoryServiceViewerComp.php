@@ -34,11 +34,12 @@ class CategoryServiceViewerComp extends BaseControl
 		}
 
 		$grid->setDataSource($this->categoryServiceFacade->getCategoriesByMainCategoryId($this->categoryId));
+
 		$grid->addColumnText('name', 'Názov')
 			->setEditableCallback([$this, 'columnNameEdited']);
 
-		$grid->addAction('edit', '', 'edit!', ['id'])
-			->setClass('btn btn-primary ajax')
+		$grid->addAction('edit', '', 'edit', ['id'])
+			->setClass('btn btn-primary')
 			->setIcon('pencil');
 
 		$grid->addAction('delete', '', 'delete!', ['id'])
@@ -47,17 +48,6 @@ class CategoryServiceViewerComp extends BaseControl
 			->setConfirmation(
 				new StringConfirmation('Naozaj si prajete odstrániť kategóriu %s?', 'name')
 			);
-
-		$grid->addInlineEdit()
-			->setClass('btn btn-primary ajax')
-			->onControlAdd[] = function ($container): void {
-			$container->addText('id', '')->setAttribute('readonly');
-			$container->addText('name', 'Názov');
-
-			$this->flashMessage("Edit");
-			$this->redrawControl();
-		};
-
 
 		$grid->addInlineAdd()
 			->setClass('btn btn-primary ajax')
@@ -68,9 +58,8 @@ class CategoryServiceViewerComp extends BaseControl
 		};
 
 		$grid->getInlineAdd()->onSubmit[] = function ($values) use ($grid) {
-//			$this->categoryServiceFacade->saveCategory($values);
-//			$grid->setDataSource($this->categoryServiceFacade->getCategoriesByMainCategoryId($this->categoryId));
-			bdump($values);
+			$this->categoryServiceFacade->saveCategory($values);
+			$grid->setDataSource($this->categoryServiceFacade->getCategoriesByMainCategoryId((int)$this->categoryId));
 			$this->flashMessage("Add");
 			$this->redrawControl();
 		};
@@ -78,15 +67,14 @@ class CategoryServiceViewerComp extends BaseControl
 		return $grid;
 	}
 
-	public function columnNameEdited()
+	public function columnNameEdited($id, $value): void
 	{
-		bdump('edit');
-		$this->categoryServiceFacade->updateCategory($values);
+		$this->categoryServiceFacade->updateCategory((int)$id, $value);
 		$this->flashMessage('Názov kategórie bol úspešne zmenený', 'success');
 		$this->redrawControl();
 	}
 
-	public function handleEdit($id): void
+	public function handleEdit(int $id): void
 	{
 		$this->presenter->redirect('CategoryService:edit', ['id' => $id]);
 	}

@@ -33,8 +33,8 @@ readonly class CategoryServiceFacade
 
 	public function saveCategory(ArrayHash $values): void
 	{
-		if ($values['id'] !== null) {
-			$this->updateCategory($values);
+		if ($values['id'] != null) {
+			$this->updateCategory((int)$values['id'], (string)$values['name']);
 			return;
 		}
 
@@ -48,7 +48,12 @@ readonly class CategoryServiceFacade
 		/** @var User $userEntity */
 		$userEntity = $this->em->getRepository(User::class)->find($identity->getId());
 
-		$category = new CategoryService($values['name'], $values['description'] ?? null, $parent, $userEntity);
+		$category = new CategoryService(
+			name: $values['name'],
+			description: $values['description'] ?? null,
+			parent: $parent,
+			createdBy: $userEntity
+		);
 		$this->em->persist($category);
 		$this->em->flush();
 	}
@@ -89,11 +94,10 @@ readonly class CategoryServiceFacade
 			]);
 	}
 
-	public function updateCategory($values): void
+	public function updateCategory(int $id, string $name): void
 	{
-		$category = $this->em->getRepository(CategoryService::class)->find($values['id']);
-		$category->setName($values['name']);
-		$category->setDescription($values['description']);
+		$category = $this->em->getRepository(CategoryService::class)->find($id);
+		$category->setName($name);
 		$category->setDateModified(new \DateTime());
 		$this->em->flush();
 	}

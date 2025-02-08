@@ -3,8 +3,10 @@
 namespace App\Domain\CategoryService;
 
 use App\Domain\User\User;
+use App\Domain\User\UserService;
 use App\Model\Database\EntityManagerDecorator;
 use App\Model\Security\Identity;
+use Nette\DI\Attributes\Inject;
 use Nette\Security\User as NetteUser;
 use Nette\Utils\ArrayHash;
 
@@ -14,6 +16,7 @@ readonly class CategoryServiceFacade
 	public function __construct(
 		private EntityManagerDecorator $em,
 		private NetteUser              $user,
+		private UserService            $userService,
 	)
 	{
 	}
@@ -67,7 +70,8 @@ readonly class CategoryServiceFacade
 	{
 		$category = $this->em->getRepository(CategoryService::class)->find($id);
 		$category->setDateDeleted(new \DateTime());
-		$category->setDeletedBy($this->user->getId());
+		$userEntity = $this->userService->getUserEntity();
+		$category->setDeletedBy($userEntity);
 		$this->em->flush();
 	}
 

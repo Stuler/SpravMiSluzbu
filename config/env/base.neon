@@ -20,7 +20,7 @@ session:
 	#cookiePath: '?->getUrl()->getBasePath()'(@Nette\Http\IRequest) # Cookie path same as $basePath
 	cookieSamesite: Lax
 	debugger: false
-	expiration: 1 day
+	expiration: 14 days
 	name: SID
 	#savePath: %tempDir%/session
 	sidBitsPerCharacter: 6 # 4-6

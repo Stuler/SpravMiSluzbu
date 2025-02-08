@@ -83,7 +83,12 @@ class CategoryServiceViewerComp extends BaseControl
 	{
 		$this->categoryServiceFacade->deleteCategory($id);
 		$this->flashMessage('Kategória bola úspešne vymazaná', 'success');
-		$this->redirect('this');
+		if ($this->getPresenter()->isAjax()) {
+			$this->getPresenter()->redrawControl('flashes');
+			$this['gridCategoryService']->reload();
+		} else {
+			$this->redirect('this');
+		}
 	}
 
 	public function setCategoryId(?int $id): void

@@ -36,6 +36,9 @@ services:
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade
 
+	# Services ===============
+	- App\Domain\User\UserService
+
 	# Console ================
 	- App\Console\HelloCommand
 

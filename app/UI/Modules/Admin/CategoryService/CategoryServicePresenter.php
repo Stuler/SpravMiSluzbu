@@ -65,7 +65,7 @@ final class CategoryServicePresenter extends BaseAdminPresenter
 		$values = $form->getValues();
 		$this->categoryServiceFacade->saveCategory($values);
 		$this->flashMessage('Kategória bola úspešne vytvorená', 'success');
-		$this->redirect('this');
+		$this->redirect('default');
 	}
 
 	public function createComponentCategoryServiceViewer(): Multiplier

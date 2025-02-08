@@ -2,19 +2,21 @@
 
 namespace App\Model\Database\Entity;
 
+use App\Domain\User\User;
 use Doctrine\ORM\Mapping as ORM;
 
 trait TDeletedBy
 {
-	#[ORM\Column(type: 'string', length: 255, nullable: true)]
-	private ?string $deletedBy = null;
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(name: 'deleted_by', referencedColumnName: 'id')]
+	private ?User $deletedBy = null;
 
-	public function getDeletedBy(): ?string
+	public function getDeletedBy(): ?User
 	{
 		return $this->deletedBy;
 	}
 
-	public function setDeletedBy(?string $deletedBy): void
+	public function setDeletedBy(User $deletedBy): void
 	{
 		$this->deletedBy = $deletedBy;
 	}

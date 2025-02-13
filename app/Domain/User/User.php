@@ -11,7 +11,6 @@ use App\Model\Database\Entity\TDateDeleted;
 use App\Model\Database\Entity\TDateModified;
 use App\Model\Database\Entity\TDeletedBy;
 use App\Model\Database\Entity\TId;
-use App\Model\Exception\Logic\InvalidArgumentException;
 use App\Model\Security\Identity;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -23,39 +22,46 @@ class User
 
 	public function __construct(
 		#[ORM\Column(type: 'string', length: 255, nullable: false)]
-		private string    $name,
+		private string     $name,
 
 		#[ORM\Column(type: 'string', length: 255, nullable: false)]
-		private string    $surname,
+		private string     $surname,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string    $email,
+		private string     $email,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string    $password,
+		private string     $password,
 
 		#[ORM\ManyToOne(targetEntity: LoginRole::class)]
 		#[ORM\JoinColumn(name: 'login_role_id', referencedColumnName: 'id')]
-		private LoginRole $loginRole,
+		private LoginRole  $loginRole,
 
 		#[ORM\ManyToOne(targetEntity: StateUser::class)]
 		#[ORM\JoinColumn(name: 'state_user_id', referencedColumnName: 'id')]
-		private StateUser $stateUser,
+		private StateUser  $stateUser,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string    $streetNo,
+		private string     $streetNo,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string    $city,
+		private string     $city,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string    $zipCode,
+		private string     $zipCode,
+
+		#[ORM\Column(type: 'string', length: 255, nullable: false)]
+		private string     $hash,
 
 		#[ORM\Column(type: 'datetime', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
-		private \DateTime $dateLastLogin = new \DateTime(),
+		private \DateTime  $dateLastLogin = new \DateTime(),
+
+		// dateActivated
+		#[ORM\Column(type: 'datetime', nullable: true)]
+		private ?\DateTime $dateActivated = null,
 
 		#[ORM\Column(type: 'text', nullable: true)]
-		private ?string   $note = null
+		private ?string    $note = null,
 	)
 	{
 		$this->dateCreated = new \DateTime();
@@ -137,19 +143,14 @@ class User
 		$this->note = $note;
 	}
 
-	public function activate(): void
+	public function getHash(): string
 	{
-		// set stateUser to activated
-		$this->stateUser->setId(StateUserRepository::STATE_ACTIVATED);
+		return $this->hash;
 	}
 
-	public function setState(StateUser $stateUser): void
+	public function setDateActivated(): void
 	{
-		if (!in_array($stateUser->getId(), StateUserRepository::STATES, true)) {
-			throw new InvalidArgumentException(sprintf('Unsupported state %s', $stateUser->getId()));
-		}
-
-		$this->stateUser = $stateUser;
+		$this->dateActivated = new \DateTime();
 	}
 
 	public function isActivated(): bool

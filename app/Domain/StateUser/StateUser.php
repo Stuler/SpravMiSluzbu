@@ -8,7 +8,6 @@ use App\Model\Database\Entity\TDateDeleted;
 use App\Model\Database\Entity\TDateModified;
 use App\Model\Database\Entity\TDeletedBy;
 use App\Model\Database\Entity\TId;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 
@@ -21,12 +20,10 @@ class StateUser
 	#[ORM\Column(type: 'string', length: 32, nullable: false)]
 	private string $name;
 
-	private EntityManagerInterface $entityManager;
 
-	public function __construct(string $name, EntityManagerInterface $entityManager)
+	public function __construct(string $name)
 	{
 		$this->name = $name;
-		$this->entityManager = $entityManager;
 	}
 
 	public function getName(): string
@@ -50,12 +47,7 @@ class StateUser
 			throw new InvalidArgumentException('Invalid state id');
 		}
 
-		return $this->entityManager->getRepository(StateUser::class)->find($id);
-	}
-
-	public function getById(int $id): StateUser
-	{
-		return $this->entityManager->getRepository(StateUser::class)->find($id);
+		return $this->em->getRepository(StateUser::class)->findOneBy(['id' => $id]);
 	}
 
 	public function setId(int $stateId): void

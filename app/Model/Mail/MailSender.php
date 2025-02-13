@@ -13,7 +13,7 @@ readonly class MailSender
 	{
 	}
 
-	public function sendActivationEmail(string $to, string $name): void
+	public function sendActivationEmail(string $to, string $name, string $link): void
 	{
 		$mail = $this->mailBuilderFactory->create();
 		$mail->setFrom('info@spravmisluzbu.sk');
@@ -22,7 +22,7 @@ readonly class MailSender
 		$mail->setTemplateFile(MAIL_TEMPLATES_DIR . 'activation.latte');
 		$mail->setParameters([
 			'title' => 'Test',
-			'content' => "Welcome",
+			'content' => $link,
 		]);
 
 		$mail->send();

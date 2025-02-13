@@ -6,17 +6,21 @@ use App\Domain\LoginRole\LoginRole;
 use App\Domain\StateUser\StateUser;
 use App\Domain\StateUser\StateUserRepository;
 use App\Model\Database\EntityManagerDecorator;
+use App\Model\Exception\Logic\InvalidArgumentException;
+use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
 use Exception;
+use Nette\Application\LinkGenerator;
 
-readonly class CreateUserFacade
+readonly class UserFacade
 {
 
 
 	public function __construct(
 		private EntityManagerDecorator $em,
 		private MailSender             $mailSender,
+		private LinkGenerator          $linkGenerator,
 	)
 	{
 	}
@@ -42,11 +46,15 @@ readonly class CreateUserFacade
 			streetNo: (string)$data['street'],
 			city: (string)$data['city'],
 			zipCode: (string)$data['zipCode'],
+			hash: md5(microtime()),
 		);
 		$this->em->persist($user);
 		$this->em->flush();
 
-		$this->mailSender->sendActivationEmail($user->getEmail(), $user->getName());
+		//generate link to Users:activate
+		$link = $this->linkGenerator->link('Front:UserSign:activateUser', ['hash' => $user->getHash()]);
+
+		$this->mailSender->sendActivationEmail($user->getEmail(), $user->getName(), $link);
 
 		return $user;
 	}
@@ -64,6 +72,28 @@ readonly class CreateUserFacade
 		if ($existingUser) {
 			throw new Exception('User with this email already exists');
 		}
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public function activateUser(string $hash): void
+	{
+		$user = $this->em->getRepository(User::class)->findOneBy(['hash' => $hash]);
+		if (!$user) {
+			throw new InvalidArgumentException('User with hash ' . $hash . ' not found');
+		}
+		if ($user->getStateUser()->getId() === StateUserRepository::STATE_ACTIVATED) {
+			throw new UserAlreadyActiveException('User is already activated');
+		}
+
+		$stateActivated = $this->em->getRepository(StateUser::class)
+			->findOneBy(['id' => StateUserRepository::STATE_ACTIVATED]);
+
+		$user->setStateUser($stateActivated);
+		$user->setDateActivated();
+		$this->em->persist($user);
+		$this->em->flush();
 	}
 
 }

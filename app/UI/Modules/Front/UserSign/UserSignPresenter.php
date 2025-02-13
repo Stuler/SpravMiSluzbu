@@ -2,8 +2,11 @@
 
 namespace App\UI\Modules\Front\UserSign;
 
-use App\Domain\User\CreateUserFacade;
+use App\Domain\User\UserFacade;
 use App\Model\App;
+use App\Model\Database\EntityManagerDecorator;
+use App\Model\Exception\Logic\InvalidArgumentException;
+use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Exception\Runtime\AuthenticationException;
 use App\UI\Form\BaseForm;
 use App\UI\Form\FormFactory;
@@ -19,7 +22,10 @@ final class UserSignPresenter extends BaseFrontPresenter
 	public FormFactory $formFactory;
 
 	#[Inject]
-	public CreateUserFacade $createUserFacade;
+	public UserFacade $userFacade;
+
+	#[Inject]
+	public EntityManagerDecorator $em;
 
 	public function checkRequirements(mixed $element): void
 	{
@@ -68,23 +74,34 @@ final class UserSignPresenter extends BaseFrontPresenter
 	{
 		$values = $form->getValues();
 		try {
-			$user = $this->createUserFacade->createUser((array)$values);
+			$user = $this->userFacade->createUser((array)$values);
 		} catch (\Exception $e) {
 			$form->addError($e->getMessage());
 			return;
 		}
-		$this->flashSuccess('You have been successfully registered');
 		$this->redirect(App::DESTINATION_AFTER_SIGN_UP_USER);
 	}
 
-	public function actionUpPro()
+	/**
+	 * Activate user account from email
+	 */
+	public function actionActivateUser(string $hash): void
 	{
-
-	}
-
-	public function createComponentFormSignUpPro()
-	{
-
+		try {
+			$this->userFacade->activateUser($hash);
+		} catch (InvalidArgumentException $e) {
+			$this->flashError("Ľutujeme, uživateľ nebol nájdený v databáze. Obráťte sa na podporu.");
+			log($e->getMessage());
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		} catch (UserAlreadyActiveException $e) {
+			$this->flashWarning('Váš účet je už aktivovaný. Môžete sa prihlásiť.');
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		} catch (\Exception $e) {
+			$this->flashError('Nastala chyba pri aktivácii účtu. Obráťte sa na podporu.');
+			log($e->getMessage());
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		}
+		$this->redirect(App::DESTINATION_AFTER_ACTIVATION_USER);
 	}
 
 	public function actionIn(): void

@@ -31,7 +31,7 @@ services:
 		factory: @App\Model\Router\RouterFactory::create
 
 	# Domain =================
-	- App\Domain\User\CreateUserFacade
+	- App\Domain\User\UserFacade
 	- App\Domain\Provider\CreateProviderFacade
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade

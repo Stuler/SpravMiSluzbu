@@ -19,6 +19,7 @@
 	{block #head}{/}
 </head>
 <body class="index-page">
+<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
 
 {block #main}
 	<div class="container">

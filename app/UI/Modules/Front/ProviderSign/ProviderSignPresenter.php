@@ -3,19 +3,16 @@
 namespace App\UI\Modules\Front\ProviderSign;
 
 use App\Domain\CategoryService\CategoryService;
+use App\Domain\City\City;
 use App\Domain\Provider\CreateProviderFacade;
 use App\Domain\Region\Region;
-use App\Domain\User\CreateUserFacade;
-use App\Domain\City\City;
 use App\Model\App;
 use App\Model\Exception\Runtime\AuthenticationException;
 use App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormComp;
-use App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormCompFactory;
 use App\UI\Form\BaseForm;
 use App\UI\Form\FormFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Doctrine\ORM\EntityManagerInterface;
-use Nette;
 use Nette\DI\Attributes\Inject;
 
 final class ProviderSignPresenter extends BaseFrontPresenter

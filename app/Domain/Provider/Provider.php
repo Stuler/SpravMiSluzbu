@@ -12,7 +12,6 @@ use App\Model\Database\Entity\TDateDeleted;
 use App\Model\Database\Entity\TDateModified;
 use App\Model\Database\Entity\TDeletedBy;
 use App\Model\Database\Entity\TId;
-use App\Model\Exception\Logic\InvalidArgumentException;
 use App\Model\Security\Identity;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -67,6 +66,12 @@ class Provider
 		#[ORM\ManyToOne(targetEntity: LoginRole::class)]
 		#[ORM\JoinColumn(name: 'login_role_id', referencedColumnName: 'id')]
 		private LoginRole     $loginRole,
+
+		#[ORM\Column(type: 'string', length: 255, nullable: false)]
+		private string        $hash,
+
+		#[ORM\Column(type: 'datetime', nullable: true)]
+		private ?\DateTime    $dateActivated = null,
 
 		#[ORM\Column(type: 'text', nullable: true)]
 		private ?string       $note = null,
@@ -134,18 +139,29 @@ class Provider
 		$this->note = $note;
 	}
 
+	public function getHash(): string
+	{
+		return $this->hash;
+	}
+
+	public function setDateActivated(): void
+	{
+		$this->dateActivated = new \DateTime();
+	}
+
 	public function activate(): void
 	{
 		$this->stateProvider->setId(StateProviderRepository::STATE_ACTIVATED);
 	}
 
-	public function setState(StateProvider $state): void
+	public function setStateProvider(StateProvider $state): void
 	{
-		if (!in_array($state->getId(), StateProviderRepository::STATES, true)) {
-			throw new InvalidArgumentException(sprintf('Unsupported state %s', $stateUser->getId()));
-		}
-
 		$this->stateProvider = $state;
+	}
+
+	public function getStateProvider(): StateProvider
+	{
+		return $this->stateProvider;
 	}
 
 	public function isActivated(): bool

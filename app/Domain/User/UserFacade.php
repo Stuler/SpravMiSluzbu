@@ -54,7 +54,7 @@ readonly class UserFacade
 		//generate link to Users:activate
 		$link = $this->linkGenerator->link('Front:UserSign:activateUser', ['hash' => $user->getHash()]);
 
-		$this->mailSender->sendActivationEmail($user->getEmail(), $user->getName(), $link);
+		$this->mailSender->sendActivationEmailUser($user->getEmail(), $user->getName(), $link);
 
 		return $user;
 	}

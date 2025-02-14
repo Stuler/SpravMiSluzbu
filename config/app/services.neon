@@ -32,7 +32,7 @@ services:
 
 	# Domain =================
 	- App\Domain\User\UserFacade
-	- App\Domain\Provider\CreateProviderFacade
+	- App\Domain\Provider\ProviderFacade
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade
 

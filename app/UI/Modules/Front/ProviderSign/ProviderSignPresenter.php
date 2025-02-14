@@ -4,9 +4,11 @@ namespace App\UI\Modules\Front\ProviderSign;
 
 use App\Domain\CategoryService\CategoryService;
 use App\Domain\City\City;
-use App\Domain\Provider\CreateProviderFacade;
+use App\Domain\Provider\ProviderFacade;
 use App\Domain\Region\Region;
 use App\Model\App;
+use App\Model\Exception\Logic\InvalidArgumentException;
+use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Exception\Runtime\AuthenticationException;
 use App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormComp;
 use App\UI\Form\BaseForm;
@@ -14,6 +16,7 @@ use App\UI\Form\FormFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Doctrine\ORM\EntityManagerInterface;
 use Nette\DI\Attributes\Inject;
+use Tracy\Debugger;
 
 final class ProviderSignPresenter extends BaseFrontPresenter
 {
@@ -24,7 +27,7 @@ final class ProviderSignPresenter extends BaseFrontPresenter
 	public FormFactory $formFactory;
 
 	#[Inject]
-	public CreateProviderFacade $createProviderFacade;
+	public ProviderFacade $providerFacade;
 
 	#[Inject]
 	public EntityManagerInterface $entityManager;
@@ -137,7 +140,7 @@ final class ProviderSignPresenter extends BaseFrontPresenter
 	{
 		$values = $form->getValues();
 		try {
-			$user = $this->createProviderFacade->createProvider((array)$values);
+			$this->providerFacade->createProvider((array)$values);
 		} catch (\Exception $e) {
 			$form->addError($e->getMessage());
 			return;
@@ -200,6 +203,29 @@ final class ProviderSignPresenter extends BaseFrontPresenter
 		$form->onSuccess[] = [$this, 'processLoginForm'];
 
 		return $form;
+	}
+
+	/**
+	 * Activate provider account from email
+	 */
+	public function actionActivateProvider(string $hash): void
+	{
+		try {
+			$this->providerFacade->activateProvider($hash);
+		} catch (InvalidArgumentException $e) {
+			$this->flashError("Ľutujeme, poskytovateľ nebol nájdený v databáze. Obráťte sa na podporu.");
+			Debugger::log($e);
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		} catch (UserAlreadyActiveException $e) {
+			$this->flashWarning('Váš účet je už aktivovaný. Môžete sa prihlásiť.');
+			Debugger::log($e);
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		} catch (\Exception $e) {
+			$this->flashError('Nastala chyba pri aktivácii účtu. Obráťte sa na podporu.');
+			Debugger::log($e);
+			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+		}
+		$this->redirect(App::DESTINATION_AFTER_ACTIVATION_USER);
 	}
 
 }

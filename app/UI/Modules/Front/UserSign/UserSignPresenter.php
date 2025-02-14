@@ -12,6 +12,7 @@ use App\UI\Form\BaseForm;
 use App\UI\Form\FormFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Nette\DI\Attributes\Inject;
+use Tracy\Debugger;
 
 final class UserSignPresenter extends BaseFrontPresenter
 {
@@ -91,14 +92,15 @@ final class UserSignPresenter extends BaseFrontPresenter
 			$this->userFacade->activateUser($hash);
 		} catch (InvalidArgumentException $e) {
 			$this->flashError("Ľutujeme, uživateľ nebol nájdený v databáze. Obráťte sa na podporu.");
-			log($e->getMessage());
+			Debugger::log($e);
 			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
 		} catch (UserAlreadyActiveException $e) {
 			$this->flashWarning('Váš účet je už aktivovaný. Môžete sa prihlásiť.');
+			Debugger::log($e);
 			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
 		} catch (\Exception $e) {
 			$this->flashError('Nastala chyba pri aktivácii účtu. Obráťte sa na podporu.');
-			log($e->getMessage());
+			Debugger::log($e);
 			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
 		}
 		$this->redirect(App::DESTINATION_AFTER_ACTIVATION_USER);

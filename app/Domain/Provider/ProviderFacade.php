@@ -9,19 +9,24 @@ use App\Domain\ProviderRegion\ProviderRegion;
 use App\Domain\ProviderServiceCategory\ProviderServiceCategory;
 use App\Domain\Region\Region;
 use App\Domain\StateProvider\StateProvider;
+use App\Domain\StateProvider\StateProviderRepository;
 use App\Domain\StateUser\StateUserRepository;
 use App\Model\Database\EntityManagerDecorator;
+use App\Model\Exception\Logic\InvalidArgumentException;
+use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
 use Exception;
+use Nette\Application\LinkGenerator;
 
-readonly class CreateProviderFacade
+readonly class ProviderFacade
 {
 
 
 	public function __construct(
 		private EntityManagerDecorator $em,
 		private MailSender             $mailSender,
+		private LinkGenerator          $linkGenerator,
 	)
 	{
 	}
@@ -53,9 +58,9 @@ readonly class CreateProviderFacade
 			city: $city,
 			zipCode: (string)$data['zipCode'],
 			stateProvider: $stateProvider,
-			loginRole: $loginRoleEntity
+			loginRole: $loginRoleEntity,
+			hash: md5(microtime()),
 		);
-		$provider->activate();
 
 		$this->em->persist($provider);
 
@@ -83,7 +88,8 @@ readonly class CreateProviderFacade
 
 		$this->em->flush();
 
-		$this->mailSender->sendActivationEmail($provider->getEmail(), $provider->getFullName());
+		$link = $this->linkGenerator->link('Front:ProviderSign:activateProvider', ['hash' => $provider->getHash()]);
+		$this->mailSender->sendActivationEmailProvider($provider->getEmail(), $provider->getFullName(), $link);
 
 		return $provider;
 	}
@@ -101,6 +107,25 @@ readonly class CreateProviderFacade
 		if ($existingProvider) {
 			throw new Exception('User with this email already exists');
 		}
+	}
+
+	public function activateProvider(string $hash): void
+	{
+		$provider = $this->em->getRepository(Provider::class)->findOneBy(['hash' => $hash]);
+		if (!$provider) {
+			throw new InvalidArgumentException('Provider with hash ' . $hash . ' not found');
+		}
+		if ($provider->getStateProvider()->getId() === StateProviderRepository::STATE_ACTIVATED) {
+			throw new UserAlreadyActiveException('User is already activated');
+		}
+
+		$stateActivated = $this->em->getRepository(StateProvider::class)
+			->findOneBy(['id' => StateProviderRepository::STATE_ACTIVATED]);
+
+		$provider->setStateProvider($stateActivated);
+		$provider->setDateActivated();
+		$this->em->persist($provider);
+		$this->em->flush();
 	}
 
 }

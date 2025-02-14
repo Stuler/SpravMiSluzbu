@@ -56,7 +56,6 @@ class User
 		#[ORM\Column(type: 'datetime', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
 		private \DateTime  $dateLastLogin = new \DateTime(),
 
-		// dateActivated
 		#[ORM\Column(type: 'datetime', nullable: true)]
 		private ?\DateTime $dateActivated = null,
 

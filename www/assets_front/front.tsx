@@ -13,3 +13,6 @@ import './vendor/waypoints/noframework.waypoints.js';
 import './vendor/swiper/swiper-bundle.min.js';
 import './vendor/imagesloaded/imagesloaded.pkgd.min.js';
 import './vendor/isotope-layout/isotope.pkgd.min.js';
+
+import './js/naja/initNaja';
+import "./../../js/react/provider-form/main.jsx";

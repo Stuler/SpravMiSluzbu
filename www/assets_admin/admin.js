@@ -28,7 +28,7 @@ import './vendor/bootstrap-icons/bootstrap-icons.css';
 
 
 document.addEventListener('DOMContentLoaded', () => {
-	console.log('DOMContentLoaded');
+	console.log('DOMContentLoaded lolo');
 	naja.initialize();
 	naja.formsHandler.netteForms = netteForms;
 });

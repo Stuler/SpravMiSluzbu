@@ -14,7 +14,7 @@ module.exports = (env, argv) => {
 				],
 				front: [
 					path.resolve(__dirname, "www", "assets_front", "scss", "main.scss"),
-					path.resolve(__dirname, "www", "assets_front", "front.js"),
+					path.resolve(__dirname, "www", "assets_front", "front.tsx"),
 				],
 			}
 		},
@@ -63,6 +63,10 @@ module.exports = (env, argv) => {
 				'window.jQuery': 'jquery',
 				'moment': 'moment'
 			}),
+			new webpack.ProvidePlugin({
+				React: 'react',
+				ReactDOM: 'react-dom'
+			})
 		].concat(isDev && [
 			new webpack.HotModuleReplacementPlugin(),
 			new HtmlWebpackPlugin({
@@ -113,12 +117,16 @@ module.exports = (env, argv) => {
 					},
 				},
 				{
-					test: /\.(ts|tsx)$/,
-					exclude: /node_modules\/(?!@contributte)/,
+					test: /\.(js|jsx|ts|tsx)$/,  // Pridané .jsx a .tsx
+					exclude: /node_modules/,
 					use: {
-						loader: 'ts-loader',
+						loader: 'babel-loader',
 						options: {
-							allowTsInNodeModules: true  // Pridaj túto možnosť
+							presets: [
+								'@babel/preset-env',
+								'@babel/preset-react',  // <-- PRIDANÉ pre React/JSX podporu
+								'@babel/preset-typescript'
+							]
 						}
 					}
 				},

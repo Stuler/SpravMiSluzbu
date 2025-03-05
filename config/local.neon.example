@@ -13,9 +13,9 @@ parameters:
 		port: 3306
 
 	smtp:
-		host: wes1-smtp.wedos.net
-		username: info@spravmisluzbu.sk
-		password: "GRo6ic=5s[4H,!77O"
+		host: 
+		username: 
+		password: 
 		port: 587
 		secure: tls
 

@@ -5,10 +5,10 @@ parameters:
 
 	# Database
 	database:
-		host: 127.0.0.1
+		host: 
 		dbname: sprav_mi_sluzbu
-		user: root
-		password: root
+		user: 
+		password: 
 		driver: mysqli
 		port: 3306
 

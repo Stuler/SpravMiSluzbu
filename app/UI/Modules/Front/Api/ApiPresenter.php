@@ -2,10 +2,18 @@
 
 namespace App\UI\Modules\Front\Api;
 
+use App\Domain\CategoryService\CategoryService;
+use App\Domain\City\City;
+use App\Domain\Region\Region;
 use App\UI\Modules\Front\BaseFrontPresenter;
+use Doctrine\ORM\EntityManagerInterface;
+use Nette\DI\Attributes\Inject;
 
 class ApiPresenter extends BaseFrontPresenter
 {
+
+	#[Inject]
+	public EntityManagerInterface $entityManager;
 
 	public function actionDefault(): void
 	{
@@ -15,40 +23,47 @@ class ApiPresenter extends BaseFrontPresenter
 		]);
 	}
 
+	/**
+	 * Returns a list of categories as JSON for the provider sign-up form.
+	 * @return void
+	 */
 	public function actionCategories(): void
 	{
-		// Simulate data retrieval
-		$data = [
+		$categories = $this->entityManager->getRepository(CategoryService::class)->findAll();
+		$data = array_map(fn($category) => [
+			'id' => $category->getId(),
+			'name' => $category->getName(),
+		], $categories);
 
-			['id' => 1, 'name' => 'Category 1'],
-			['id' => 2, 'name' => 'Category 2'],
-			['id' => 3, 'name' => 'Category 3'],
-
-		];
 		$this->sendJson($data);
 	}
 
+	/**
+	 * Returns a list of regions as JSON for the provider sign-up form.
+	 * @return void
+	 */
 	public function actionRegions(): void
 	{
-		// Simulate data retrieval
-		$data = [
-			['id' => 1, 'name' => 'Region 1'],
-			['id' => 2, 'name' => 'Region 2'],
-			['id' => 3, 'name' => 'Region 3'],
-		];
+		$regions = $this->entityManager->getRepository(Region::class)->findAll();
+		$data = array_map(fn($region) => [
+			'id' => $region->getId(),
+			'name' => $region->getName(),
+		], $regions);
 		$this->sendJson($data);
 	}
 
+	/**
+	 * Returns a list of cities as JSON for the provider sign-up form.
+	 * @return void
+	 */
 	public function actionCities(): void
 	{
-		// Simulate data retrieval
-		$data = [
-			'cities' => [
-				['id' => 1, 'name' => 'City 1'],
-				['id' => 2, 'name' => 'City 2'],
-				['id' => 3, 'name' => 'City 3'],
-			],
-		];
+		$cities = $this->entityManager->getRepository(City::class)->findAll();
+		$data = array_map(fn($city) => [
+			'id' => $city->getId(),
+			'name' => $city->getName(),
+			'region_id' => $city->getRegion()->getId(),
+		], $cities);
 		$this->sendJson($data);
 	}
 

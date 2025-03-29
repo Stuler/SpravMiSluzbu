@@ -1,44 +1,32 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "module": "es2015",
-    "baseUrl": "./react/Dashboard",
+    "target": "es5",
     "lib": [
       "dom",
-      "es2015",
-      "es2017"
+      "dom.iterable",
+      "esnext"
     ],
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "allowJs": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
-    "paths": {
-      "react": [
-        "./node_modules/@types/react"
-      ],
-      "react-dom": [
-        "./node_modules/react-dom"
-      ]
-    }
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "noEmit": false,
+    "jsx": "react-jsx",
+    "noImplicitAny": false
   },
-  "include": [
-    "www/**/*"
+  "types": [
+    "react",
+    "react-dom"
   ],
-  "exclude": [
-    "node_modules",
-    "app",
-    "bin",
-    "config",
-    "css",
-    "docs",
-    "images",
-    "log",
-    "temp",
-    "vendor",
-    "web"
-  ]
+  //	"include": [
+  //		"./js/react-app/src/**/*"
+  //	]
 }

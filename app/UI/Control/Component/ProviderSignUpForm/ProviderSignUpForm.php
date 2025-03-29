@@ -5,23 +5,15 @@ namespace App\UI\Control\Component\ProviderSignUpForm;
 use App\Domain\CategoryService\CategoryService;
 use App\Domain\City\City;
 use App\Domain\Region\Region;
-use Contributte\FormWizard\Wizard;
 use Doctrine\ORM\EntityManagerInterface;
 use Nette\Application\UI\Form;
 use Nette\DI\Attributes\Inject;
-use Nette\Http\Session;
 
-class ProviderSignUpFormComp extends Wizard
+class ProviderSignUpForm extends \Contributte\FormWizard\Wizard
 {
-//	#[Inject]
-//	public EntityManagerInterface $entityManager;
 
-	public function __construct(Session                        $session,
-								private EntityManagerInterface $entityManager
-	)
-	{
-		parent::__construct($session);
-	}
+	#[Inject]
+	public EntityManagerInterface $entityManager;
 
 	private array $stepNames = [
 		1 => "Kategórie služieb",

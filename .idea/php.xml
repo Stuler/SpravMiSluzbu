@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="MessDetector">
+    <phpmd_settings>
+      <phpmd_by_interpreter asDefaultInterpreter="true" interpreter_id="41877cc2-e8c5-4ad6-aa04-01d42ab97d09" timeout="30000" />
+    </phpmd_settings>
+  </component>
   <component name="MessDetectorOptionsConfiguration">
     <option name="transferred" value="true" />
   </component>
@@ -13,7 +18,7 @@
   <component name="PhpCodeSniffer">
     <phpcs_settings>
       <PhpCSConfiguration beautifier_path="$PROJECT_DIR$/vendor/bin/phpcbf" tool_path="$PROJECT_DIR$/vendor/bin/phpcs" />
-      <phpcs_by_interpreter asDefaultInterpreter="true" interpreter_id="6297462f-d42d-434f-a465-0f2b42ae62b1" beautifier_path="C:\Projects\PHP\SpravMiSluzbu\vendor\bin\phpcbf" tool_path="C:\Projects\PHP\SpravMiSluzbu\vendor\bin\phpcs" timeout="30000" />
+      <phpcs_by_interpreter asDefaultInterpreter="true" interpreter_id="41877cc2-e8c5-4ad6-aa04-01d42ab97d09" beautifier_path="C:\Projects\PHP\SpravMiSluzbu\vendor\bin\phpcbf" tool_path="C:\Projects\PHP\SpravMiSluzbu\vendor\bin\phpcs" timeout="30000" />
     </phpcs_settings>
   </component>
   <component name="PhpIncludePathManager">

@@ -6,17 +6,15 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 module.exports = (env, argv) => {
 	const isDev = env.WEBPACK_SERVE;
 	return {
-		entry: async function () {
-			return {
-				admin: [
-					path.resolve(__dirname, "www", "assets_admin", "admin.sass"),
-					path.resolve(__dirname, "www", "assets_admin", "admin.js"),
-				],
-				front: [
-					path.resolve(__dirname, "www", "assets_front", "scss", "main.scss"),
-					path.resolve(__dirname, "www", "assets_front", "front.tsx"),
-				],
-			}
+		entry: {
+			admin: [
+				path.resolve(__dirname, "www", "assets_admin", "admin.sass"),
+				path.resolve(__dirname, "www", "assets_admin", "admin.js"),
+			],
+			front: [
+				path.resolve(__dirname, "www", "assets_front", "scss", "main.scss"),
+				path.resolve(__dirname, "www", "assets_front", "front.tsx"),
+			],
 		},
 		mode: isDev ? "development" : "production",
 		cache: isDev,
@@ -40,7 +38,7 @@ module.exports = (env, argv) => {
 			}
 		},
 		resolve: {
-			extensions: [".ts", ".tsx", ".js"],
+			extensions: [".ts", ".tsx", ".js", ".jsx"],  // ✅ Added .jsx
 			alias: {
 				'@': path.resolve(__dirname, 'assets/js'),
 				'~': path.resolve(__dirname, 'node_modules')
@@ -63,16 +61,13 @@ module.exports = (env, argv) => {
 				'window.jQuery': 'jquery',
 				'moment': 'moment'
 			}),
-			new webpack.ProvidePlugin({
-				React: 'react',
-				ReactDOM: 'react-dom'
-			})
-		].concat(isDev && [
+			// ✅ Removed React ProvidePlugin since it may not be necessary
+		].concat(isDev ? [
 			new webpack.HotModuleReplacementPlugin(),
 			new HtmlWebpackPlugin({
 				title: 'Hot Module Replacement',
 			}),
-		]),
+		] : []),
 		output: {
 			filename: '[name].bundle.js',
 			path: path.resolve(__dirname, 'www/bundle'),
@@ -88,14 +83,10 @@ module.exports = (env, argv) => {
 						MiniCssExtractPlugin.loader,
 						{
 							loader: 'css-loader',
-							options: {
-								sourceMap: true
-							}
+							options: {sourceMap: true}
 						},
 						'resolve-url-loader',
-						{
-							loader: 'sass-loader',
-						}
+						'sass-loader'
 					]
 				},
 				{
@@ -117,23 +108,22 @@ module.exports = (env, argv) => {
 					},
 				},
 				{
-					test: /\.(js|jsx|ts|tsx)$/,  // Pridané .jsx a .tsx
+					test: /\.(js|jsx|ts|tsx)$/,  // ✅ Only one rule for all
 					exclude: /node_modules/,
 					use: {
 						loader: 'babel-loader',
 						options: {
 							presets: [
-								'@babel/preset-env',
-								'@babel/preset-react',  // <-- PRIDANÉ pre React/JSX podporu
-								'@babel/preset-typescript'
+								"@babel/preset-env",
+								"@babel/preset-react",
+								"@babel/preset-typescript"
+							],
+							plugins: [
+								["@babel/plugin-proposal-decorators", {"legacy": true}],
+								["@babel/plugin-proposal-class-properties", {"loose": true}]
 							]
 						}
 					}
-				},
-				{
-					test: /\.(js)$/,
-					exclude: /node_modules/,
-					use: 'babel-loader'
 				}
 			]
 		}

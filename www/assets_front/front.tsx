@@ -15,4 +15,4 @@ import './vendor/imagesloaded/imagesloaded.pkgd.min.js';
 import './vendor/isotope-layout/isotope.pkgd.min.js';
 
 import './js/naja/initNaja';
-import "./../../js/react/provider-form/main.jsx";
+import "./../../js/react/main.jsx";

@@ -1,33 +1,22 @@
 import * as yup from 'yup';
 
-export const step3Schema = yup.object({
+export const step3Schema = yup.object().shape({
 	companyName: yup.string().required('Názov firmy je povinný'),
-	ico: yup
-		.string()
-		.required('IČO je povinné')
-		.matches(/^\d{8}$/, 'IČO musí obsahovať 8 číslic'),
-
+	ico: yup.string().required('IČO je povinné'),
 	street: yup.string().required('Ulica je povinná'),
 	streetNumber: yup.string().required('Číslo ulice je povinné'),
-	city: yup.string().required('Mesto je povinné'),
-	zip: yup
-		.string()
-		.required('PSČ je povinné')
-		.matches(/^\d{3}\s?\d{2}$/, 'Zadajte platné PSČ (napr. 010 01 alebo 01001)'),
-
+	cityId: yup.string().required('Mesto je povinné'),
+	city: yup.string().required(),
+	zip: yup.string().required('PSČ je povinné'),
 	usePersonalAsContact: yup.boolean(),
-
-	contactFirstName: yup
-		.string()
-		.when('usePersonalAsContact', {
-			is: false,
-			then: (schema) => schema.required('Meno kontaktnej osoby je povinné'),
-		}),
-
-	contactLastName: yup
-		.string()
-		.when('usePersonalAsContact', {
-			is: false,
-			then: (schema) => schema.required('Priezvisko kontaktnej osoby je povinné'),
-		}),
+	contactFirstName: yup.string().when('usePersonalAsContact', {
+		is: false,
+		then: yup.string().required('Meno je povinné'),
+		otherwise: yup.string(),
+	}),
+	contactLastName: yup.string().when('usePersonalAsContact', {
+		is: false,
+		then: yup.string().required('Priezvisko je povinné'),
+		otherwise: yup.string(),
+	}),
 });

@@ -81,7 +81,7 @@ const App: React.FC = () => {
 		setFormData((prev) => ({...prev, [field]: value}));
 	};
 
-	const next = () => setStep((prev) => Math.min(prev + 1, 3));
+	const next = () => setStep((prev) => Math.min(prev + 1, 2));
 	const back = () => setStep((prev) => Math.max(prev - 1, 0));
 	const handleSubmit = () => {
 		console.log('Form submitted:', formData);

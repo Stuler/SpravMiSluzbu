@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {useForm} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import {step2Schema} from './step2Schema';
-import {yup} from 'yup';
 
 type FormData = {
 	firstName: string;
@@ -31,7 +30,6 @@ type Props = {
 const Step2: React.FC<Props> = ({data, onChange, onStepValid}) => {
 	const {
 		register,
-		handleSubmit,
 		watch,
 		formState: {errors, isValid},
 	} = useForm<FormData>({
@@ -59,7 +57,13 @@ const Step2: React.FC<Props> = ({data, onChange, onStepValid}) => {
 				<div key={field}>
 					<label className="block font-medium mb-1">{labels[field]}</label>
 					<input
-						type={field.includes('password') ? 'password' : 'text'}
+						type={
+							field === 'password' || field === 'confirmPassword'
+								? 'password'
+								: field === 'email'
+									? 'email'
+									: 'text'
+						}
 						{...register(field as keyof FormData)}
 						className="w-full border px-3 py-2 rounded"
 					/>

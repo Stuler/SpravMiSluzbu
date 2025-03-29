@@ -61,8 +61,9 @@ class ApiPresenter extends BaseFrontPresenter
 		$cities = $this->entityManager->getRepository(City::class)->findAll();
 		$data = array_map(fn($city) => [
 			'id' => $city->getId(),
-			'name' => $city->getName(),
+			'name' => $city->getFullName(),
 			'region_id' => $city->getRegion()->getId(),
+			'zip' => $city->getZip(),
 		], $cities);
 		$this->sendJson($data);
 	}

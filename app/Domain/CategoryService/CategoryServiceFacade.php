@@ -106,4 +106,38 @@ readonly class CategoryServiceFacade
 		$this->em->flush();
 	}
 
+	public function getGroupedChildCategoriesForSelect(): array
+	{
+		$qb = $this->em->createQueryBuilder();
+		$qb->select('c')
+			->from(CategoryService::class, 'c')
+			->where('c.parent IS NOT NULL')
+			->orderBy('c.parent', 'ASC');
+
+		$categories = $qb->getQuery()->getResult();
+
+		$grouped = [];
+
+		foreach ($categories as $category) {
+			$parentName = $category->getParent()->getName();
+			$groupLabel = $parentName ?: 'Iné';
+
+			if (!isset($grouped[$groupLabel])) {
+				$grouped[$groupLabel] = [];
+			}
+
+			$grouped[$groupLabel][] = [
+				'value' => $category->getId(),
+				'label' => $category->getName(),
+			];
+		}
+
+		// Format as react-select group structure
+		return array_map(
+			fn($label) => ['label' => $label, 'options' => $grouped[$label]],
+			array_keys($grouped)
+		);
+	}
+
+
 }

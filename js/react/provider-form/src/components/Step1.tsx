@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Select from 'react-select';
 
 type Option = { value: string; label: string };
+type GroupedOption = { label: string; options: Option[] };
 
 type Props = {
 	data: {
@@ -13,7 +14,7 @@ type Props = {
 };
 
 const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
-	const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
+	const [categoryOptions, setCategoryOptions] = useState<GroupedOption[]>([]);
 	const [regionOptions, setRegionOptions] = useState<Option[]>([]);
 
 	useEffect(() => {
@@ -21,11 +22,11 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 		fetch('/api/categories')
 			.then(res => res.json())
 			.then(data => {
-				const options = data.map((item: any) => ({
+				/*const options = data.map((item: any) => ({
 					value: item.id,
 					label: item.name,
-				}));
-				setCategoryOptions(options);
+				}));*/
+				setCategoryOptions(data);
 			});
 
 		fetch('/api/regions')

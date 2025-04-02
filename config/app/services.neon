@@ -35,6 +35,8 @@ services:
 	- App\Domain\Provider\ProviderFacade
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade
+	- App\Domain\Region\RegionFacade
+	- App\Domain\City\CityFacade
 
 	# Services ===============
 	- App\Domain\User\UserService

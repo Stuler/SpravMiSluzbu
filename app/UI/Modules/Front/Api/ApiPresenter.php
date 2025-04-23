@@ -5,9 +5,12 @@ namespace App\UI\Modules\Front\Api;
 use App\Domain\CategoryService\CategoryServiceFacade;
 use App\Domain\City\CityFacade;
 use App\Domain\Region\RegionFacade;
+use App\Infrastructure\Stripe\StripeService;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Doctrine\ORM\EntityManagerInterface;
 use Nette\DI\Attributes\Inject;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
 
 class ApiPresenter extends BaseFrontPresenter
 {
@@ -23,6 +26,9 @@ class ApiPresenter extends BaseFrontPresenter
 
 	#[Inject]
 	public CityFacade $cityFacade;
+
+	#[Inject]
+	public StripeService $stripeService;
 
 	public function actionDefault(): void
 	{
@@ -60,4 +66,40 @@ class ApiPresenter extends BaseFrontPresenter
 		$this->sendJson($data);
 	}
 
+	/**
+	 * Creates a Stripe payment intent and returns the client secret.
+	 * @return void
+	 */
+	public function actionCreatePaymentIntent(): void
+	{
+		$paymentIntent = $this->stripeService->createPaymentIntent(1000);
+		bdump($paymentIntent);
+
+		$this->sendJson([
+			'clientSecret' => $paymentIntent->client_secret,
+		]);
+	}
+
+	/**
+	 * Returns the Stripe public key for the client-side integration.
+	 */
+	public function actionGetStripePublicKey(): void
+	{
+		bdump($this->stripeService->getPublicKey());
+		$this->sendJson([
+			'publicKey' => $this->stripeService->getPublicKey(),
+		]);
+	}
+
+	/**
+	 * Creates a new provider. Returns Stripe PaymentIntent.
+	 * @return void
+	 */
+	public function createProvider()
+	{
+		$data = $this->getHttpRequest()->getPost();
+		$category = $this->categoryServiceFacade->getCategoryById($data['category']);
+		$region = $this->regionFacade->getRegionById($data['region']);
+		$city = $this->cityFacade->getCityById($data['city']);
+	}
 }

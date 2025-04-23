@@ -1,8 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
-import {yupResolver} from '@hookform/resolvers/yup';
-import {step3Schema} from './step3Schema';
-
 import Select from 'react-select';
 
 type CityOption = { id: string; name: string; zip: string };
@@ -33,10 +30,9 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 		register,
 		setValue,
 		watch,
-		formState: {errors, isValid},
+		formState: {isValid},
 	} = useForm<FormData>({
 		mode: 'onChange',
-		resolver: yupResolver(step3Schema),
 		defaultValues: data,
 	});
 
@@ -67,11 +63,11 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 
 	const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const zip = e.target.value;
-		setValue('zip', zip, {shouldValidate: true});
+		setValue('zip', zip);
 
 		const matchedCity = cities.find((city) => city.zip === zip);
 		if (matchedCity) {
-			setValue('cityId', matchedCity.id, {shouldValidate: true});
+			setValue('cityId', matchedCity.id);
 			setValue('city', matchedCity.name);
 		}
 	};
@@ -81,7 +77,7 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 		label: city.name,
 	}));
 
-	const selectedCityOption = cityOptions.find(option => option.value === values.cityId) || null;
+	const selectedCityOption = cityOptions.find((option) => option.value === values.cityId) || null;
 
 	return (
 		<div className="space-y-6">
@@ -91,13 +87,11 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 				<div>
 					<label>Názov firmy</label>
 					<input type="text" {...register('companyName')} className="w-full border px-3 py-2 rounded"/>
-					{errors.companyName && <p className="text-red-500 text-sm">{errors.companyName.message}</p>}
 				</div>
 
 				<div>
 					<label>IČO</label>
 					<input type="text" {...register('ico')} className="w-full border px-3 py-2 rounded"/>
-					{errors.ico && <p className="text-red-500 text-sm">{errors.ico.message}</p>}
 				</div>
 
 				<div className="grid grid-cols-2 gap-4">
@@ -107,15 +101,15 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 							options={cityOptions}
 							value={selectedCityOption}
 							onChange={(option) => {
-								if (option === null) {
-									setValue('cityId', '', {shouldValidate: true});
+								if (!option) {
+									setValue('cityId', '');
 									setValue('city', '');
 									setValue('zip', '');
 									return;
 								}
-								const selected = cities.find(c => c.id === option?.value);
+								const selected = cities.find((c) => c.id === option.value);
 								if (selected) {
-									setValue('cityId', selected.id, {shouldValidate: true});
+									setValue('cityId', selected.id);
 									setValue('city', selected.name);
 									setValue('zip', selected.zip);
 								}
@@ -124,13 +118,11 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 								const words = option.label.toLowerCase().split(' ');
 								return words.some((word) => word.startsWith(inputValue.toLowerCase()));
 							}}
-
 							placeholder="-- Vyberte mesto --"
 							className="react-select-container"
 							classNamePrefix="react-select"
 							isClearable
 						/>
-						{errors.cityId && <p className="text-red-500 text-sm">{errors.cityId.message}</p>}
 					</div>
 
 					<div>
@@ -141,18 +133,20 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 							onChange={handleZipChange}
 							className="w-full border px-3 py-2 rounded"
 						/>
-						{errors.zip && <p className="text-red-500 text-sm">{errors.zip.message}</p>}
 					</div>
 				</div>
 			</div>
 
 			<div className="space-y-3">
 				<h3 className="font-semibold">Kontaktná osoba</h3>
+
 				<div className="flex items-center gap-2">
 					<input
 						type="checkbox"
 						checked={values.usePersonalAsContact}
-						onChange={(e) => setValue('usePersonalAsContact', e.target.checked)}
+						onChange={(e) => {
+							setValue('usePersonalAsContact', e.target.checked);
+						}}
 					/>
 					<label>Použiť údaje z kroku 2</label>
 				</div>
@@ -163,17 +157,11 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 							<label>Meno</label>
 							<input type="text" {...register('contactFirstName')}
 								   className="w-full border px-3 py-2 rounded"/>
-							{errors.contactFirstName && (
-								<p className="text-red-500 text-sm">{errors.contactFirstName.message}</p>
-							)}
 						</div>
 						<div>
 							<label>Priezvisko</label>
 							<input type="text" {...register('contactLastName')}
 								   className="w-full border px-3 py-2 rounded"/>
-							{errors.contactLastName && (
-								<p className="text-red-500 text-sm">{errors.contactLastName.message}</p>
-							)}
 						</div>
 					</div>
 				)}

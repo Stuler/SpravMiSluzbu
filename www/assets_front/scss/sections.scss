@@ -1,0 +1,71 @@
+@use './sections/hero.scss' as *;
+@use './sections/featured-services.scss' as *;
+@use './sections/about.scss';
+@use './sections/skills.scss' as *;
+@use './sections/stats.scss';
+@use './sections/clients.scss' as *;
+@use './sections/services.scss' as *;
+@use './sections/testimonials.scss' as *;
+@use './sections/portfolio.scss' as *;
+@use './sections/team.scss';
+@use './sections/pricing.scss' as *;
+@use './sections/faq.scss';
+@use './sections/contact.scss' as *;
+@use './sections/service-details.scss' as *;
+@use './sections/portfolio-details.scss' as *;
+@use './sections/starter-section.scss' as *;
+
+/*--------------------------------------------------------------
+# Global Sections
+--------------------------------------------------------------*/
+section,
+.section {
+	color: var(--default-color);
+	background-color: var(--background-color);
+	padding: 60px 0;
+	scroll-margin-top: 78px;
+	overflow: clip;
+}
+
+@media (max-width: 1199px) {
+
+	section,
+	.section {
+		scroll-margin-top: 60px;
+	}
+}
+
+/*--------------------------------------------------------------
+# Global Section Titles
+--------------------------------------------------------------*/
+.section-title {
+	text-align: center;
+	padding-bottom: 60px;
+	position: relative;
+
+	h2 {
+		font-size: 13px;
+		letter-spacing: 1px;
+		font-weight: 700;
+		padding: 8px 20px;
+		margin: 0;
+		background: color-mix(in srgb, var(--accent-color), transparent 90%);
+		color: var(--accent-color);
+		display: inline-block;
+		text-transform: uppercase;
+		border-radius: 50px;
+		font-family: var(--default-font);
+	}
+
+	p {
+		color: var(--heading-color);
+		margin: 10px 0 0 0;
+		font-size: 32px;
+		font-weight: 700;
+		font-family: var(--heading-font);
+
+		.description-title {
+			color: var(--accent-color);
+		}
+	}
+}

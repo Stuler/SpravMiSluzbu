@@ -6,7 +6,6 @@ export const step3Schema = yup.object().shape({
 	street: yup.string().required('Ulica je povinná'),
 	streetNumber: yup.string().required('Číslo ulice je povinné'),
 	cityId: yup.string().required('Mesto je povinné'),
-	city: yup.string().required(),
 	zip: yup.string().required('PSČ je povinné'),
 	usePersonalAsContact: yup.boolean(),
 	contactFirstName: yup.string().when('usePersonalAsContact', {

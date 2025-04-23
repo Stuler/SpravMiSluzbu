@@ -40,6 +40,7 @@ services:
 
 	# Services ===============
 	- App\Domain\User\UserService
+	- App\Infrastructure\Stripe\StripeService(%stripe%)
 
 	# Console ================
 	- App\Console\HelloCommand

@@ -16,12 +16,19 @@ module.exports = (env, argv) => {
 				path.resolve(__dirname, "www", "assets_front", "front.tsx"),
 			],
 		},
+		ignoreWarnings: [
+			(warning) => {
+				const message = typeof warning === 'string' ? warning : warning.message || '';
+				return message.includes('The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0');
+			}
+		],
 		mode: isDev ? "development" : "production",
 		cache: isDev,
 		devtool: isDev ? 'eval-cheap-module-source-map' : 'hidden-source-map',
 		watchOptions: {
 			ignored: "/node_modules/"
 		},
+		stats: {warnings: false},
 		devServer: {
 			static: [
 				"./www/assets_admin",
@@ -35,7 +42,17 @@ module.exports = (env, argv) => {
 			},
 			headers: {
 				"Access-Control-Allow-Origin": "*",
-			}
+			},
+			devMiddleware: {
+				publicPath: '/bundle/',    // <<< tell dev-server to serve bundles at /bundle/
+			},
+			proxy: [
+				{
+					context: (path) => true, // <<< match everything
+					target: 'http://localhost:8000',
+					changeOrigin: true,
+				}
+			]
 		},
 		resolve: {
 			extensions: [".ts", ".tsx", ".js", ".jsx"],  // ✅ Added .jsx
@@ -60,6 +77,11 @@ module.exports = (env, argv) => {
 				jQuery: "jquery",
 				'window.jQuery': 'jquery',
 				'moment': 'moment'
+			}),
+			new webpack.DefinePlugin({
+				'process.env': {
+					STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY),
+				},
 			}),
 			// ✅ Removed React ProvidePlugin since it may not be necessary
 		].concat(isDev ? [
@@ -86,7 +108,15 @@ module.exports = (env, argv) => {
 							options: {sourceMap: true}
 						},
 						'resolve-url-loader',
-						'sass-loader'
+						{
+							loader: 'sass-loader',
+							options: {
+								sourceMap: true,
+								sassOptions: {
+									quietDeps: true,  // 🔇 Suppresses deprecated dependency warnings
+								}
+							}
+						}
 					]
 				},
 				{

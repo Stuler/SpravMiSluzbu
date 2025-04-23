@@ -15,6 +15,7 @@ use App\Model\Database\EntityManagerDecorator;
 use App\Model\Exception\Logic\InvalidArgumentException;
 use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Mail\MailSender;
+use App\Model\Provider\DTO\ProviderRegistrationData;
 use App\Model\Security\Passwords;
 use Exception;
 use Nette\Application\LinkGenerator;
@@ -127,5 +128,11 @@ readonly class ProviderFacade
 		$this->em->persist($provider);
 		$this->em->flush();
 	}
+
+	public function registerWithSubscription(ProviderRegistrationData $dto)
+	{
+
+	}
+
 
 }

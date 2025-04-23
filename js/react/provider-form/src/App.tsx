@@ -25,10 +25,6 @@ type FormData = {
 	usePersonalAsContact: boolean;
 	contactFirstName: string;
 	contactLastName: string;
-	subscriptionPlan: 'free' | 'basic' | 'premium';
-	cardNumber: string;
-	cardExpiry: string;
-	cardCvc: string;
 };
 
 const initialData: FormData = {
@@ -50,10 +46,6 @@ const initialData: FormData = {
 	usePersonalAsContact: true,
 	contactFirstName: '',
 	contactLastName: '',
-	subscriptionPlan: 'free',
-	cardNumber: '',
-	cardExpiry: '',
-	cardCvc: '',
 };
 
 const App: React.FC = () => {

@@ -2,15 +2,15 @@
 
 namespace App;
 
-class Settings
+readonly class Settings
 {
 
 	public function __construct(
-		public readonly bool   $debugMode,
-		public readonly string $appDir,
-		public readonly string $wwwDir,
-		public readonly string $testPassword,
-		public readonly string $testUrl
+		public bool   $debugMode,
+		public string $appDir,
+		public string $wwwDir,
+		public string $testPassword,
+		public string $testUrl
 	)
 	{
 	}

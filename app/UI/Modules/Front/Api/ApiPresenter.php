@@ -4,8 +4,10 @@ namespace App\UI\Modules\Front\Api;
 
 use App\Domain\CategoryService\CategoryServiceFacade;
 use App\Domain\City\CityFacade;
+use App\Domain\Provider\ProviderFacade;
 use App\Domain\Region\RegionFacade;
 use App\Infrastructure\Stripe\StripeService;
+use App\Model\Provider\DTO\ProviderRegistrationData;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Doctrine\ORM\EntityManagerInterface;
 use Nette\DI\Attributes\Inject;
@@ -29,6 +31,9 @@ class ApiPresenter extends BaseFrontPresenter
 
 	#[Inject]
 	public StripeService $stripeService;
+
+	#[Inject]
+	public ProviderFacade $providerFacade;
 
 	public function actionDefault(): void
 	{
@@ -95,11 +100,68 @@ class ApiPresenter extends BaseFrontPresenter
 	 * Creates a new provider. Returns Stripe PaymentIntent.
 	 * @return void
 	 */
-	public function createProvider()
+	public function actionCreateProvider()
 	{
-		$data = $this->getHttpRequest()->getPost();
-		$category = $this->categoryServiceFacade->getCategoryById($data['category']);
-		$region = $this->regionFacade->getRegionById($data['region']);
-		$city = $this->cityFacade->getCityById($data['city']);
+		$request = $this->getHttpRequest();
+		$data = json_decode($request->getRawBody(), true);
+
+		if (!is_array($data)) {
+			$this->sendJson([
+				'code' => 500,
+				'message' => 'Invalid JSON structure.',
+				'result' => [],
+			]);
+		}
+
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+
+		$dto = new ProviderRegistrationData(
+			$data['serviceCategories'] ?? [],
+			$data['coveredRegions'] ?? [],
+			$data['firstName'] ?? '',
+			$data['lastName'] ?? '',
+			$data['email'] ?? '',
+			$data['password'] ?? '',
+			$data['confirmPassword'] ?? '',
+			$data['phone'] ?? '',
+			$data['companyName'] ?? '',
+			$data['ico'] ?? '',
+			$data['street'] ?? '',
+			$data['streetNumber'] ?? '',
+			$data['cityId'] ?? '',
+			$data['city'] ?? '',
+			$data['zip'] ?? '',
+			$data['usePersonalAsContact'] ?? true,
+			$data['contactFirstName'] ?? '',
+			$data['contactLastName'] ?? '',
+			$data['subscriptionPlan'] ?? 'free',
+			$data['cardNumber'] ?? '',
+			$data['cardExpiry'] ?? '',
+			$data['cardCvc'] ?? '',
+		);
+
+		if (!$dto->isValid()) {
+			$this->sendJson([
+				'code' => 500,
+				'message' => 'Invalid input data.',
+				'result' => [],
+			]);
+		}
+
+		try {
+			$result = $this->providerFacade->registerWithSubscription($dto);
+			$this->sendJson([
+				'code' => 200,
+				'message' => 'Provider created successfully.',
+				'result' => $result,
+			]);
+		} catch (\Throwable $e) {
+			$this->sendJson([
+				'code' => 500,
+				'message' => $e->getMessage(),
+				'result' => [],
+			]);
+		}
+
 	}
 }

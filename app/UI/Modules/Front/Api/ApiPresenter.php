@@ -8,6 +8,7 @@ use App\Domain\Provider\ProviderFacade;
 use App\Domain\Region\RegionFacade;
 use App\Infrastructure\Stripe\StripeService;
 use App\Model\Provider\DTO\ProviderRegistrationData;
+use App\Model\Provider\DTO\ProviderRegistrationDataFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
 use Doctrine\ORM\EntityManagerInterface;
 use Nette\DI\Attributes\Inject;
@@ -100,10 +101,9 @@ class ApiPresenter extends BaseFrontPresenter
 	 * Creates a new provider. Returns Stripe PaymentIntent.
 	 * @return void
 	 */
-	public function actionCreateProvider()
+	public function actionCreateProvider(): void
 	{
-		$request = $this->getHttpRequest();
-		$data = json_decode($request->getRawBody(), true);
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
 
 		if (!is_array($data)) {
 			$this->sendJson([
@@ -113,32 +113,7 @@ class ApiPresenter extends BaseFrontPresenter
 			]);
 		}
 
-		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
-
-		$dto = new ProviderRegistrationData(
-			$data['serviceCategories'] ?? [],
-			$data['coveredRegions'] ?? [],
-			$data['firstName'] ?? '',
-			$data['lastName'] ?? '',
-			$data['email'] ?? '',
-			$data['password'] ?? '',
-			$data['confirmPassword'] ?? '',
-			$data['phone'] ?? '',
-			$data['companyName'] ?? '',
-			$data['ico'] ?? '',
-			$data['street'] ?? '',
-			$data['streetNumber'] ?? '',
-			$data['cityId'] ?? '',
-			$data['city'] ?? '',
-			$data['zip'] ?? '',
-			$data['usePersonalAsContact'] ?? true,
-			$data['contactFirstName'] ?? '',
-			$data['contactLastName'] ?? '',
-			$data['subscriptionPlan'] ?? 'free',
-			$data['cardNumber'] ?? '',
-			$data['cardExpiry'] ?? '',
-			$data['cardCvc'] ?? '',
-		);
+		$dto = ProviderRegistrationDataFactory::fromArray($data);
 
 		if (!$dto->isValid()) {
 			$this->sendJson([

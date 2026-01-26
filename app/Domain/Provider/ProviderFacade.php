@@ -42,7 +42,9 @@ readonly class ProviderFacade
 
 		$loginRole = $data['role'] ?? LoginRole::ROLE_PROVIDER;
 		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
-		$stateProvider = $this->em->getRepository(StateProvider::class)->findOneBy(['id' => StateUserRepository::STATE_FRESH]);
+		$stateProvider = $this->em->getRepository(StateProvider::class)->findOneBy(
+			['id' => StateProviderRepository::STATE_PENDING_PAYMENT]
+		);
 		$city = $this->em->getRepository(City::class)->findOneBy(['id' => $data['city']]);
 
 		$provider = new Provider(
@@ -131,6 +133,16 @@ readonly class ProviderFacade
 
 	public function registerWithSubscription(ProviderRegistrationData $dto)
 	{
+
+		$provider = $this->createProvider($dto->toArray());
+		$subscription = new Subscription(
+			provider: $provider,
+			startDate: new \DateTime(),
+			endDate: (new \DateTime())->modify('+' . $dto->getSubscriptionDuration() . ' months'),
+			price: $dto->getSubscriptionPrice()
+		);
+		$this->em->persist($subscription);
+		$this->em->flush();
 
 	}
 

@@ -117,6 +117,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/ublaboo/datagrid" />
       <excludeFolder url="file://$MODULE_DIR$/vendor" />
       <excludeFolder url="file://$MODULE_DIR$/www/bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/node_modules" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

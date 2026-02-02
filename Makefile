@@ -71,14 +71,14 @@ deploy:
 ############################################################
 # DOCKER ###################################################
 ############################################################
-.PHONY: docker-postgres
-docker-postgres:
+.PHONY: docker-mariadb
+docker-mariadb:
 	docker run \
 		-it \
-		-p 5432:5432 \
-		-e POSTGRES_PASSWORD=contributte \
-		-e POSTGRES_USER=contributte \
-		dockette/postgres:12
+		-p 3306:3306 \
+		-e MYSQL_ROOT_PASSWORD=root \
+		-e MYSQL_DATABASE=sprav_mi_sluzbu \
+		mariadb:10.6
 
 .PHONY: docker-adminer
 docker-adminer:

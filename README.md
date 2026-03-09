@@ -1,235 +1,162 @@
-![](https://heatbadger.now.sh/github/readme/contributte/webapp-skeleton/)
+# SpravMiSluzbu
 
-<p align=center>
-  <a href="https://github.com/contributte/webapp-skeleton/actions"><img src="https://badgen.net/github/checks/contributte/webapp-skeleton/master"></a>
-  <a href="https://coveralls.io/r/contributte/webapp-skeleton"><img src="https://badgen.net/coveralls/c/github/contributte/webapp-skeleton"></a>
-  <a href="https://packagist.org/packages/contributte/webapp-skeleton"><img src="https://badgen.net/packagist/dm/contributte/webapp-skeleton"></a>
-  <a href="https://packagist.org/packages/contributte/webapp-skeleton"><img src="https://badgen.net/packagist/v/contributte/webapp-skeleton"></a>
-</p>
-<p align=center>
-  <a href="https://packagist.org/packages/contributte/webapp-skeleton"><img src="https://badgen.net/packagist/php/contributte/webapp-skeleton"></a>
-  <a href="https://github.com/contributte/webapp-skeleton"><img src="https://badgen.net/github/license/contributte/webapp-skeleton"></a>
-  <a href="https://bit.ly/ctteg"><img src="https://badgen.net/badge/support/gitter/cyan"></a>
-  <a href="https://bit.ly/cttfo"><img src="https://badgen.net/badge/support/forum/yellow"></a>
-  <a href="https://contributte.org/partners.html"><img src="https://badgen.net/badge/sponsor/donations/F96854"></a>
-</p>
+SpravMiSluzbu is a PHP web application built on Nette and Contributte with Doctrine/Nettrine for persistence.
 
-<p align=center>
-Website 🚀 <a href="https://contributte.org">contributte.org</a> | Contact 👨🏻‍💻 <a href="https://f3l1x.io">f3l1x.io</a> | Twitter 🐦 <a href="https://twitter.com/contributte">@contributte</a>
-</p>
+This repository is ready to run with Docker and ships with a preconfigured local development stack.
 
-<p align=center>
-    <img src="https://api.microlink.io?url=https%3A%2F%2Fexamples.contributte.org%2Fwebapp-skeleton%2F&overlay.browser=light&screenshot=true&meta=false&embed=screenshot.url"></img>
-</p>
+## Stack
 
------
+- PHP 8.2
+- Nette Framework 3
+- Contributte ecosystem
+- Doctrine ORM via Nettrine
+- MariaDB 10.6
+- Nginx
+- Adminer
+- Docker Compose
 
-## Goal
+## Requirements
 
-Main goal is to provide best prepared starter-kit project for Nette developers.
+### Recommended
 
-Focused on:
+- Docker Desktop or Docker Engine
+- Docker Compose v2
+- Free local ports:
+  - `8080` for the web app
+  - `8081` for Adminer
 
-- PHP 8.1+
-- `nette/*` packages
-- Doctrine ORM via `nettrine/*`
-- Symfony components via `contributte/*`
-- codestyle checking via **CodeSniffer** and `contributte/qa`
-- static analysing via **phpstan** and `contributte/phpstan`
-- unit / integration tests via **Nette Tester** and `contributte/tester`
+### Optional local runtime without Docker
 
-## Demo
+- PHP `>= 8.2`
+- Composer
+- MariaDB `10.6+`
 
-https://examples.contributte.org/webapp-skeleton/
+## Quick Start
 
-## Installation
+### 1. Start the stack
 
-To install latest version of `contributte/webapp-skeleton` use [Composer](https://getcomposer.org).
-
-```
-composer create-project -s dev contributte/webapp-skeleton acme
+```bash
+docker compose up -d --build
 ```
 
-### Install using [docker](https://github.com/docker/docker/)
+The first start can take a little longer because the PHP container seeds `config/local.neon` from `config/local.neon.example` when needed and runs `composer install` only when dependencies are missing or `composer.lock` changes.
 
-1) At first, use composer to install this project.
+### 2. Open the application
 
-   ```
-   composer create-project -s dev contributte/webapp-skeleton
-   ```
+- App: [http://localhost:8080](http://localhost:8080)
+- Admin area: [http://localhost:8080/admin](http://localhost:8080/admin)
+- Adminer: [http://localhost:8081](http://localhost:8081)
 
-2) After that, you have to setup Postgres >= 10 database. You can start it manually or use docker image `dockette/postgres:12`.
+### 3. Local config
 
-   ```
-   docker run -it -p 5432:5432 -e POSTGRES_PASSWORD=webapp -e POSTGRES_USER=webapp dockette/postgres:12
-   ```
+- `config/local.neon` is the only runtime local config file the app reads.
+- `config/local.neon.example` is the template for that file.
+- On first Docker start, if `config/local.neon` is missing, the PHP container copies `config/local.neon.example` to `config/local.neon`.
+- For non-Docker local development, copy `config/local.neon.example` to `config/local.neon` and adjust the values.
 
-   Or use make task, `make docker-postgres`.
+### 4. Adminer database login
 
-3) Custom configuration file is located at `config/local.neon`. Edit it if you want.
+Use these values in Adminer:
 
-   Default configuration should look like:
+- System: `MySQL`
+- Server: `database`
+- Username: `root`
+- Password: `root`
+- Database: `sprav_mi_sluzbu`
 
-   ```neon
-   # Host Config
-   parameters:
-       # Database
-       database:
-           host: localhost
-           dbname: webapp
-           user: webapp
-           password: webapp
-   ```
+## Database Notes
 
-4) Ok database is now running and application is configured to connect to it. Let's create initial data.
+- On a fresh start, the database is initialized from `.docker/db/01_dump.sql`.
+- The database is stored in a Docker named volume, so data persists between restarts.
+- If you want a clean database re-import from the dump, run:
 
-   Run `NETTE_DEBUG=1 bin/console migrations:migrate` to create tables. Run `NETTE_DEBUG=1 bin/console doctrine:fixtures:load --append` to create first user(s).
+```bash
+docker compose down -v
+docker compose up -d --build
+```
 
-   Or via task `make build`.
+## Useful Commands
 
-5) Start your devstack or use PHP local development server.
+Start or rebuild:
 
-   You can start PHP server by running `php -S localhost:8000 -t www` or use prepared make task `make dev`.
+```bash
+docker compose up -d --build
+```
 
-6) Open http://localhost and enjoy!
+See container status:
 
-   Take a look at:
-    - http://localhost:8000.
-    - http://localhost:8000/admin (admin@admin.cz / admin)
+```bash
+docker compose ps
+```
 
-### Install using [docker-compose](https://https://github.com/docker/compose/)
+Watch logs:
 
-1) At first, use composer to install this project.
+```bash
+docker compose logs -f
+docker compose logs -f php
+docker compose logs -f nginx
+```
 
-   ```
-   composer create-project -s dev contributte/webapp-project
-   ```
+Open a shell in the PHP container:
 
-2) Modify `config/local.neon` and set host to `database`
+```bash
+docker compose exec php sh
+```
 
-   Default configuration should look like this:
+Restart PHP after config or bootstrap-related changes:
 
-   ```neon
-   # Host Config
-   parameters:
-       # Database
-       database:
-           host: database
-           dbname: webapp
-           user: webapp
-           password: webapp
-   ```
+```bash
+docker compose restart php
+```
 
-3) Run `docker-compose up`
+Stop the stack:
 
-4) Open http://localhost and enjoy!
+```bash
+docker compose down
+```
 
-   Take a look at:
-    - http://localhost.
-    - http://localhost/admin (admin@admin.cz / admin)
+## Development Notes
 
-## Features
+- Docker mounts the project into the containers, so source code changes are reflected immediately.
+- Docker does not use a separate Docker-only `local.neon`; it uses the same `config/local.neon` the app uses everywhere else.
+- `config/local.neon.example` is the committed template, and `config/local.neon` stays ignored for machine-specific values.
+- In development, mail is written to local files for inspection instead of being sent through a real mail server.
+- There is no `package.json` in this repository, so there is currently no separate frontend build step required to start the app.
 
-Here is a list of all features you can find in this project.
+## Local Run Without Docker
 
-- PHP 8.0+
-- :package: Packages
-    - Nette 3+
-    - Contributte
-    - Nettrine
-- :deciduous_tree: Structure
-    - `app`
-        - `config` - configuration files
-            - `env` - prod/dev/test environments
-            - `app` - application configs
-            - `ext` - extensions configs
-            - `local.neon` - local runtime config
-            - `local.neon.dist` - template for local config
-        - `domain` - business logic and domain specific classes
-        - `model` - application backbone
-        - `modules` - Front/Admin module, presenters and components
-        - `resources` - static content for mails and others
-        - `ui` - UI components and base classes
-        - `bootstrap.php` - Nette entrypoint
-    - `bin` - console entrypoint (`bin/console`)
-    - `db` - database files
-        - `fixtures` - PHP fixtures
-        - `migrations` - migrations files
-    - `docs` - documentation
-    - `var`
-        - `log` - runtime and error logs
-        - `tmp` - tmp files and cache
-    - `tests` - test engine and unit/integration tests
-    - `vendor` - composer's folder
-    - `www` - public content
-- :exclamation: Tracy
-    - Cool error 500 page
+Docker is the supported and easiest way to run the project. If you still want to run it locally, you will need your own:
 
-### Notable changes
+- PHP 8.2+
+- Composer install
+- MariaDB setup
+- `config/local.neon` configured for your machine
 
-- `$user` variable in templates [is renamed](https://github.com/contributte/webapp-skeleton/blob/master/app/model/Latte/TemplateFactory.php) to `$_user`
+Then you can start the built-in PHP server:
 
-### Composer packages
+```bash
+php -S 0.0.0.0:8000 -t www
+```
 
-Take a detailed look :eyes: at each single package.
+## Troubleshooting
 
-- [contributte/bootstrap](https://contributte.org/packages/contributte/bootstrap.html)
-- [contributte/application](https://contributte.org/packages/contributte/application.html)
-- [contributte/di](https://contributte.org/packages/contributte/di.html)
-- [contributte/cache](https://contributte.org/packages/contributte/cache.html)
-- [contributte/http](https://contributte.org/packages/contributte/http.html)
-- [contributte/forms](https://contributte.org/packages/contributte/forms.html)
-- [contributte/latte](https://contributte.org/packages/contributte/latte.html)
-- [contributte/mail](https://contributte.org/packages/contributte/mail.html)
-- [contributte/security](https://contributte.org/packages/contributte/security.html)
-- [contributte/utils](https://contributte.org/packages/contributte/utils.html)
-- [contributte/tracy](https://contributte.org/packages/contributte/tracy.html)
-- [contributte/console](https://contributte.org/packages/contributte/console.html)
-- [contributte/webapp-skeleton](https://contributte.org/packages/contributte/webapp-skeleton.html)
-- [contributte/event-dispatcher](https://contributte.org/packages/contributte/event-dispatcher.html)
-- [contributte/event-dispatcher-extra](https://contributte.org/packages/contributte/event-dispatcher-extra.html)
-- [contributte/neonizer](https://contributte.org/packages/contributte/neonizer.html)
-- [contributte/mailing](https://contributte.org/packages/contributte/mailing.html)
-- [contributte/monolog](https://contributte.org/packages/contributte/monolog.html)
+1. Check container status:
 
-**Doctrine**
+```bash
+docker compose ps
+```
 
-- [contributte/doctrine-orm](https://contributte.org/packages/contributte/doctrine-orm.html)
-- [contributte/doctrine-dbal](https://contributte.org/packages/contributte/doctrine-dbal.html)
-- [contributte/doctrine-annotations](https://contributte.org/packages/contributte/doctrine-annotations.html)
-- [contributte/doctrine-cache](https://contributte.org/packages/contributte/doctrine-cache.html)
-- [contributte/doctrine-migrations](https://contributte.org/packages/contributte/doctrine-migrations.html)
-- [contributte/doctrine-fixtures](https://contributte.org/packages/contributte/doctrine-fixtures.html)
+2. Check logs:
 
-**Dev**
+```bash
+docker compose logs -f php
+docker compose logs -f nginx
+docker compose logs -f database
+```
 
-- [contributte/dev](https://contributte.org/packages/contributte/dev.html)
-- [ninjify/qa](https://contributte.org/packages/ninjify/qa.html)
-- [ninjify/nunjuck](https://contributte.org/packages/ninjify/nunjuck.html)
-- [phpstan/phpstan](https://github.com/phpstan/phpstan)
-- [mockery/mockery](https://github.com/mockery/mockery)
-- [nelmio/alice](https://github.com/nelmio/alice)
+3. If config changes are not picked up, clear generated cache and restart PHP:
 
-## Screenshots
-
-![](.docs/assets/screenshot1.png)
-
-> admin@admin.cz / admin
-
-![](.docs/assets/screenshot2.png)
-![](.docs/assets/screenshot3.png)
-![](.docs/assets/screenshot4.png)
-
-## Development
-
-See [how to contribute](https://contributte.org/contributing.html) to this package.
-
-This package is currently maintaining by these authors.
-
-<a href="https://github.com/f3l1x">
-    <img width="80" height="80" src="https://avatars2.githubusercontent.com/u/538058?v=3&s=80">
-</a>
-
------
-
-Consider to [support](https://contributte.org/partners.html) **contributte** development team. Also thank you for using this project.
+```bash
+docker compose exec php sh -lc "rm -rf var/tmp/cache"
+docker compose restart php
+```

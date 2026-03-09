@@ -1,55 +1,65 @@
-version: '3.4'
-
 services:
-    nginx:
-        build:
-            context: .
-            dockerfile: ./.docker/nginx/Dockerfile
-        volumes:
-            - ./:/var/www/html/
-            - ./.docker/nginx/nginx.conf:/etc/nginx/nginx.conf
-            - ./.docker/nginx/sites/:/etc/nginx/sites-available
-            - ./.docker/nginx/conf.d/:/etc/nginx/conf.d
-        depends_on:
-            - php
-        ports:
-            - 8080:80
-            - 8443:443
+  php:
+    build:
+      context: .
+      dockerfile: ./.docker/php/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      COMPOSER_ALLOW_SUPERUSER: "1"
+      NETTE_DEBUG: "1"
+      NETTE_ENV: dev
+    healthcheck:
+      test: ["CMD-SHELL", "php -r '$$socket = @fsockopen(\"127.0.0.1\", 9000); if (!$$socket) { exit(1); } fclose($$socket);'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
 
-    php:
-        build:
-            context: .
-            dockerfile: ./.docker/php/Dockerfile
-        volumes:
-            - ./:/var/www/html/
-            - ./.docker/php/fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
-        depends_on:
-            - database
-        environment:
-            NETTE_DEBUG: 1
-            PHP_EXTENSION_XDEBUG: 1
-            XDEBUG_MODE: debug
-            XDEBUG_CONFIG: "client_host=host.docker.internal"
-            PHP_EXTENSION_PGSQL: 0
-            PHP_EXTENSION_PDO_PGSQL: 0
-            PHP_EXTENSION_MYSQLI: 1
-            PHP_EXTENSION_PDO_MYSQL: 1
-            PHP_EXTENSION_GD: 1
-            PHP_EXTENSION_INTL: 1
-            STARTUP_COMMAND_1: composer install --no-interaction --prefer-dist
-    #            STARTUP_COMMAND_2: NETTE_DEBUG=1 php bin/console migrations:migrate --no-interaction --allow-no-migration
-    #            STARTUP_COMMAND_3: NETTE_DEBUG=1 php bin/console doctrine:fixtures:load --no-interaction
+  nginx:
+    build:
+      context: .
+      dockerfile: ./.docker/nginx/Dockerfile
+    depends_on:
+      php:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html:ro
 
-    database:
-        image: mariadb:10.6
-        environment:
-            - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=sprav_mi_sluzbu
-        volumes:
-            - .docker/data/mysql:/var/lib/mysql
-            - ./.docker/db/01_dump.sql:/docker-entrypoint-initdb.d/01_dump.sql
+  database:
+    image: mariadb:10.6
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: sprav_mi_sluzbu
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./.docker/db/01_dump.sql:/docker-entrypoint-initdb.d/01_dump.sql:ro
 
-    adminer:
-        image: dockette/adminer:dg
-        ports:
-            - 8081:80
+  adminer:
+    image: dockette/adminer:dg
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+volumes:
+  db_data:

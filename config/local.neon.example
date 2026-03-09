@@ -1,22 +1,37 @@
+# Copy this file to config/local.neon for local development.
+# Docker will do that automatically on first start if config/local.neon is missing.
+
 # Host Config
 parameters:
+	testPassword: 'change-me'
+	testUrl: 'test.example.com'
+
+	stripe:
+		publicKey: 'pk_test_your_public_key'
+		secretKey: 'sk_test_your_secret_key'
 
 	# Database
 	database:
-		host: 0.0.0.0
-		dbname: contributte
-		user: contributte
-		password: contributte
+		host: database
+		dbname: sprav_mi_sluzbu
+		user: root
+		password: root
+		driver: mysqli
+		port: 3306
+		encoding: utf8mb4
+
+	smtp:
+		host: smtp.example.com
+		username: info@example.com
+		password: 'change-me'
+		port: 587
+		secure: tls
+
+tracy:
+	bar:
+		- Nextras\MailPanel\MailPanel(%tempDir%/mail-panel-latte)
 
 # For 0.0.0.0 instead of localhost
 # php -S 0.0.0.0:8000 -t www
 #	session:
 #		cookieDomain: "?->getUrl()->getDomain(4)"(@Nette\Http\IRequest)
-
-# STMP server
-# E.q. mailtrap is cool.
-#	smtp:
-#		host: smtp.mailtrap.io
-#		username: "***"
-#		password: ***
-#		port: 2525

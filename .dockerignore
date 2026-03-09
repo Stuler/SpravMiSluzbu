@@ -1,0 +1,11 @@
+.docker/data
+.git
+.github
+.idea
+log
+node_modules
+tests/tmp
+tests/*.log
+vendor
+var
+www/dist

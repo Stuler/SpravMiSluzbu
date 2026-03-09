@@ -11,8 +11,7 @@ nettrine.cache:
 # Services ===================
 services:
 	mail.mailer:
-			class: Contributte\Mail\Mailer\SendmailMailer
-			setup:
-				- setBounceMail(mail@contributte.org)
+		factory: App\Model\Mail\PersistentFileMailer(%tempDir%/mail-panel-mails)
+		setup:
+			- setBounceMail(mail@contributte.org)
 	mailBuilder: Contributte\Mailing\MailBuilder
-

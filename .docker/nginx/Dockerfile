@@ -1,5 +1,7 @@
-FROM nginx:alpine
-COPY ./ /var/www/html/
-CMD ["nginx"]
+FROM nginx:1.27-alpine
 
-EXPOSE 80 443
+COPY ./.docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./.docker/nginx/conf.d/ /etc/nginx/conf.d/
+COPY ./.docker/nginx/sites/ /etc/nginx/sites-available/
+
+EXPOSE 80

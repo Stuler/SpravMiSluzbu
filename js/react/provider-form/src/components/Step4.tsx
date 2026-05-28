@@ -29,11 +29,11 @@ const Step4: React.FC<{ clientSecret: string }> = ({clientSecret}) => {
 	};
 
 	if (!stripePromise) {
-		return <p>Loading payment form...</p>;
+		return <p className="bripeon-form-help">Načítavam platobný formulár...</p>;
 	}
 
 	return (
-		<div className="max-w-xl mx-auto p-6 border rounded shadow">
+		<div className="bripeon-payment-panel">
 			<Elements stripe={stripePromise} options={options}>
 				<CheckoutForm/>
 			</Elements>
@@ -78,14 +78,14 @@ const CheckoutForm: React.FC = () => {
 	};
 
 	return (
-		<form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
-			<h3 className="font-semibold text-lg">Platobné údaje</h3>
+		<form id="payment-form" onSubmit={handleSubmit} className="bripeon-form-step">
+			<h3>Platobné údaje</h3>
 			<PaymentElement id="payment-element" options={paymentElementOptions}/>
-			{message && <p className="text-red-500 text-sm mt-2">{message}</p>}
+			{message && <p className="bripeon-field-error">{message}</p>}
 			<button
 				type="submit"
 				id="submit"
-				className={`w-full py-2 px-4 rounded text-white ${isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+				className="bripeon-primary-button bripeon-payment-button"
 				disabled={!stripe || !elements || isLoading}
 			>
         <span id="button-text">

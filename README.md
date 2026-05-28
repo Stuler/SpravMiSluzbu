@@ -1,97 +1,131 @@
-# 🏗️ Service Marketplace Platform
+# Bripeon
 
-## 📌 About the Project
+Bripeon is a Slovak service marketplace and demand portal. It connects customers looking for services with providers who offer services by category and region.
 
-This internet platform aims to connect two key areas:
+## Stack
 
-### 1️⃣ For People Seeking a Service
+- PHP 8.2+
+- Nette Framework 3 / Contributte
+- Latte templates and Nette Forms
+- Doctrine ORM through Nettrine
+- MySQL/MariaDB
+- Docker Compose with Nginx, PHP-FPM, MySQL, and Adminer
+- Webpack, TypeScript, and focused React widgets
+- Stripe integration for provider subscription/payment work
 
-- Post advertisements in the **Looking for a Service** section.
-- Ads are publicly accessible to a wide audience.
+## Local Development
 
-### 2️⃣ For Service Providers
-
-- List services in the **Offering a Service** section.
-- Offers are categorized by **geographical location** and **service type**.
-
----
-
-## 🚀 Features
-
-✅ Easy posting of service requests
-✅ Categorized service provider listings
-✅ Geographical filtering of service providers
-✅ User-friendly interface
-
----
-
-## 🔧 Tech Stack
-
-- **Backend**: PHP (Nette)
-- **Frontend**: React.js, TypeScript
-- **Database**: MySQL
-- **DevOps**: Docker Compose
-
----
-
-## 📦 Local Docker
-
-The project currently targets the `feat/stripe-integration` branch for active development.
+Start the full local environment:
 
 ```bash
 docker compose up --build -d
 ```
 
-- App: `http://localhost:8082`
-- Adminer: `http://localhost:8081`
-- Database from host: `127.0.0.1:3307`
-- Database inside Docker: host `database`, DB `sprav_mi_sluzbu`, user `root`, password `root`
+Local URLs:
 
-The first database start imports `db/dump/2025_09_04.sql`. To reimport from scratch:
+- Public site: `http://localhost:8082`
+- Provider sign-up: `http://localhost:8082/provider-sign/up`
+- API categories: `http://localhost:8082/api/categories`
+- Adminer: `http://localhost:8081`
+- MySQL from host: `127.0.0.1:3307`
+
+Local database credentials:
+
+```text
+host: database
+dbname: sprav_mi_sluzbu
+user: root
+password: root
+port: 3306
+```
+
+The first database start imports:
+
+```text
+db/dump/2025_09_04.sql
+```
+
+Reset local database from the dump:
 
 ```bash
 docker compose down -v
 docker compose up --build -d
 ```
 
-If `config/local.neon` does not exist, the PHP container copies `config/local.neon.example`.
+The PHP container copies `config/local.neon.example` to `config/local.neon` if the local file is missing.
 
-## 📦 Manual Installation
-
-1. Clone the repository
+## Frontend
 
 ```bash
-git clone https://github.com/Stuler/SpravMiSluzbu
+npm install
+npm run build
 ```
 
-2. Install dependencies
+React/TypeScript is currently used for isolated provider sign-up/payment UI. The default site and admin remain Nette + Latte.
+
+## Useful Commands
+
+```bash
+docker compose ps
+docker compose logs -f
+docker compose exec php php bin/console migrations:status
+docker compose exec -u www-data php php bin/console nette:cache:purge
+docker compose exec php php -l app/Settings.php
+docker compose exec php vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M
+```
+
+Run Nette cache commands as `www-data`. Running them as root can create `var/tmp/cache` files that PHP-FPM cannot rewrite.
+
+## Environments
+
+| Environment | Branch | Target | Deploy |
+| --- | --- | --- | --- |
+| Local | any | `localhost:8082` | Docker Compose |
+| Development | `dev` | dev server | GitHub Actions FTP |
+| Test | `beta` | `test.spravmisluzbu.sk` on Roští | GitHub Actions SSH/rsync |
+| Production | `main` | production domain | GitHub Actions FTP |
+
+Test deployment on Roští uses:
+
+```text
+app@ssh.rosti.cz:10434
+/srv/app
+/srv/app/www
+```
+
+Required test GitHub Actions secrets:
+
+```text
+ROSTI_TEST_SSH_KEY_BASE64
+ROSTI_TEST_LOCAL_NEON_BASE64
+```
+
+The test deploy does not run database migrations automatically. Database changes are manual until the migration strategy is settled.
+
+Production uses separate FTP, database, SMTP, and Stripe secrets. Do not reuse test secrets in production.
+
+## Documentation
+
+- [AGENTS.md](AGENTS.md): coding-agent and refactor guidance
+- [architecture.md](architecture.md): architecture, environment, and deployment overview
+- [.docs/rosti-test-deploy.md](.docs/rosti-test-deploy.md): Roští test deployment details
+- [.docs/rosti-test-local.neon.example](.docs/rosti-test-local.neon.example): test `local.neon` template
+- [.docs/rosti-test-nginx-app.conf](.docs/rosti-test-nginx-app.conf): Roští Nginx config
+
+## Manual Installation Without Docker
+
+Docker is the recommended local path. Manual setup is only for debugging:
 
 ```bash
 composer install
 npm install
-```
-
-3. Create a copy of `config/local.neon.example` and rename it to `local.neon`
-
-4. Setup a database and update the `local.neon` file with your database credentials
-5. Build the frontend
-
-```bash
+cp config/local.neon.example config/local.neon
 npm run build
-```
-
-6. Run the application
-
-```bash
 php -S localhost:8000 -t www
 ```
 
-7. Open `http://localhost:8000`
+Then open:
 
-## Deployment Branches
-
-- `dev`: development environment
-- `beta`: test environment (there is no remote `test` branch at the moment)
-- `main`: production environment
-
-Deployment is configured in `.github/workflows/deploy.yml`. The workflow expects separate `DEV_FTP_*`, `TEST_FTP_*`, and `PROD_FTP_*` secrets.
+```text
+http://localhost:8000
+```

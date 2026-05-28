@@ -4,23 +4,16 @@ namespace App\UI\Modules\Front\Api;
 
 use App\Domain\CategoryService\CategoryServiceFacade;
 use App\Domain\City\CityFacade;
+use App\Domain\Provider\DTO\ProviderRegistrationDataFactory;
 use App\Domain\Provider\ProviderFacade;
 use App\Domain\Region\RegionFacade;
 use App\Infrastructure\Stripe\StripeService;
-use App\Model\Provider\DTO\ProviderRegistrationData;
-use App\Model\Provider\DTO\ProviderRegistrationDataFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
-use Doctrine\ORM\EntityManagerInterface;
+use Nette\Application\AbortException;
 use Nette\DI\Attributes\Inject;
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
 
 class ApiPresenter extends BaseFrontPresenter
 {
-
-	#[Inject]
-	public EntityManagerInterface $entityManager;
-
 	#[Inject]
 	public CategoryServiceFacade $categoryServiceFacade;
 
@@ -78,8 +71,13 @@ class ApiPresenter extends BaseFrontPresenter
 	 */
 	public function actionCreatePaymentIntent(): void
 	{
-		$paymentIntent = $this->stripeService->createPaymentIntent(1000);
-		bdump($paymentIntent);
+		$data = json_decode($this->getHttpRequest()->getRawBody() ?? '', true);
+		$metadata = [];
+		if (is_array($data) && isset($data['userId'])) {
+			$metadata['provider_id'] = (string) $data['userId'];
+		}
+
+		$paymentIntent = $this->stripeService->createPaymentIntent(1000, 'eur', $metadata);
 
 		$this->sendJson([
 			'clientSecret' => $paymentIntent->client_secret,
@@ -91,7 +89,6 @@ class ApiPresenter extends BaseFrontPresenter
 	 */
 	public function actionGetStripePublicKey(): void
 	{
-		bdump($this->stripeService->getPublicKey());
 		$this->sendJson([
 			'publicKey' => $this->stripeService->getPublicKey(),
 		]);
@@ -103,11 +100,12 @@ class ApiPresenter extends BaseFrontPresenter
 	 */
 	public function actionCreateProvider(): void
 	{
-		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+		$data = json_decode($this->getHttpRequest()->getRawBody() ?? '', true);
 
 		if (!is_array($data)) {
+			$this->getHttpResponse()->setCode(400);
 			$this->sendJson([
-				'code' => 500,
+				'code' => 400,
 				'message' => 'Invalid JSON structure.',
 				'result' => [],
 			]);
@@ -116,8 +114,9 @@ class ApiPresenter extends BaseFrontPresenter
 		$dto = ProviderRegistrationDataFactory::fromArray($data);
 
 		if (!$dto->isValid()) {
+			$this->getHttpResponse()->setCode(400);
 			$this->sendJson([
-				'code' => 500,
+				'code' => 400,
 				'message' => 'Invalid input data.',
 				'result' => [],
 			]);
@@ -128,9 +127,14 @@ class ApiPresenter extends BaseFrontPresenter
 			$this->sendJson([
 				'code' => 200,
 				'message' => 'Provider created successfully.',
+				'userId' => $result['userId'],
+				'providerId' => $result['providerId'],
 				'result' => $result,
 			]);
+		} catch (AbortException $e) {
+			throw $e;
 		} catch (\Throwable $e) {
+			$this->getHttpResponse()->setCode(500);
 			$this->sendJson([
 				'code' => 500,
 				'message' => $e->getMessage(),

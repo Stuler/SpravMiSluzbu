@@ -80,21 +80,21 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 	const selectedCityOption = cityOptions.find((option) => option.value === values.cityId) || null;
 
 	return (
-		<div className="space-y-6">
-			<div className="space-y-3">
-				<h3 className="font-semibold">Údaje o firme</h3>
+		<div className="bripeon-form-step">
+			<div className="bripeon-form-group">
+				<h3>Údaje o firme</h3>
 
 				<div>
 					<label>Názov firmy</label>
-					<input type="text" {...register('companyName')} className="w-full border px-3 py-2 rounded"/>
+					<input type="text" {...register('companyName')}/>
 				</div>
 
 				<div>
 					<label>IČO</label>
-					<input type="text" {...register('ico')} className="w-full border px-3 py-2 rounded"/>
+					<input type="text" {...register('ico')}/>
 				</div>
 
-				<div className="grid grid-cols-2 gap-4">
+				<div className="bripeon-form-grid">
 					<div>
 						<label>Mesto</label>
 						<Select
@@ -131,16 +131,15 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 							type="text"
 							{...register('zip')}
 							onChange={handleZipChange}
-							className="w-full border px-3 py-2 rounded"
 						/>
 					</div>
 				</div>
 			</div>
 
-			<div className="space-y-3">
-				<h3 className="font-semibold">Kontaktná osoba</h3>
+			<div className="bripeon-form-group">
+				<h3>Kontaktná osoba</h3>
 
-				<div className="flex items-center gap-2">
+				<div className="bripeon-checkbox-row">
 					<input
 						type="checkbox"
 						checked={values.usePersonalAsContact}
@@ -152,16 +151,14 @@ const Step3: React.FC<Props> = ({data, onChange, onStepValid}) => {
 				</div>
 
 				{!values.usePersonalAsContact && (
-					<div className="grid grid-cols-2 gap-4">
+					<div className="bripeon-form-grid">
 						<div>
 							<label>Meno</label>
-							<input type="text" {...register('contactFirstName')}
-								   className="w-full border px-3 py-2 rounded"/>
+							<input type="text" {...register('contactFirstName')}/>
 						</div>
 						<div>
 							<label>Priezvisko</label>
-							<input type="text" {...register('contactLastName')}
-								   className="w-full border px-3 py-2 rounded"/>
+							<input type="text" {...register('contactLastName')}/>
 						</div>
 					</div>
 				)}

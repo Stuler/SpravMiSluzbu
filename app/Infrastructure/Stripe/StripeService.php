@@ -10,6 +10,9 @@ final class StripeService
 	private string $publicKey;
 	private string $secretKey;
 
+	/**
+	 * @param array{publicKey: string, secretKey: string} $stripeConfig
+	 */
 	public function __construct(array $stripeConfig)
 	{
 		$this->publicKey = $stripeConfig['publicKey'];
@@ -31,14 +34,24 @@ final class StripeService
 		return $this->secretKey;
 	}
 
-	public function createPaymentIntent(int $amount, string $currency = 'eur'): PaymentIntent
+	/**
+	 * @param array<string, string> $metadata
+	 */
+	public function createPaymentIntent(int $amount, string $currency = 'eur', array $metadata = []): PaymentIntent
 	{
 		$this->init();
 
-		return PaymentIntent::create([
+		$payload = [
 			'amount' => $amount,
 			'currency' => $currency,
 			'automatic_payment_methods' => ['enabled' => true],
-		]);
+		];
+
+		if ($metadata !== []) {
+			$payload['metadata'] = $metadata;
+		}
+
+		// @phpstan-ignore-next-line Stripe accepts metadata arrays in create params.
+		return PaymentIntent::create($payload);
 	}
 }

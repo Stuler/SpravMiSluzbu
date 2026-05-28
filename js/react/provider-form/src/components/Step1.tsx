@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import Select from 'react-select';
 
-type Option = { value: string; label: string };
+type Option = { value: number; label: string };
 type GroupedOption = { label: string; options: Option[] };
 
 type Props = {
@@ -18,14 +18,9 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 	const [regionOptions, setRegionOptions] = useState<Option[]>([]);
 
 	useEffect(() => {
-		// Replace with your actual endpoints
 		fetch('/api/categories')
 			.then(res => res.json())
 			.then(data => {
-				/*const options = data.map((item: any) => ({
-					value: item.id,
-					label: item.name,
-				}));*/
 				setCategoryOptions(data);
 			});
 
@@ -47,28 +42,34 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 
 
 	return (
-		<div className="space-y-6">
+		<div className="bripeon-form-step">
 			<div>
-				<label className="block mb-1 font-medium">Service Categories</label>
+				<label>Aké služby ponúkate?</label>
 				<Select
 					isMulti
 					options={categoryOptions}
 					value={data.serviceCategories}
 					onChange={(selected) => onChange('serviceCategories', selected as Option[])}
+					placeholder="Vyberte kategórie služieb"
+					className="react-select-container"
+					classNamePrefix="react-select"
 				/>
 			</div>
 
 			<div>
-				<label className="block mb-1 font-medium">Covered Regions</label>
+				<label>Kde pôsobíte?</label>
 				<Select
 					isMulti
 					options={regionOptions}
 					value={data.coveredRegions}
 					onChange={(selected) => onChange('coveredRegions', selected as Option[])}
+					placeholder="Vyberte regióny"
+					className="react-select-container"
+					classNamePrefix="react-select"
 				/>
 			</div>
 
-			<p className="text-sm text-red-500 mt-1">Prosím vyberte aspoň jednu kategóriu a región.</p>
+			<p className="bripeon-form-help">Vyberte aspoň jednu kategóriu a región, aby sme vedeli priradiť relevantné dopyty.</p>
 		</div>
 	);
 };

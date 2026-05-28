@@ -5,6 +5,7 @@ namespace App\Domain\Provider;
 use App\Domain\CategoryService\CategoryService;
 use App\Domain\City\City;
 use App\Domain\LoginRole\LoginRole;
+use App\Domain\Provider\DTO\ProviderRegistrationData;
 use App\Domain\ProviderRegion\ProviderRegion;
 use App\Domain\ProviderServiceCategory\ProviderServiceCategory;
 use App\Domain\Region\Region;
@@ -15,7 +16,6 @@ use App\Model\Database\EntityManagerDecorator;
 use App\Model\Exception\Logic\InvalidArgumentException;
 use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Mail\MailSender;
-use App\Model\Provider\DTO\ProviderRegistrationData;
 use App\Model\Security\Passwords;
 use Exception;
 use Nette\Application\LinkGenerator;
@@ -33,33 +33,42 @@ readonly class ProviderFacade
 	}
 
 	/**
-	 * @param array<string, scalar> $data
+	 * @param array<string, mixed> $data
 	 * @throws Exception
 	 */
 	public function createProvider(array $data): Provider
 	{
 		$this->validateInputs($data);
+		$regionIds = $data['region'];
+		$serviceCategoryIds = $data['serviceCategory'];
+		if (!is_array($regionIds) || !is_array($serviceCategoryIds)) {
+			throw new Exception('Invalid provider category or region data.');
+		}
 
-		$loginRole = $data['role'] ?? LoginRole::ROLE_PROVIDER;
+		$loginRole = $this->stringData($data, 'role', LoginRole::ROLE_PROVIDER);
 		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
-		$stateProvider = $this->em->getRepository(StateProvider::class)->findOneBy(
-			['id' => StateProviderRepository::STATE_PENDING_PAYMENT]
-		);
+		$stateProvider = $this->resolveInitialProviderState();
 		$city = $this->em->getRepository(City::class)->findOneBy(['id' => $data['city']]);
+		if (!$loginRoleEntity instanceof LoginRole) {
+			throw new Exception('Provider login role was not found.');
+		}
+		if (!$city instanceof City) {
+			throw new Exception('Provider city was not found.');
+		}
 
 		$provider = new Provider(
-			companyName: (string)$data['companyName'],
-			contactName: (string)$data['contactName'],
-			contactSurname: (string)$data['contactSurname'],
-			contactTitle: (string)$data['contactTitle'],
-			email: (string)$data['email'],
-			phoneNumber: (string)$data['phoneNumber'],
-			ico: (string)$data['ico'],
-			dic: (string)$data['dic'],
-			password: Passwords::create()->hash(strval($data['password'] ?? md5(microtime()))),
-			streetNo: (string)$data['streetNo'],
+			companyName: $this->stringData($data, 'companyName'),
+			contactName: $this->stringData($data, 'contactName'),
+			contactSurname: $this->stringData($data, 'contactSurname'),
+			contactTitle: $this->stringData($data, 'contactTitle'),
+			email: $this->stringData($data, 'email'),
+			phoneNumber: $this->stringData($data, 'phoneNumber'),
+			ico: $this->stringData($data, 'ico'),
+			dic: $this->stringData($data, 'dic'),
+			password: Passwords::create()->hash($this->stringData($data, 'password', md5(microtime()))),
+			streetNo: $this->stringData($data, 'streetNo'),
 			city: $city,
-			zipCode: (string)$data['zipCode'],
+			zipCode: $this->stringData($data, 'zipCode'),
 			stateProvider: $stateProvider,
 			loginRole: $loginRoleEntity,
 			hash: md5(microtime()),
@@ -67,9 +76,9 @@ readonly class ProviderFacade
 
 		$this->em->persist($provider);
 
-		foreach ($data['region'] as $regionId) {
+		foreach ($regionIds as $regionId) {
 			$region = $this->em->getRepository(Region::class)->find($regionId);
-			if ($region) {
+			if ($region instanceof Region) {
 				$providerRegion = new ProviderRegion(
 					provider: $provider,
 					region: $region
@@ -78,9 +87,9 @@ readonly class ProviderFacade
 			}
 		}
 
-		foreach ($data['serviceCategory'] as $categoryId) {
+		foreach ($serviceCategoryIds as $categoryId) {
 			$serviceCategory = $this->em->getRepository(CategoryService::class)->find($categoryId);
-			if ($serviceCategory) {
+			if ($serviceCategory instanceof CategoryService) {
 				$providerServiceCategory = new ProviderServiceCategory(
 					provider: $provider,
 					serviceCategory: $serviceCategory
@@ -91,23 +100,37 @@ readonly class ProviderFacade
 
 		$this->em->flush();
 
-		$link = $this->linkGenerator->link('Front:ProviderSign:activateProvider', ['hash' => $provider->getHash()]);
+		$link = (string) $this->linkGenerator->link('Front:ProviderSign:activateProvider', ['hash' => $provider->getHash()]);
 		$this->mailSender->sendActivationEmailProvider($provider->getEmail(), $provider->getFullName(), $link);
 
 		return $provider;
 	}
 
 	/**
+	 * @param array<string, mixed> $data
 	 * @throws Exception
 	 */
 	private function validateInputs(array $data): void
 	{
-		if ($data['password'] !== $data['password2']) {
+		$email = $this->stringData($data, 'email');
+		if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+			throw new Exception('Invalid email address');
+		}
+
+		if (($data['password'] ?? '') !== ($data['password2'] ?? '')) {
 			throw new Exception('Passwords do not match');
 		}
 
-		$existingProvider = $this->em->getRepository(Provider::class)->findOneBy(['email' => $data['email']]);
-		if ($existingProvider) {
+		if (($data['region'] ?? []) === [] || !is_array($data['region'])) {
+			throw new Exception('Provider region is required');
+		}
+
+		if (($data['serviceCategory'] ?? []) === [] || !is_array($data['serviceCategory'])) {
+			throw new Exception('Provider service category is required');
+		}
+
+		$existingProvider = $this->em->getRepository(Provider::class)->findOneBy(['email' => $email]);
+		if ($existingProvider instanceof Provider) {
 			throw new Exception('User with this email already exists');
 		}
 	}
@@ -115,7 +138,7 @@ readonly class ProviderFacade
 	public function activateProvider(string $hash): void
 	{
 		$provider = $this->em->getRepository(Provider::class)->findOneBy(['hash' => $hash]);
-		if (!$provider) {
+		if (!$provider instanceof Provider) {
 			throw new InvalidArgumentException('Provider with hash ' . $hash . ' not found');
 		}
 		if ($provider->getStateProvider()->getId() === StateProviderRepository::STATE_ACTIVATED) {
@@ -124,6 +147,9 @@ readonly class ProviderFacade
 
 		$stateActivated = $this->em->getRepository(StateProvider::class)
 			->findOneBy(['id' => StateProviderRepository::STATE_ACTIVATED]);
+		if (!$stateActivated instanceof StateProvider) {
+			throw new InvalidArgumentException('Activated provider state not found');
+		}
 
 		$provider->setStateProvider($stateActivated);
 		$provider->setDateActivated();
@@ -131,20 +157,47 @@ readonly class ProviderFacade
 		$this->em->flush();
 	}
 
-	public function registerWithSubscription(ProviderRegistrationData $dto)
+	/**
+	 * @return array{providerId: int, userId: int, email: string, subscriptionStatus: string}
+	 */
+	public function registerWithSubscription(ProviderRegistrationData $dto): array
 	{
+		$provider = $this->createProvider($dto->toProviderData());
 
-		$provider = $this->createProvider($dto->toArray());
-		$subscription = new Subscription(
-			provider: $provider,
-			startDate: new \DateTime(),
-			endDate: (new \DateTime())->modify('+' . $dto->getSubscriptionDuration() . ' months'),
-			price: $dto->getSubscriptionPrice()
-		);
-		$this->em->persist($subscription);
-		$this->em->flush();
-
+		return [
+			'providerId' => $provider->getId(),
+			'userId' => $provider->getId(),
+			'email' => $provider->getEmail(),
+			'subscriptionStatus' => 'pending_payment',
+		];
 	}
 
+	private function resolveInitialProviderState(): StateProvider
+	{
+		$repository = $this->em->getRepository(StateProvider::class);
+		$pendingPayment = $repository->find(StateProviderRepository::STATE_PENDING_PAYMENT);
+		if ($pendingPayment instanceof StateProvider) {
+			return $pendingPayment;
+		}
 
+		$fresh = $repository->find(StateProviderRepository::STATE_FRESH);
+		if ($fresh instanceof StateProvider) {
+			return $fresh;
+		}
+
+		throw new Exception('Initial provider state was not found.');
+	}
+
+	/**
+	 * @param array<string, mixed> $data
+	 */
+	private function stringData(array $data, string $key, string $default = ''): string
+	{
+		$value = $data[$key] ?? $default;
+		if (!is_scalar($value)) {
+			return $default;
+		}
+
+		return (string) $value;
+	}
 }

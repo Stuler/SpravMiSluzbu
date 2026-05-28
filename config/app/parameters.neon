@@ -23,8 +23,8 @@ parameters:
 
 	# Mailing
 	mailing:
-		from: spravMiSluzbu@localhost
-		from_name: SpravMiSluzbu
+		from: bripeon@localhost
+		from_name: Bripeon
 
 	# STMP
 	smtp:

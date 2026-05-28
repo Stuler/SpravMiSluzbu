@@ -2,9 +2,9 @@ import React, {useState, useEffect} from 'react';
 import Step1 from './components/Step1';
 import Step2 from './components/Step2';
 import Step3 from './components/Step3';
-import Step4 from './components/Step4'; // 👈 Import your payment form
+import Step4 from './components/Step4';
 
-type Option = { value: string; label: string };
+type Option = { value: number; label: string };
 
 type FormData = {
 	serviceCategories: Option[];
@@ -61,7 +61,6 @@ const App: React.FC = () => {
 	const next = async () => {
 		if (step === 2) { // Step3 -> Step4
 			try {
-				// 1. First, send the collected form data to backend to create the user
 				const registerRes = await fetch('/api/create-provider', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
@@ -73,15 +72,13 @@ const App: React.FC = () => {
 				}
 
 				const registerData = await registerRes.json();
-				const userId = registerData.userId; // Expect your backend to return { userId: 123 }
+				const userId = registerData.userId;
 
-				// 2. Then, create payment intent for that user
 				const paymentRes = await fetch('/api/create-payment-intent', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
 					body: JSON.stringify({
-						subscriptionPlan: formData.subscriptionPlan,
-						userId: userId, // <-- send it to Stripe metadata
+						userId,
 					}),
 				});
 
@@ -92,7 +89,6 @@ const App: React.FC = () => {
 				const paymentData = await paymentRes.json();
 				setClientSecret(paymentData.clientSecret);
 
-				// 3. Finally, move to Step 4
 				setStep((prev) => prev + 1);
 
 			} catch (error) {
@@ -107,7 +103,7 @@ const App: React.FC = () => {
 	const back = () => setStep((prev) => Math.max(prev - 1, 0));
 
 	const handleSubmit = () => {
-		console.log('Form submitted:', formData);
+		console.log('Bripeon provider form submitted:', formData);
 		// You may want to submit form data to your API first
 	};
 
@@ -115,20 +111,28 @@ const App: React.FC = () => {
 		<Step1 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
 		<Step2 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
 		<Step3 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
-		clientSecret ? <Step4 clientSecret={clientSecret}/> : <p>Loading payment form...</p>,
+		clientSecret ? <Step4 clientSecret={clientSecret}/> : <p className="bripeon-form-help">Načítavam platobný formulár...</p>,
 	];
 
 	return (
-		<div className="max-w-xl mx-auto p-6 border rounded shadow">
-			<h2 className="text-xl font-semibold mb-4">Krok {step + 1} z 4</h2>
+		<div className="bripeon-provider-wizard">
+			<div className="bripeon-wizard-header">
+				<div>
+					<span>Registrácia</span>
+					<h2>Krok {step + 1} z 4</h2>
+				</div>
+				<div className="bripeon-progress" aria-label={`Krok ${step + 1} z 4`}>
+					<span style={{width: `${((step + 1) / 4) * 100}%`}}/>
+				</div>
+			</div>
 
 			{steps[step]}
 
-			<div className="mt-6 flex justify-between">
+			<div className="bripeon-wizard-actions">
 				{step > 0 ? (
 					<button
 						onClick={back}
-						className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+						className="bripeon-secondary-button"
 					>
 						Späť
 					</button>
@@ -140,18 +144,14 @@ const App: React.FC = () => {
 					<button
 						onClick={next}
 						disabled={!stepValid && step < 3} // Step 4 uses its own validation
-						className={`px-4 py-2 rounded ${
-							stepValid || step === 3
-								? 'bg-blue-500 text-white hover:bg-blue-600'
-								: 'bg-gray-300 text-gray-500 cursor-not-allowed'
-						}`}
+						className="bripeon-primary-button"
 					>
 						Ďalej
 					</button>
 				) : (
 					<button
 						onClick={handleSubmit}
-						className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+						className="bripeon-primary-button"
 					>
 						Odoslať
 					</button>

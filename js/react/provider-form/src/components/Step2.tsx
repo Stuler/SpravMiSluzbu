@@ -52,10 +52,10 @@ const Step2: React.FC<Props> = ({data, onChange, onStepValid}) => {
 	}, [values, onChange]);
 
 	return (
-		<form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+		<form className="bripeon-form-step" onSubmit={(e) => e.preventDefault()}>
 			{['firstName', 'lastName', 'email', 'password', 'confirmPassword', 'phone'].map((field) => (
 				<div key={field}>
-					<label className="block font-medium mb-1">{labels[field]}</label>
+					<label>{labels[field]}</label>
 					<input
 						type={
 							field === 'password' || field === 'confirmPassword'
@@ -65,10 +65,9 @@ const Step2: React.FC<Props> = ({data, onChange, onStepValid}) => {
 									: 'text'
 						}
 						{...register(field as keyof FormData)}
-						className="w-full border px-3 py-2 rounded"
 					/>
 					{errors[field as keyof FormData] && (
-						<p className="text-red-500 text-sm">{errors[field as keyof FormData]?.message}</p>
+						<p className="bripeon-field-error">{errors[field as keyof FormData]?.message}</p>
 					)}
 				</div>
 			))}

@@ -1,0 +1,38 @@
+# Copy this file outside the repo, fill real secrets, then encode it into
+# the GitHub secret ROSTI_TEST_LOCAL_NEON_BASE64.
+
+parameters:
+	testPassword: 'change-me'
+	testUrl: 'test.spravmisluzbu.sk'
+
+	stripe:
+		publicKey: 'pk_test_your_public_key'
+		secretKey: 'sk_test_your_secret_key'
+
+	database:
+		host: 'storeX.rosti.cz'
+		dbname: 'rosti_database_name'
+		user: 'rosti_database_name'
+		password: 'rosti_database_password'
+		driver: mysqli
+		port: 3306
+		encoding: utf8mb4
+
+	smtp:
+		host: smtp.example.com
+		username: info@example.com
+		password: 'change-me'
+		port: 587
+		secure: tls
+
+http:
+	proxy: 127.0.0.1
+
+tracy:
+	bar:
+		- Nextras\MailPanel\MailPanel(%tempDir%/mail-panel-latte)
+
+services:
+	nette.mailer:
+		class: Nette\Mail\Mailer
+		factory: Nextras\MailPanel\FileMailer(%tempDir%/mail-panel-mails)

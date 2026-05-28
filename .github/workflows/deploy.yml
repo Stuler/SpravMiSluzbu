@@ -35,6 +35,17 @@ jobs:
                 run: |
                     rm -rf node_modules
 
+            -   name: Create Roští test local config
+                if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+                env:
+                    ROSTI_TEST_LOCAL_NEON_BASE64: ${{ secrets.ROSTI_TEST_LOCAL_NEON_BASE64 }}
+                run: |
+                    if [ -z "$ROSTI_TEST_LOCAL_NEON_BASE64" ]; then
+                        echo "Missing required secret ROSTI_TEST_LOCAL_NEON_BASE64" >&2
+                        exit 1
+                    fi
+                    printf '%s' "$ROSTI_TEST_LOCAL_NEON_BASE64" | base64 --decode > config/local.neon
+
             -   name: Deploy to dev environment
                 if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
                 uses: SamKirkland/FTP-Deploy-Action@4.3.1
@@ -48,17 +59,41 @@ jobs:
                     server-dir: ${{ secrets.DEV_FTP_SERVER_DIR || '/www/subdom/dev/' }} # Directory on server
 
 
-            -   name: Deploy to test environment
+            -   name: Start SSH agent for Roští test deployment
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
-                uses: SamKirkland/FTP-Deploy-Action@4.3.1
+                uses: webfactory/ssh-agent@v0.9.0
                 with:
-                    server: ${{ secrets.TEST_FTP_SERVER }}
-                    username: ${{ secrets.TEST_FTP_USERNAME }}
-                    password: ${{ secrets.TEST_FTP_PASSWORD }}
-                    port: 21
-                    protocol: ftp
-                    local-dir: ./ # Directory to upload
-                    server-dir: ${{ secrets.TEST_FTP_SERVER_DIR || '/www/subdom/test/' }} # Directory on server
+                    ssh-private-key: ${{ secrets.ROSTI_TEST_SSH_KEY }}
+
+            -   name: Deploy to test environment on Roští
+                if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+                env:
+                    ROSTI_TEST_SSH_HOST: ${{ secrets.ROSTI_TEST_SSH_HOST || 'ssh.rosti.cz' }}
+                    ROSTI_TEST_SSH_PORT: ${{ secrets.ROSTI_TEST_SSH_PORT || '10434' }}
+                    ROSTI_TEST_DEPLOY_PATH: ${{ secrets.ROSTI_TEST_DEPLOY_PATH || '/srv/app' }}
+                run: |
+                    mkdir -p ~/.ssh
+                    ssh-keyscan -p "$ROSTI_TEST_SSH_PORT" "$ROSTI_TEST_SSH_HOST" >> ~/.ssh/known_hosts
+                    rsync -az --delete \
+                        --exclude='.git/' \
+                        --exclude='.github/' \
+                        --exclude='.idea/' \
+                        --exclude='.docker/data/' \
+                        --exclude='node_modules/' \
+                        --exclude='var/log/*' \
+                        --exclude='var/tmp/*' \
+                        -e "ssh -p $ROSTI_TEST_SSH_PORT" \
+                        ./ "app@$ROSTI_TEST_SSH_HOST:$ROSTI_TEST_DEPLOY_PATH/"
+
+            -   name: Run Roští test post-deploy commands
+                if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+                env:
+                    ROSTI_TEST_SSH_HOST: ${{ secrets.ROSTI_TEST_SSH_HOST || 'ssh.rosti.cz' }}
+                    ROSTI_TEST_SSH_PORT: ${{ secrets.ROSTI_TEST_SSH_PORT || '10434' }}
+                    ROSTI_TEST_DEPLOY_PATH: ${{ secrets.ROSTI_TEST_DEPLOY_PATH || '/srv/app' }}
+                run: |
+                    ssh -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
+                        "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; php bin/console migrations:migrate --no-interaction --allow-no-migration; rm -rf var/tmp/cache/nette.configurator"
 
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'

@@ -30,38 +30,68 @@ This internet platform aims to connect two key areas:
 - **Backend**: PHP (Nette)
 - **Frontend**: React.js, TypeScript
 - **Database**: MySQL
-- **DevOps**: TBD: dockerize the project
+- **DevOps**: Docker Compose
 
 ---
 
-## 📦 Installation
+## 📦 Local Docker
 
-1. clone the repository
+The project currently targets the `feat/stripe-integration` branch for active development.
+
+```bash
+docker compose up --build -d
+```
+
+- App: `http://localhost:8082`
+- Adminer: `http://localhost:8081`
+- Database from host: `127.0.0.1:3307`
+- Database inside Docker: host `database`, DB `sprav_mi_sluzbu`, user `root`, password `root`
+
+The first database start imports `db/dump/2025_09_04.sql`. To reimport from scratch:
+
+```bash
+docker compose down -v
+docker compose up --build -d
+```
+
+If `config/local.neon` does not exist, the PHP container copies `config/local.neon.example`.
+
+## 📦 Manual Installation
+
+1. Clone the repository
 
 ```bash
 git clone https://github.com/Stuler/SpravMiSluzbu
 ```
 
-2. install dependencies
+2. Install dependencies
 
 ```bash
 composer install
 npm install
 ```
 
-3. create a copy of `config/local.neon.example` and rename it to `local.neon`
+3. Create a copy of `config/local.neon.example` and rename it to `local.neon`
 
-4. setup a database (ask for dump) and update the `local.neon` file with your database credentials
-5. build the frontend
+4. Setup a database and update the `local.neon` file with your database credentials
+5. Build the frontend
 
 ```bash
 npm run build
 ```
 
-6. run the application
+6. Run the application
 
 ```bash
 php -S localhost:8000 -t www
 ```
 
-7. open your browser and navigate to `http://localhost:8000`
+7. Open `http://localhost:8000`
+
+## Deployment Branches
+
+- `dev`: development environment
+- `beta`: test environment (there is no remote `test` branch at the moment)
+- `main`: production environment
+
+Deployment is configured in `.github/workflows/deploy.yml`. The workflow expects separate `DEV_FTP_*`, `TEST_FTP_*`, and `PROD_FTP_*` secrets.

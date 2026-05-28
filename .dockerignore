@@ -1,0 +1,11 @@
+.git
+.idea
+.docker/data
+node_modules
+vendor
+var/log/*
+var/tmp/*
+tests/tmp
+tests/coverage.html
+.env
+config/local.neon

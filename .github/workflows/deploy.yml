@@ -45,20 +45,20 @@ jobs:
                     port: 21
                     protocol: ftp
                     local-dir: ./ # Directory to upload
-                    server-dir: /www/subdom/test/ # Directory on server
+                    server-dir: ${{ secrets.DEV_FTP_SERVER_DIR || '/www/subdom/dev/' }} # Directory on server
 
 
             -   name: Deploy to test environment
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
                 uses: SamKirkland/FTP-Deploy-Action@4.3.1
                 with:
-                    server: ${{ secrets.PROD_FTP_SERVER }}
-                    username: ${{ secrets.PROD_FTP_USERNAME }}
-                    password: ${{ secrets.PROD_FTP_PASSWORD }}
+                    server: ${{ secrets.TEST_FTP_SERVER }}
+                    username: ${{ secrets.TEST_FTP_USERNAME }}
+                    password: ${{ secrets.TEST_FTP_PASSWORD }}
                     port: 21
                     protocol: ftp
                     local-dir: ./ # Directory to upload
-                    server-dir: /www/subdom/test/ # Directory on server
+                    server-dir: ${{ secrets.TEST_FTP_SERVER_DIR || '/www/subdom/test/' }} # Directory on server
 
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -70,6 +70,6 @@ jobs:
                     port: 21
                     protocol: ftp
                     local-dir: ./ # Directory to upload
-                    server-dir: / # Directory on server
+                    server-dir: ${{ secrets.PROD_FTP_SERVER_DIR || '/' }} # Directory on server
 
 #

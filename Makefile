@@ -86,3 +86,19 @@ docker-adminer:
 		-it \
 		-p 9999:80 \
 		dockette/adminer:dg
+
+.PHONY: docker-up
+docker-up:
+	docker compose up --build -d
+
+.PHONY: docker-down
+docker-down:
+	docker compose down
+
+.PHONY: docker-logs
+docker-logs:
+	docker compose logs -f
+
+.PHONY: docker-shell
+docker-shell:
+	docker compose exec php sh

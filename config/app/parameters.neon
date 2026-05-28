@@ -11,7 +11,7 @@ parameters:
 	# Database
 	database:
 		driver: mysqli
-		port: 5432
+		port: 3306
 
 	# Project
 	project:

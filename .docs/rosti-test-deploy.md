@@ -29,7 +29,7 @@ ROSTI_TEST_SSH_KEY_BASE64=<base64 encoded private deploy key for app@ssh.rosti.c
 ROSTI_TEST_LOCAL_NEON_BASE64=<base64 encoded config/local.neon for test>
 ```
 
-The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git.
+The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git. The deploy intentionally does not run migrations; database changes are handled manually until the migration strategy is settled.
 
 Use `.docs/rosti-test-local.neon.example` as the starting point:
 

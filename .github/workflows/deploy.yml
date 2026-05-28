@@ -100,7 +100,7 @@ jobs:
                     ROSTI_TEST_DEPLOY_PATH: /srv/app
                 run: |
                     ssh -i ~/.ssh/rosti_test -o IdentitiesOnly=yes -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
-                        "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; php bin/console migrations:migrate --no-interaction --allow-no-migration; rm -rf var/tmp/cache/nette.configurator"
+                        "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; rm -rf var/tmp/cache/nette.configurator"
 
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'

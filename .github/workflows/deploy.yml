@@ -75,9 +75,9 @@ jobs:
             -   name: Deploy to test environment on Roští
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
                 env:
-                    ROSTI_TEST_SSH_HOST: ${{ secrets.ROSTI_TEST_SSH_HOST || 'ssh.rosti.cz' }}
-                    ROSTI_TEST_SSH_PORT: ${{ secrets.ROSTI_TEST_SSH_PORT || '10434' }}
-                    ROSTI_TEST_DEPLOY_PATH: ${{ secrets.ROSTI_TEST_DEPLOY_PATH || '/srv/app' }}
+                    ROSTI_TEST_SSH_HOST: ssh.rosti.cz
+                    ROSTI_TEST_SSH_PORT: "10434"
+                    ROSTI_TEST_DEPLOY_PATH: /srv/app
                 run: |
                     mkdir -p ~/.ssh
                     ssh-keyscan -p "$ROSTI_TEST_SSH_PORT" "$ROSTI_TEST_SSH_HOST" >> ~/.ssh/known_hosts
@@ -95,9 +95,9 @@ jobs:
             -   name: Run Roští test post-deploy commands
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
                 env:
-                    ROSTI_TEST_SSH_HOST: ${{ secrets.ROSTI_TEST_SSH_HOST || 'ssh.rosti.cz' }}
-                    ROSTI_TEST_SSH_PORT: ${{ secrets.ROSTI_TEST_SSH_PORT || '10434' }}
-                    ROSTI_TEST_DEPLOY_PATH: ${{ secrets.ROSTI_TEST_DEPLOY_PATH || '/srv/app' }}
+                    ROSTI_TEST_SSH_HOST: ssh.rosti.cz
+                    ROSTI_TEST_SSH_PORT: "10434"
+                    ROSTI_TEST_DEPLOY_PATH: /srv/app
                 run: |
                     ssh -i ~/.ssh/rosti_test -o IdentitiesOnly=yes -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
                         "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; php bin/console migrations:migrate --no-interaction --allow-no-migration; rm -rf var/tmp/cache/nette.configurator"

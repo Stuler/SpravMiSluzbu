@@ -47,6 +47,8 @@ ROSTI_TEST_SSH_PORT=10434
 ROSTI_TEST_DEPLOY_PATH=/srv/app
 ```
 
+These values are hardcoded from `ssh://app@ssh.rosti.cz:10434` to avoid malformed GitHub secrets breaking `ssh-keyscan`.
+
 Create the deploy key locally:
 
 ```bash

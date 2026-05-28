@@ -49,9 +49,7 @@ services:
 	- App\Settings(
 		%debugMode%,
 		%appDir%,
-		%wwwDir%,
-		%testPassword%,
-		%testUrl%
+		%wwwDir%
 	)
 
 	# Components =============

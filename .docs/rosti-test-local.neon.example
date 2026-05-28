@@ -2,9 +2,6 @@
 # the GitHub secret ROSTI_TEST_LOCAL_NEON_BASE64.
 
 parameters:
-	testPassword: 'change-me'
-	testUrl: 'test.spravmisluzbu.sk'
-
 	stripe:
 		publicKey: 'pk_test_your_public_key'
 		secretKey: 'sk_test_your_secret_key'

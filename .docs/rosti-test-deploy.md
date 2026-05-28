@@ -25,7 +25,7 @@ Then add `test.spravmisluzbu.sk` to the Roští app domains in the app Parameter
 Required:
 
 ```text
-ROSTI_TEST_SSH_KEY=<private deploy key for app@ssh.rosti.cz:10434>
+ROSTI_TEST_SSH_KEY_BASE64=<base64 encoded private deploy key for app@ssh.rosti.cz:10434>
 ROSTI_TEST_LOCAL_NEON_BASE64=<base64 encoded config/local.neon for test>
 ```
 
@@ -52,7 +52,7 @@ Create the deploy key locally:
 ```bash
 ssh-keygen -t ed25519 -C "github-actions-spravmisluzbu-test" -f ~/.ssh/spravmisluzbu_rosti_test
 cat ~/.ssh/spravmisluzbu_rosti_test.pub | ssh -p 10434 app@ssh.rosti.cz 'mkdir -p /srv/.ssh && cat >> /srv/.ssh/authorized_keys && chmod 700 /srv/.ssh && chmod 600 /srv/.ssh/authorized_keys'
-cat ~/.ssh/spravmisluzbu_rosti_test
+base64 -w 0 ~/.ssh/spravmisluzbu_rosti_test
 ```
 
 Generate the config secret:

@@ -59,11 +59,18 @@ jobs:
                     server-dir: ${{ secrets.DEV_FTP_SERVER_DIR || '/www/subdom/dev/' }} # Directory on server
 
 
-            -   name: Start SSH agent for Roští test deployment
+            -   name: Prepare Roští test SSH key
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
-                uses: webfactory/ssh-agent@v0.9.0
-                with:
-                    ssh-private-key: ${{ secrets.ROSTI_TEST_SSH_KEY }}
+                env:
+                    ROSTI_TEST_SSH_KEY_BASE64: ${{ secrets.ROSTI_TEST_SSH_KEY_BASE64 }}
+                run: |
+                    if [ -z "$ROSTI_TEST_SSH_KEY_BASE64" ]; then
+                        echo "Missing required secret ROSTI_TEST_SSH_KEY_BASE64" >&2
+                        exit 1
+                    fi
+                    mkdir -p ~/.ssh
+                    printf '%s' "$ROSTI_TEST_SSH_KEY_BASE64" | base64 --decode > ~/.ssh/rosti_test
+                    chmod 600 ~/.ssh/rosti_test
 
             -   name: Deploy to test environment on Roští
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
@@ -82,7 +89,7 @@ jobs:
                         --exclude='node_modules/' \
                         --exclude='var/log/*' \
                         --exclude='var/tmp/*' \
-                        -e "ssh -p $ROSTI_TEST_SSH_PORT" \
+                        -e "ssh -i ~/.ssh/rosti_test -o IdentitiesOnly=yes -p $ROSTI_TEST_SSH_PORT" \
                         ./ "app@$ROSTI_TEST_SSH_HOST:$ROSTI_TEST_DEPLOY_PATH/"
 
             -   name: Run Roští test post-deploy commands
@@ -92,7 +99,7 @@ jobs:
                     ROSTI_TEST_SSH_PORT: ${{ secrets.ROSTI_TEST_SSH_PORT || '10434' }}
                     ROSTI_TEST_DEPLOY_PATH: ${{ secrets.ROSTI_TEST_DEPLOY_PATH || '/srv/app' }}
                 run: |
-                    ssh -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
+                    ssh -i ~/.ssh/rosti_test -o IdentitiesOnly=yes -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
                         "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; php bin/console migrations:migrate --no-interaction --allow-no-migration; rm -rf var/tmp/cache/nette.configurator"
 
             -   name: Deploy to production

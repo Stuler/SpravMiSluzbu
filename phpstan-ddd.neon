@@ -1,0 +1,26 @@
+includes:
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
+parameters:
+    level: 6
+    phpVersion: 80200
+    tmpDir: var/tmp/phpstan-ddd
+    paths:
+        - app/Domain/Demand/Demand.php
+        - app/Domain/Demand/DemandStatus.php
+        - app/Domain/Demand/DemandRepository.php
+        - app/Domain/Matching/ProviderInvitation.php
+        - app/Domain/Matching/InvitationResponse.php
+        - app/Domain/Matching/InvitationDeliveryStatus.php
+        - app/Domain/Matching/InvitationRepository.php
+        - app/Domain/Provider/Provider.php
+        - app/Domain/Provider/ProviderRepository.php
+        - app/Domain/Provider/ValueObject
+        - app/Domain/Provider/ActivationToken.php
+        - app/Domain/Subscription
+        - app/Domain/SubscriptionPlan
+        - app/Domain/StateSubscription
+        - app/Infrastructure/Persistence/Doctrine
+        - app/Model/Database/EntityManagerDecorator.php
+    doctrine:
+        objectManagerLoader: .build/phpstan-ddd.php

@@ -31,6 +31,9 @@ services:
 		factory: @App\Model\Router\RouterFactory::create
 
 	# Domain =================
+	- App\Infrastructure\Persistence\Doctrine\DoctrineDemandRepository
+	- App\Infrastructure\Persistence\Doctrine\DoctrineProviderRepository
+	- App\Infrastructure\Persistence\Doctrine\DoctrineInvitationRepository
 	- App\Domain\Admin\AdminAuditFacade
 	- App\Domain\Admin\AdminAccountFacade
 	- App\Domain\Admin\AdminReadFacade

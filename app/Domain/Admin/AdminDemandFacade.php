@@ -36,9 +36,6 @@ final class AdminDemandFacade
     }
     private function change(callable $operation): void
     {
-        // Validation failures in the existing domain facades must leave the manager usable for form rendering.
-        $connection = $this->em->getConnection(); $connection->beginTransaction();
-        try { $operation(); $this->em->flush(); $connection->commit(); }
-        catch (\Throwable $e) { $connection->rollBack(); throw $e; }
+        $this->em->wrapInTransaction($operation);
     }
 }

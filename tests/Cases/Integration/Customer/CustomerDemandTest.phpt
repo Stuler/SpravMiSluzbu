@@ -71,8 +71,11 @@ $factory = new class($sender) implements IMailBuilderFactory {
 };
 $links = new \Nette\Application\LinkGenerator((new \App\Model\Router\RouterFactory())->create(), new \Nette\Http\UrlScript('https://test.invalid/'));
 $accounts = new CustomerAccountFacade($em, new MailSender($factory), $links);
-$demands = new DemandFacade($em, $accounts, new MailSender($factory), $links);
-$invitations = new \App\Domain\Matching\InvitationFacade($em, new MailSender($factory), $links);
+$demandRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineDemandRepository($em);
+$providerRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineProviderRepository($em);
+$invitationRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineInvitationRepository($em);
+$demands = new DemandFacade($em, $accounts, new MailSender($factory), $links, $demandRepository);
+$invitations = new \App\Domain\Matching\InvitationFacade($em, new MailSender($factory), $links, $invitationRepository, $demandRepository, $providerRepository);
 foreach (['fresh', 'active', 'blocked'] as $name) {
     $state = new StateUser($name); $state->setDateCreated(new DateTime()); $em->persist($state);
 }
@@ -200,4 +203,6 @@ require __DIR__ . '/customer-ui-checks.php';
 require __DIR__ . '/../Matching/matching-checks.php';
 require __DIR__ . '/../Subscription/subscription-checks.php';
 require __DIR__ . '/../Admin/admin-checks.php';
+require __DIR__ . '/../DDD/transaction-checks.php';
+require __DIR__ . '/../DDD/registration-conflict-checks.php';
 echo "Customer, demand, matching, invitation and UI checks passed.\n";

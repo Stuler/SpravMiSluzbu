@@ -23,8 +23,8 @@ class StateSubscription
 	#[ORM\Column(type: 'string', length: 50, unique: true)]
 	private string $name;
 
-	#[ORM\OneToMany(mappedBy: 'status', targetEntity: Subscription::class)]
 	/** @var Collection<int, Subscription> */
+	#[ORM\OneToMany(mappedBy: 'status', targetEntity: Subscription::class)]
 	private Collection $subscriptions;
 
 	public function __construct(string $name)

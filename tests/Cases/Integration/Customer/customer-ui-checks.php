@@ -30,7 +30,7 @@ $run = function (string $name, array $parameters, string $method = 'GET', array 
     if (property_exists($presenter, 'demands')) { $presenter->demands = $demands; }
     if (property_exists($presenter, 'invitations')) { $presenter->invitations = $invitations; }
     if (property_exists($presenter, 'matching')) { $presenter->matching = $matching; }
-    $providerFacade = new \App\Domain\Provider\ProviderFacade($em, new \App\Model\Mail\MailSender($factory), $links);
+    $providerFacade = new \App\Domain\Provider\ProviderFacade($em, new \App\Model\Mail\MailSender($factory), $links, new \App\Infrastructure\Persistence\Doctrine\DoctrineProviderRepository($em));
     if ($presenter instanceof \App\UI\Modules\Front\ProviderDashboard\ProviderDashboardPresenter) { $presenter->providerFacade = $providerFacade; }
     if ($presenter instanceof \App\UI\Modules\Admin\BaseAdminPresenter) {
         $presenter->em = $em;

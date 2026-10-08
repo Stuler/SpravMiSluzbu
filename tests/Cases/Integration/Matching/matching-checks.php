@@ -50,7 +50,7 @@ $fakeAi = new class($category->getId()) implements \App\Domain\Matching\Structur
         return ['data' => $data, 'model' => 'offline-test', 'inputTokens' => 10, 'outputTokens' => 10, 'durationMs' => 1];
     }
 };
-$matching = new MatchingFacade($em, $fakeAi, APP_DIR . '/../resources/prompts');
+$matching = new MatchingFacade($em, $fakeAi, APP_DIR . '/../resources/prompts', $demandRepository, $providerRepository, $invitationRepository);
 $makeDemand = function () use ($demands, $data, $other): Demand {
     return $demands->create(array_replace($data, ['categoryId' => null]), $other, bin2hex(random_bytes(32)));
 };

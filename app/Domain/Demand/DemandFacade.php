@@ -19,6 +19,7 @@ final class DemandFacade
 		private CustomerAccountFacade $accounts,
 		private MailSender $mail,
 		private LinkGenerator $links,
+		private DemandRepository $demands,
 	) {}
 
 	/** @param array<string, mixed> $data */
@@ -27,7 +28,7 @@ final class DemandFacade
 		if (!preg_match('/^[a-f0-9]{64}$/D', $submissionKey)) {
 			throw new \InvalidArgumentException('Invalid submission key.');
 		}
-		$existing = $this->em->getRepository(Demand::class)->findOneBy(['submissionKey' => $submissionKey]);
+		$existing = $this->demands->findBySubmissionKey($submissionKey);
 		if ($existing instanceof Demand) {
 			return $existing;
 		}
@@ -52,10 +53,9 @@ final class DemandFacade
 		}
 		$demand = new Demand(bin2hex(random_bytes(16)), $submissionKey, $description, $city, $category, $term, $name, $email, $phone ?: null, $customer);
 		$raw = $customer === null ? $demand->issueAccess() : null;
-		$this->em->persist($demand);
-		$this->em->flush();
+		$this->em->wrapInTransaction(function () use ($demand): void { $this->em->persist($demand); });
 		if ($raw !== null) {
-			$this->sendAccess($demand, $raw);
+			$this->em->afterCommit(function () use ($demand, $raw): void { $this->sendAccess($demand, $raw); });
 		}
 		return $demand;
 	}
@@ -65,7 +65,7 @@ final class DemandFacade
 		if (!preg_match('/^[a-f0-9]{32}$/D', $reference)) {
 			return null;
 		}
-		return $this->em->getRepository(Demand::class)->findOneBy(['reference' => $reference]);
+		return $this->demands->findByReference($reference);
 	}
 
 	public function findByToken(string $raw): ?Demand
@@ -74,14 +74,14 @@ final class DemandFacade
 			return null;
 		}
 		$hash = hash('sha256', $raw);
-		$demand = $this->em->getRepository(Demand::class)->findOneBy(['accessTokenHash' => $hash]);
+		$demand = $this->demands->findByAccessHash($hash);
 		return $demand instanceof Demand && $demand->acceptsAccessHash($hash) ? $demand : null;
 	}
 
 	/** @return Demand[] */
 	public function forCustomer(User $customer, int $page = 1): array
 	{
-		return $this->em->getRepository(Demand::class)->findBy(['customer' => $customer], ['createdAt' => 'DESC'], 21, (max(1, $page) - 1) * 20);
+		return $this->demands->forCustomer($customer, $page);
 	}
 
 	public function changeStatus(Demand $demand, ?User $customer, ?string $accessHash, bool $close): void
@@ -90,7 +90,7 @@ final class DemandFacade
 			throw new \InvalidArgumentException('Demand access denied.');
 		}
 		$this->em->wrapInTransaction(function () use ($demand, $customer, $accessHash, $close): void {
-			$this->em->refresh($demand, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+			$this->demands->refreshForUpdate($demand);
 			if (!$this->canAccess($demand, $customer, $accessHash)) {
 				throw new \InvalidArgumentException('Demand access denied.');
 			}
@@ -110,9 +110,14 @@ final class DemandFacade
 		if ($demand === null || $demand->getCustomer() !== null || $demand->getContactEmail() !== Emails::normalize($email)) {
 			return;
 		}
-		$raw = $demand->issueAccess();
-		$this->em->flush();
-		$this->sendAccess($demand, $raw);
+		$raw = $this->em->wrapInTransaction(function () use ($demand, $email): ?string {
+			$this->demands->refreshForUpdate($demand);
+			if ($demand->getCustomer() !== null || $demand->getContactEmail() !== Emails::normalize($email)) { return null; }
+			return $demand->issueAccess();
+		});
+		if ($raw !== null) {
+			$this->em->afterCommit(function () use ($demand, $raw): void { $this->sendAccess($demand, $raw); });
+		}
 	}
 
 	/** @return array<int, string> */

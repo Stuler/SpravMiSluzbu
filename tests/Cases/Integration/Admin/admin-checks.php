@@ -18,7 +18,7 @@ use Tester\Assert;
 $security->login($admin->toIdentity());
 $audit = new AdminAuditFacade($em, $security);
 $read = new AdminReadFacade($em, $audit);
-$providerFacade = new ProviderFacade($em, new \App\Model\Mail\MailSender($factory), $links);
+$providerFacade = new ProviderFacade($em, new \App\Model\Mail\MailSender($factory), $links, new \App\Infrastructure\Persistence\Doctrine\DoctrineProviderRepository($em));
 $adminAccounts = new AdminAccountFacade($em, $audit, $providerFacade, $accounts);
 $categoryFacade = new CategoryServiceFacade($em, $audit);
 

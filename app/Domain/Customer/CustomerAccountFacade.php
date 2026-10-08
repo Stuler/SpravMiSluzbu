@@ -48,7 +48,7 @@ final class CustomerAccountFacade
 			$this->em->persist($user);
 			$this->em->persist($token);
 		});
-		$this->sendToken($user, CustomerToken::ACTIVATE, $raw);
+		$this->em->afterCommit(function () use ($user, $raw): void { $this->sendToken($user, CustomerToken::ACTIVATE, $raw); });
 	}
 
 	public function requestToken(string $email, string $purpose): void
@@ -77,7 +77,9 @@ final class CustomerAccountFacade
 				new \DateTimeImmutable($purpose === CustomerToken::RESET ? '+1 hour' : '+24 hours')));
 			return true;
 		});
-		if ($issued) { $this->sendToken($user, $purpose, $raw); }
+		if ($issued) {
+			$this->em->afterCommit(function () use ($user, $purpose, $raw): void { $this->sendToken($user, $purpose, $raw); });
+		}
 	}
 
 	public function isValidToken(string $raw, string $purpose): bool

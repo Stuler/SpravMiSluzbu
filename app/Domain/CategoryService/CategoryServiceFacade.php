@@ -72,9 +72,7 @@ readonly class CategoryServiceFacade
     }
     private function change(callable $operation): void
     {
-        $connection = $this->em->getConnection(); $connection->beginTransaction();
-        try { $operation(); $this->em->flush(); $connection->commit(); }
-        catch (\Throwable $e) { $connection->rollBack(); throw $e; }
+        $this->em->wrapInTransaction($operation);
     }
     public function getMainCategories(): array { return $this->em->getRepository(CategoryService::class)->findBy(['parent' => null], ['name' => 'ASC']); }
     public function getCategoriesByMainCategoryId(int $categoryId): array { return $this->em->getRepository(CategoryService::class)->findBy(['parent' => $categoryId, 'dateDeleted' => null]); }

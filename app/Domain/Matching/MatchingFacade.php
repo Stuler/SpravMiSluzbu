@@ -5,16 +5,14 @@ namespace App\Domain\Matching;
 use App\Domain\CategoryService\CategoryService;
 use App\Domain\Demand\Demand;
 use App\Domain\Provider\Provider;
-use App\Domain\ProviderRegion\ProviderRegion;
-use App\Domain\ProviderServiceCategory\ProviderServiceCategory;
-use App\Domain\StateProvider\StateProviderRepository;
 use App\Model\Database\EntityManagerDecorator;
-use Doctrine\DBAL\LockMode;
 
 final class MatchingFacade
 {
 	public const INVITATION_LIMIT = 3;
-	public function __construct(private EntityManagerDecorator $em, private StructuredAiClient $ai, private string $promptDirectory) {}
+	public function __construct(private EntityManagerDecorator $em, private StructuredAiClient $ai, private string $promptDirectory,
+		private \App\Domain\Demand\DemandRepository $demands,
+		private \App\Domain\Provider\ProviderRepository $providers, private InvitationRepository $invitationRepository) {}
 
 	/** @param int[] $categoryIds @return Provider[] */
 	public function eligibleProviders(Demand $demand, array $categoryIds): array
@@ -26,29 +24,16 @@ final class MatchingFacade
 		}));
 		if ($categoryIds === []) { return []; }
 		// Exact category matching is deliberate; a broad category does not imply every specialization.
-		return $this->em->createQueryBuilder()->select('DISTINCT p')->from(Provider::class, 'p')
-			->innerJoin(ProviderRegion::class, 'pr', 'WITH', 'pr.provider = p')
-			->innerJoin(ProviderServiceCategory::class, 'pc', 'WITH', 'pc.provider = p')
-			->innerJoin('pc.serviceCategory', 'c')
-			->where('p.stateProvider = :active AND p.administrativelyBlocked = false AND p.dateDeleted IS NULL AND p.acceptsDemands = true')
-			->andWhere('pr.region = :region AND pr.dateDeleted IS NULL AND pc.dateDeleted IS NULL AND c.dateDeleted IS NULL')
-			->andWhere('c.id IN (:categories)')->setParameter('active', StateProviderRepository::STATE_ACTIVATED)
-			->setParameter('region', $demand->getCity()->getRegion()->getId())->setParameter('categories', $categoryIds)
-			->orderBy('p.id', 'ASC')->setMaxResults(50)->getQuery()->getResult();
+		return $this->providers->eligibleForDemand($demand, $categoryIds);
 	}
 
 	public function processOne(): bool
 	{
 		$claim = $this->em->wrapInTransaction(function (): ?array {
 			$now = new \DateTimeImmutable();
-			$demand = $this->em->createQueryBuilder()->select('d')->from(Demand::class, 'd')
-				->where('d.status = :status AND d.verifiedAt IS NOT NULL')
-				->andWhere('(d.processAfter IS NULL OR d.processAfter <= :now) AND (d.leaseUntil IS NULL OR d.leaseUntil <= :now)')
-				->setParameter('status', Demand::READY)->setParameter('now', $now)->orderBy('d.id', 'ASC')->setMaxResults(1)
-				->getQuery()->setLockMode(LockMode::PESSIMISTIC_WRITE)->getOneOrNullResult();
-			if (!$demand instanceof Demand) { return null; }
-			$this->em->refresh($demand);
-			return [$demand, $demand->claimProcessing()];
+			$demand = $this->demands->nextReadyForUpdate($now);
+			if ($demand === null) { return null; }
+			return [$demand, $demand->claimProcessing($now)];
 		});
 		if ($claim === null) { return false; }
 		[$demand, $lease] = $claim;
@@ -56,14 +41,16 @@ final class MatchingFacade
 			if ($demand->getProcessingAttempts() > 3) { throw new AiUnavailableException('Processing attempt limit exceeded.'); }
 			$result = $this->preview($demand, false);
 			$this->em->wrapInTransaction(function () use ($demand, $lease, $result): void {
-				$this->em->refresh($demand, LockMode::PESSIMISTIC_WRITE);
+				$this->demands->refreshForUpdate($demand);
 				if (!$demand->ownsLease($lease)) { return; }
 				$this->applySelection($demand, $result);
 			});
 		} catch (\Throwable $e) {
 			if (!$this->em->isOpen()) { throw $e; }
+			$demand = $this->demands->findByReference($demand->getReference());
+			if ($demand === null) { throw $e; }
 			$this->em->wrapInTransaction(function () use ($demand, $lease, $e): void {
-				$this->em->refresh($demand, LockMode::PESSIMISTIC_WRITE);
+				$this->demands->refreshForUpdate($demand);
 				if (!$demand->ownsLease($lease)) { return; }
 				$review = $e instanceof AiUnavailableException || $demand->getProcessingAttempts() >= 3;
 				if ($review) { $demand->markNeedsReview('Automatické spracovanie vyžaduje kontrolu administrátora.'); }
@@ -122,14 +109,14 @@ final class MatchingFacade
 	/** @return Demand[] */
 	public function recentDemands(): array { return $this->em->getRepository(Demand::class)->findBy([], ['createdAt' => 'DESC'], 100); }
 	public function runs(Demand $demand): array { return $this->em->getRepository(AiRun::class)->findBy(['demand' => $demand], ['createdAt' => 'DESC'], 20); }
-	public function invitations(Demand $demand): array { return $this->em->getRepository(ProviderInvitation::class)->findBy(['demand' => $demand], ['id' => 'ASC']); }
+	public function invitations(Demand $demand): array { return $this->invitationRepository->forDemand($demand); }
 
 	public function requeue(Demand $demand, ?int $categoryId): void
 	{
 		$category = $categoryId ? $this->em->find(CategoryService::class, $categoryId) : null;
 		if ($categoryId && (!$category instanceof CategoryService || !$category->isSelectable())) { throw new \InvalidArgumentException('Unknown category.'); }
 		$requeued = $this->em->wrapInTransaction(function () use ($demand, $category): bool {
-			$this->em->refresh($demand, LockMode::PESSIMISTIC_WRITE);
+			$this->demands->refreshForUpdate($demand);
 			if ($demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED) { return false; }
 			$demand->requeue($category);
 			return true;
@@ -143,7 +130,7 @@ final class MatchingFacade
 			throw new \InvalidArgumentException('A category and up to three providers are required.');
 		}
 		$approved = $this->em->wrapInTransaction(function () use ($demand, $providerIds): bool {
-			$this->em->refresh($demand, LockMode::PESSIMISTIC_WRITE);
+			$this->demands->refreshForUpdate($demand);
 			if ($demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED || $demand->getCategory() === null) { return false; }
 			$this->applySelection($demand, ['status' => Demand::INVITED, 'note' => 'Poskytovateľov vybral administrátor.',
 				'summary' => $demand->getServiceSummary() ?: $demand->getCategory()->getName() . '. Zadanie skontroloval administrátor.',

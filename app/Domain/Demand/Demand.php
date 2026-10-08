@@ -100,7 +100,6 @@ class Demand
 			self::REVIEW => 'Čaká na kontrolu zadania',
 			self::NO_PROVIDERS => 'Zatiaľ nemáme vhodného poskytovateľa',
 			self::INVITED => 'Čaká na reakcie poskytovateľov',
-			default => 'Spracúva sa',
 		};
 	}
 	public function issueAccess(?\DateTimeImmutable $now = null): string

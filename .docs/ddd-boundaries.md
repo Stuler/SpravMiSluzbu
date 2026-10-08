@@ -59,16 +59,23 @@ Matching reads eligibility again before saving its selection.
 
 ## Transaction contract
 
-The outer application operation owns begin/flush/commit/rollback. Nested calls
+The outer application operation owns begin/final flush/commit/rollback. An early
+flush is allowed to allocate an ID for an audit, without committing. Nested calls
 participate in that operation and never commit independently. An inner failure
 makes the operation rollback-only, even if its caller catches the exception.
 Audit and the marketplace mutation commit together. On rollback the UnitOfWork is
-cleared; callers discard/reload entity references. Database write failures close
+cleared if objects were mutated or flushed; callers discard/reload those entity
+references. A validation rejection before mutation can retain loaded objects for
+form rendering. Database write failures close
 the manager, and that request must not continue using it.
 
-Mail delivery happens after a successful transaction owned by the service. The
-existing invitation queue retains its ambiguous-delivery behavior. Registration
-must translate an email uniqueness conflict without reporting other integrity
+Mail callbacks registered through `afterCommit()` are deferred until the outer
+application operation commits and discarded on rollback. Callback errors cannot
+roll back committed data. These callbacks are not a durable outbox: process death
+after commit still requires the existing recovery/resend workflows. Registration
+results confirm email delivery only when it has actually occurred.
+The existing invitation queue retains its ambiguous-delivery behavior. Provider
+registration must translate an email uniqueness conflict without reporting other integrity
 errors as duplicate emails. A pre-insert lookup is not concurrency protection.
 
 ## Verification and rollout

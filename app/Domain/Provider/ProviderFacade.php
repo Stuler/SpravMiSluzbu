@@ -23,6 +23,7 @@ use App\Model\Utils\PhoneNumbers;
 use Nette\Application\LinkGenerator;
 use Tracy\Debugger;
 use Tracy\ILogger;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 readonly class ProviderFacade
 {
@@ -34,6 +35,7 @@ readonly class ProviderFacade
 		private EntityManagerDecorator $em,
 		private MailSender             $mailSender,
 		private LinkGenerator          $linkGenerator,
+		private ProviderRepository     $providers,
 	)
 	{
 	}
@@ -95,21 +97,31 @@ readonly class ProviderFacade
 		);
 		$provider->setActivationToken($token->hash, $token->expiresAt);
 
-		$this->em->wrapInTransaction(function () use ($provider, $regions, $categories): void {
-			$this->em->persist($provider);
+		try {
+			$this->em->wrapInTransaction(function () use ($provider, $regions, $categories): void {
+				$this->em->persist($provider);
 
-			foreach ($regions as $region) {
-				$this->em->persist(new ProviderRegion(provider: $provider, region: $region));
+				foreach ($regions as $region) {
+					$this->em->persist(new ProviderRegion(provider: $provider, region: $region));
+				}
+
+				foreach ($categories as $category) {
+					$this->em->persist(new ProviderServiceCategory(provider: $provider, serviceCategory: $category));
+				}
+				// Allocate the result ID even when registration joins an outer operation.
+				$this->em->flush();
+			});
+		} catch (UniqueConstraintViolationException $e) {
+			if ($this->providers->emailExists($email)) {
+				throw new DuplicateEmailException('A provider with this email already exists.', 0, $e);
 			}
+			throw $e;
+		}
 
-			foreach ($categories as $category) {
-				$this->em->persist(new ProviderServiceCategory(provider: $provider, serviceCategory: $category));
-			}
-
-			$this->em->flush();
+		$mailSent = false;
+		$this->em->afterCommit(function () use ($provider, $token, &$mailSent): void {
+			$mailSent = $this->sendActivationMail($provider, $token->raw);
 		});
-
-		$mailSent = $this->sendActivationMail($provider, $token->raw);
 
 		return new ProviderRegistrationResult($provider->getId(), $email, $mailSent);
 	}
@@ -126,7 +138,7 @@ readonly class ProviderFacade
 		}
 
 		$hash = ActivationToken::hashRaw($rawToken);
-		$provider = $this->em->getRepository(Provider::class)->findOneBy(['activationTokenHash' => $hash]);
+		$provider = $this->providers->findByActivationHash($hash);
 		if (!$provider instanceof Provider) {
 			return null;
 		}
@@ -148,11 +160,9 @@ readonly class ProviderFacade
 	{
 		$hash = ActivationToken::hashRaw(trim($rawToken));
 
-		// Validate and mutate inside one transaction. Invalid tokens return null from the
-		// transaction (rather than throwing inside it, which would close the EntityManager)
-		// and the failure is raised afterwards.
+		// Re-read the token and account under a write lock shared with resend.
 		$provider = $this->em->wrapInTransaction(function () use ($hash): ?Provider {
-			$provider = $this->em->getRepository(Provider::class)->findOneBy(['activationTokenHash' => $hash]);
+			$provider = $this->providers->findByActivationHashForUpdate($hash);
 			$now = new \DateTimeImmutable();
 
 			if (!$provider instanceof Provider || $provider->getDateDeleted() !== null || !$provider->isFresh() || !$provider->hasValidActivationToken($hash, $now)) {
@@ -165,7 +175,6 @@ readonly class ProviderFacade
 			}
 
 			$provider->activate($activated, $hash, $now);
-			$this->em->flush();
 
 			return $provider;
 		});
@@ -191,28 +200,30 @@ readonly class ProviderFacade
 			return;
 		}
 
-		$provider = $this->em->getRepository(Provider::class)->findOneBy(['email' => $normalized]);
+		$provider = $this->providers->findByEmail($normalized);
 		if (!$provider instanceof Provider || $provider->getDateDeleted() !== null || !$provider->isFresh()) {
 			return;
 		}
 
-		$sentAt = $provider->getActivationSentAt();
-		if ($sentAt !== null && $sentAt > (new \DateTime())->modify(self::RESEND_COOLDOWN)) {
-			return;
-		}
-
-		$token = ActivationToken::generate();
-		$this->em->wrapInTransaction(function () use ($provider, $token): void {
-			$provider->setActivationToken($token->hash, $token->expiresAt);
-			$this->em->flush();
+		$token = $this->em->wrapInTransaction(function () use ($provider): ?ActivationToken {
+			$this->providers->refreshForUpdate($provider);
+			$now = new \DateTimeImmutable();
+			$sentAt = $provider->getActivationSentAt();
+			if ($provider->getDateDeleted() !== null || !$provider->isFresh()
+				|| ($sentAt !== null && $sentAt > $now->modify(self::RESEND_COOLDOWN))) { return null; }
+			$token = ActivationToken::generate($now);
+			$provider->setActivationToken($token->hash, $token->expiresAt, $now);
+			return $token;
 		});
 
-		$this->sendActivationMail($provider, $token->raw);
+		if ($token !== null) {
+			$this->em->afterCommit(function () use ($provider, $token): void { $this->sendActivationMail($provider, $token->raw); });
+		}
 	}
 
 	public function getProvider(int $id): ?Provider
 	{
-		$provider = $this->em->getRepository(Provider::class)->find($id);
+		$provider = $this->providers->find($id);
 
 		return $provider instanceof Provider ? $provider : null;
 	}
@@ -293,7 +304,7 @@ readonly class ProviderFacade
 			throw new RegistrationValidationException('At least one region is required.');
 		}
 
-		$existing = $this->em->getRepository(Provider::class)->findOneBy(['email' => $email]);
+		$existing = $this->providers->findByEmail($email);
 		if ($existing instanceof Provider) {
 			throw new DuplicateEmailException('A provider with this email already exists.');
 		}

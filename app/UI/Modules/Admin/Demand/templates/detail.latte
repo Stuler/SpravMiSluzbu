@@ -1,0 +1,23 @@
+{block #content}
+<h1>Detail dopytu</h1>
+<p><a n:href="default">Všetky dopyty</a></p>
+<p>{$demand->getStatusLabel()} · {$demand->getCity()->getFullname()} · {$demand->getRequestedTerm()}</p>
+<p>{$demand->getContactName()} · {$demand->getContactEmail()} · {$demand->getContactPhone()}</p>
+<p n:if="$demand->getCustomer()"><a n:href=":Admin:Customer:detail, id => $demand->getCustomer()->getId()">Detail zákazníka</a></p>
+<p style="white-space: pre-wrap">{$demand->getDescription()}</p>
+<p>{$demand->getProcessingNote()}</p>
+<h2>Spracovanie</h2>
+{control requeueForm}
+{control previewForm}
+<pre n:if="$preview !== null">{$preview|json}</pre>
+<h2>Výber administrátorom</h2>
+<p>Výber je obmedzený na oprávnené firmy podľa vybranej kategórie a regiónu. Celkový limit je tri firmy na dopyt.</p>
+{control approveForm}
+<h2>Oslovenia</h2>
+<ul><li n:foreach="$invitations as $i"><a n:href=":Admin:Provider:detail, id => $i->getProvider()->getId()">{$i->getProvider()->getCompanyName()}</a>: {$i->getDeliveryLabel()} · {$i->getResponseLabel()} — {$i->getReason()}</li></ul>
+{control retryMailForm}
+<h2>História AI spracovania</h2>
+<details n:foreach="$runs as $run"><summary>{$run->getCreatedAt()|date:'d. m. Y H:i'} · {$run->getPromptVersion()} · {$run->getModel()}</summary>
+<p>Vstupné tokeny: {$run->getInputTokens()}, výstupné tokeny: {$run->getOutputTokens()}, trvanie: {$run->getDurationMs()} ms</p>
+<pre>{$run->getInput()|json}</pre><pre>{$run->getOutput()|json}</pre>
+</details>

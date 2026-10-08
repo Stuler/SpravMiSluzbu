@@ -29,7 +29,33 @@ ROSTI_TEST_SSH_KEY_BASE64=<base64 encoded private deploy key for app@ssh.rosti.c
 ROSTI_TEST_LOCAL_NEON_BASE64=<base64 encoded config/local.neon for test>
 ```
 
-The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git. The deploy intentionally does not run migrations; database changes are handled manually until the migration strategy is settled.
+The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git. After deploying the `beta` branch, it runs pending Nettrine migrations and prints their status:
+
+```bash
+php bin/console migrations:migrate --no-interaction --allow-no-migration
+php bin/console migrations:status --no-interaction
+```
+
+### Migration conventions
+
+- Store every schema change as a new migration in `db/Migrations` under the `Database\\Migrations` namespace.
+- Generate migrations through Nettrine, then review and simplify the generated SQL before committing it:
+
+  ```bash
+  docker compose exec php php bin/console migrations:diff
+  ```
+
+- Give each migration a useful `getDescription()` value and implement a valid `down()` method where rollback is technically safe.
+- Never edit a migration that has already run on a shared environment. Add a corrective migration instead.
+- Keep deployed migrations backward-compatible with the previous application version because Roští deploys files in place. Use additive changes before destructive renames or column removals.
+- Run the migration locally and verify the final status before merging to `beta`:
+
+  ```bash
+  docker compose exec php php bin/console migrations:migrate --no-interaction --allow-no-migration
+  docker compose exec php php bin/console migrations:status
+  ```
+
+- Automatic migrations apply only to the isolated Roští test database. Production migrations remain manual until a separate production deployment and rollback strategy is approved.
 
 Use `.docs/rosti-test-local.neon.example` as the starting point:
 

@@ -1,0 +1,10 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>Nové heslo</h1>
+{if $tokenValid}
+<div class="bripeon-form-panel">{control resetForm}</div>
+{else}
+<p>Odkaz je neplatný, použitý alebo jeho platnosť vypršala.</p>
+<p><a n:href="forgot">Požiadať o nový odkaz</a></p>
+{/if}
+</div></section>

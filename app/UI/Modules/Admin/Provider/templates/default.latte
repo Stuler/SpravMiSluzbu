@@ -1,1 +1,12 @@
-{block #content}
+{block content}
+<h1>Poskytovatelia</h1>
+{control filterForm}
+<p><a n:href="default">Zrušiť filtre</a></p>
+<p n:if="!$list['items']">Nenašli sa žiadni poskytovatelia.</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Firma</th><th>IČO</th><th>E-mail</th><th>Stav</th><th>Dopyty</th><th></th></tr></thead><tbody>
+<tr n:foreach="$list['items'] as $provider">
+<td>{$provider->getCompanyName()}</td><td>{$provider->getIco()}</td><td>{$provider->getEmail()}</td>
+<td>{if $provider->isBlocked()}Blokovaný{elseif $provider->isActivated()}Aktívny{else}Neoverený{/if}</td>
+<td>{if $provider->acceptsDemands()}Prijíma{else}Pozastavené{/if}</td><td><a n:href="detail, id => $provider->getId()">Detail</a></td>
+</tr></tbody></table></div>
+{include '../../templates/pagination.latte'}

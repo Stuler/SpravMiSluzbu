@@ -1,0 +1,10 @@
+<p><strong>Stav:</strong>
+{if $account->isBlocked()}Blokovaný{elseif $account->isActivated()}Aktívny{else}Neoverený{/if}
+· <strong>E-mail:</strong> {$account->getEmail()}</p>
+<p>Prihlasovací e-mail sa v tejto administrácii nemení.</p>
+<h2>Stav účtu</h2>
+{control stateForm}
+{if !$account->isBlocked() && (!$account->isActivated() || $account instanceof App\Domain\User\User)}
+<h2>Podpora prihlásenia</h2>
+{control linkForm}
+{/if}

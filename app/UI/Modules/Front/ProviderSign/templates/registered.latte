@@ -1,0 +1,23 @@
+{block #content}
+<section class="bripeon-provider-signup-page">
+	<div class="container bripeon-narrow">
+		<p class="bripeon-eyebrow">Registrácia poskytovateľa</p>
+		<h1>Skontrolujte si e-mail</h1>
+
+		{if $mailSent}
+			<p>Na adresu <strong>{$registeredEmail}</strong> sme poslali aktivačný odkaz.
+				Otvorte ho a dokončite aktiváciu svojho účtu.</p>
+		{else}
+			<p>Účet sme vytvorili, no aktivačný e-mail sa nepodarilo odoslať na adresu
+				<strong>{$registeredEmail}</strong>. Skúste si nechať poslať nový.</p>
+		{/if}
+
+		<p>Aktivačný odkaz je platný 24 hodín. Nedostali ste e-mail?</p>
+
+		<div class="bripeon-form-panel">
+			{control resendActivationForm}
+		</div>
+
+		<p><a n:href="in">Späť na prihlásenie</a></p>
+	</div>
+</section>

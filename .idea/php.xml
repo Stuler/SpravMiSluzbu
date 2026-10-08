@@ -130,7 +130,6 @@
       <path value="$PROJECT_DIR$/vendor/nextras/mail-panel" />
       <path value="$PROJECT_DIR$/vendor/contributte/forms-bootstrap" />
       <path value="$PROJECT_DIR$/vendor/contributte/forms-wizard" />
-      <path value="$PROJECT_DIR$/vendor/stripe/stripe-php" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

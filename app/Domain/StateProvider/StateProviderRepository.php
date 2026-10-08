@@ -18,12 +18,10 @@ class StateProviderRepository extends AbstractRepository
 		StateProviderRepository::STATE_FRESH,
 		StateProviderRepository::STATE_BLOCKED,
 		StateProviderRepository::STATE_ACTIVATED,
-		StateProviderRepository::STATE_PENDING_PAYMENT,
 	];
+	public const STATE_FRESH = 1;
 	public const STATE_ACTIVATED = 2;
 	public const STATE_BLOCKED = 3;
-	public const STATE_FRESH = 1;
-	public const STATE_PENDING_PAYMENT = 4;
 
 	public function findById(int $id): ?StateProvider
 	{

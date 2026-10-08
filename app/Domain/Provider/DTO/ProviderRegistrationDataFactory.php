@@ -2,6 +2,8 @@
 
 namespace App\Domain\Provider\DTO;
 
+use App\Model\Utils\PhoneNumbers;
+
 final class ProviderRegistrationDataFactory
 {
 	/**
@@ -19,7 +21,7 @@ final class ProviderRegistrationDataFactory
 			self::stringValue($data['email'] ?? ''),
 			self::stringValue($data['password'] ?? ''),
 			self::stringValue($data['confirmPassword'] ?? ''),
-			self::stringValue($data['phone'] ?? ''),
+			PhoneNumbers::normalize(self::stringValue($data['phone'] ?? '')),
 			self::stringValue($data['companyName'] ?? ''),
 			self::stringValue($data['ico'] ?? ''),
 			self::stringValue($data['street'] ?? ''),

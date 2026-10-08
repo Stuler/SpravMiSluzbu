@@ -13,4 +13,7 @@ final class App
 	const DESTINATION_AFTER_SIGN_UP_USER = ':Front:UserSign:registered';
 	const DESTINATION_AFTER_ACTIVATION_USER = ':Front:UserSign:activated';
 
+	public const DESTINATION_PROVIDER_DASHBOARD = ':Front:ProviderDashboard:default';
+	public const DESTINATION_PROVIDER_SIGN_IN = ':Front:ProviderSign:in';
+
 }

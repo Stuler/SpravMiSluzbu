@@ -1,0 +1,10 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>Aktivácia zákazníckeho účtu</h1>
+{if $tokenValid}
+<div class="bripeon-form-panel">{control activateForm}</div>
+{else}
+<p>Odkaz je neplatný, použitý alebo jeho platnosť vypršala.</p>
+<div class="bripeon-form-panel">{control resendActivationForm}</div>
+{/if}
+</div></section>

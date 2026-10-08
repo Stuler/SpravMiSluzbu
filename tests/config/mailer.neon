@@ -1,0 +1,3 @@
+# Test-only override: write emails to files instead of invoking sendmail.
+services:
+	mail.mailer: Tests\Toolkit\TestMailer(%appDir%/../var/tmp/test-mails)

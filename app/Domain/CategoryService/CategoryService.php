@@ -48,10 +48,26 @@ class CategoryService
 
 	public function setParent(?CategoryService $parent): void
 	{
-		if ($parent === $this) {
-			throw new InvalidArgumentException('Category cannot be parent of itself');
+		$seen = [];
+		for ($ancestor = $parent; $ancestor !== null; $ancestor = $ancestor->getParent()) {
+			$key = spl_object_id($ancestor);
+			if ($ancestor === $this || (isset($this->id) && isset($ancestor->id) && $ancestor->getId() === $this->id) || isset($seen[$key])) {
+				throw new \InvalidArgumentException('Category hierarchy cannot contain a cycle.');
+			}
+			$seen[$key] = true;
 		}
 		$this->parent = $parent;
+	}
+
+	public function isSelectable(): bool
+	{
+		$seen = [];
+		for ($category = $this; $category !== null; $category = $category->getParent()) {
+			$key = spl_object_id($category);
+			if ($category->getDateDeleted() !== null || isset($seen[$key])) { return false; }
+			$seen[$key] = true;
+		}
+		return true;
 	}
 
 	public function getDescription(): ?string

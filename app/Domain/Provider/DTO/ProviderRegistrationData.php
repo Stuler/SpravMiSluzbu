@@ -2,6 +2,8 @@
 
 namespace App\Domain\Provider\DTO;
 
+use App\Model\Utils\PhoneNumbers;
+
 final class ProviderRegistrationData
 {
 	public function __construct(
@@ -35,14 +37,16 @@ final class ProviderRegistrationData
 	{
 		return $this->email !== ''
 			&& filter_var($this->email, FILTER_VALIDATE_EMAIL) !== false
-			&& $this->password !== ''
+			&& mb_strlen($this->password) >= 8
 			&& $this->password === $this->confirmPassword
-			&& $this->firstName !== ''
-			&& $this->lastName !== ''
-			&& $this->phone !== ''
-			&& $this->companyName !== ''
+			&& trim($this->firstName) !== ''
+			&& trim($this->lastName) !== ''
+			&& PhoneNumbers::isValid($this->phone)
+			&& trim($this->companyName) !== ''
+			&& trim($this->street) !== ''
+			&& trim($this->streetNumber) !== ''
 			&& (int) $this->cityId > 0
-			&& $this->zip !== ''
+			&& trim($this->zip) !== ''
 			&& $this->getServiceCategoryIds() !== []
 			&& $this->getRegionIds() !== [];
 	}
@@ -74,7 +78,7 @@ final class ProviderRegistrationData
 	/**
 	 * @return int[]
 	 */
-	private function getServiceCategoryIds(): array
+	public function getServiceCategoryIds(): array
 	{
 		return array_values(array_filter(
 			array_map(
@@ -88,7 +92,7 @@ final class ProviderRegistrationData
 	/**
 	 * @return int[]
 	 */
-	private function getRegionIds(): array
+	public function getRegionIds(): array
 	{
 		return array_values(array_filter(
 			array_map(
@@ -99,7 +103,7 @@ final class ProviderRegistrationData
 		));
 	}
 
-	private function getContactFirstName(): string
+	public function getContactFirstName(): string
 	{
 		if ($this->usePersonalAsContact || $this->contactFirstName === '') {
 			return $this->firstName;
@@ -108,12 +112,22 @@ final class ProviderRegistrationData
 		return $this->contactFirstName;
 	}
 
-	private function getContactLastName(): string
+	public function getContactLastName(): string
 	{
 		if ($this->usePersonalAsContact || $this->contactLastName === '') {
 			return $this->lastName;
 		}
 
 		return $this->contactLastName;
+	}
+
+	public function getStreetNo(): string
+	{
+		return trim($this->street . ' ' . $this->streetNumber);
+	}
+
+	public function getCityIdAsInt(): int
+	{
+		return (int) $this->cityId;
 	}
 }

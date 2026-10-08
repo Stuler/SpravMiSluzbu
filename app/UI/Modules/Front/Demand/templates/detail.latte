@@ -1,0 +1,42 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>Váš dopyt</h1>
+<p><strong>{$demand->getStatusLabel()}</strong></p>
+<div class="bripeon-form-panel">
+<dl>
+<dt>Číslo dopytu</dt><dd>{$demand->getReference()}</dd>
+<dt>Služba</dt><dd>{$demand->getCategory()?->getName() ?? 'Zaradenie pri spracovaní'}</dd>
+<dt>Miesto</dt><dd>{$demand->getCity()->getFullname()}</dd>
+<dt>Termín</dt><dd>{$demand->getRequestedTerm()}</dd>
+<dt>Kontakt</dt><dd>{$demand->getContactName()}, {$demand->getContactEmail()} {$demand->getContactPhone()}</dd>
+</dl>
+<p style="white-space: pre-wrap">{$demand->getDescription()}</p>
+</div>
+{if $demand->getStatus() === 'pending_verification'}
+<p>Potvrďte, že tento dopyt a e-mail patria vám.</p>
+<div class="bripeon-form-panel">{control verifyForm}</div>
+{elseif $demand->getStatus() === 'ready'}
+<p>Dopyt je overený a čaká na spracovanie.</p>
+{elseif $demand->getStatus() === 'needs_review'}
+<p>Zadanie preverí administrátor. Ak treba niečo doplniť, ozveme sa vám.</p>
+{elseif $demand->getStatus() === 'no_providers'}
+<p>V tejto kategórii a regióne sme zatiaľ nenašli vhodnú aktívnu firmu. Dopyt zostáva dostupný na kontrolu.</p>
+{/if}
+{if count($invitations)}
+<h2>Reakcie poskytovateľov</h2>
+<ul>
+<li n:foreach="$invitations as $invitation">
+<strong>{$invitation->getProvider()->getCompanyName()}</strong>: {$invitation->getResponseLabel()}
+{if $invitation->getResponse() === 'accepted'}
+<p>{$invitation->getProvider()->getEmail()} · {$invitation->getProvider()->getPhoneNumber()}</p>
+{/if}
+</li>
+</ul>
+{/if}
+{if $demand->getStatus() !== 'closed'}
+<details><summary>Službu už nepotrebujem</summary>
+<p>Uzavretím dopytu ukončíte jeho spracovanie.</p>
+<div class="bripeon-form-panel">{control closeForm}</div>
+</details>
+{/if}
+</div></section>

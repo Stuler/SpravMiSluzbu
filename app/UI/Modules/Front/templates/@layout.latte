@@ -29,14 +29,25 @@
 						<li><a href="{link Home:}#ako-to-funguje">Ako to funguje</a></li>
 						<li><a href="{link Home:}#sluzby">Služby</a></li>
 						<li><a href="{link Home:}#kalkulacka">Kalkulačka</a></li>
-						<li><a n:href="ProviderSign:up">Pre poskytovateľov</a></li>
+						<li><a n:href=":Front:ProviderSign:up">Pre poskytovateľov</a></li>
 						<li class="dropdown bripeon-account"><a href="#"><span>Môj účet</span><i class="bi bi-person-circle toggle-dropdown"></i></a>
 							<ul>
-								<li><a href="#">Prihlásiť</a></li>
-								<li><a n:href="UserSign:up">Vytvoriť účet</a></li>
+								{if $_user->isProvider()}
+									<li><a n:href=":Front:ProviderDashboard:default">Môj prehľad</a></li>
+									<li><a n:href=":Front:ProviderDemand:default">Dopyty pre firmu</a></li>
+									<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
+								{elseif $_user->isCustomer()}
+									<li><a n:href=":Front:CustomerDashboard:default">Moje dopyty</a></li>
+									<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
+								{else}
+									<li><a n:href=":Front:UserSign:in">Prihlásenie zákazníka</a></li>
+									<li><a n:href=":Front:ProviderSign:in">Prihlásenie poskytovateľa</a></li>
+									<li><a n:href=":Front:ProviderSign:up">Registrácia poskytovateľa</a></li>
+									<li><a n:href=":Front:UserSign:up">Vytvoriť účet</a></li>
+								{/if}
 							</ul>
 						</li>
-						<li><a class="bripeon-nav-cta" href="{link Home:}#dopyt">Zadať dopyt</a></li>
+						<li><a class="bripeon-nav-cta" n:href=":Front:Demand:create">Zadať dopyt</a></li>
 					</ul>
 					<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 				</nav>
@@ -61,7 +72,7 @@
 				<h3>Zákazníci</h3>
 				<a href="{link Home:}#sluzby">Kategórie služieb</a>
 				<a href="{link Home:}#kalkulacka">Orientačné ceny</a>
-				<a href="{link Home:}#dopyt">Zadať dopyt</a>
+				<a n:href=":Front:Demand:create">Zadať dopyt</a>
 			</div>
 			<div>
 				<h3>Poskytovatelia</h3>

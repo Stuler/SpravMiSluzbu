@@ -28,9 +28,9 @@ final class UserAuthenticator implements Authenticator
 	public function authenticate(string $username, string $password): IIdentity
 	{
 		/** @var User|null $user */
-		$user = $this->qm->findOne(UserQuery::ofEmail($username));
+		$user = $this->em->getRepository(User::class)->findOneBy(['email' => \App\Model\Utils\Emails::normalize($username)]);
 
-		if ($user === null) {
+		if ($user === null || $user->getDateDeleted() !== null) {
 			throw new AuthenticationException('The username is incorrect.', self::IdentityNotFound);
 		} elseif (!$user->isActivated()) {
 			throw new AuthenticationException('The user is not active.', self::InvalidCredential);

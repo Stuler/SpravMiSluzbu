@@ -6,23 +6,29 @@ use App\Domain\CategoryService\CategoryService;
 use App\Domain\City\City;
 use App\Domain\LoginRole\LoginRole;
 use App\Domain\Provider\DTO\ProviderRegistrationData;
+use App\Domain\Provider\Exception\DuplicateEmailException;
+use App\Domain\Provider\Exception\InvalidActivationTokenException;
+use App\Domain\Provider\Exception\RegistrationValidationException;
 use App\Domain\ProviderRegion\ProviderRegion;
 use App\Domain\ProviderServiceCategory\ProviderServiceCategory;
 use App\Domain\Region\Region;
 use App\Domain\StateProvider\StateProvider;
 use App\Domain\StateProvider\StateProviderRepository;
-use App\Domain\StateUser\StateUserRepository;
 use App\Model\Database\EntityManagerDecorator;
 use App\Model\Exception\Logic\InvalidArgumentException;
-use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Mail\MailSender;
 use App\Model\Security\Passwords;
-use Exception;
+use App\Model\Utils\Emails;
+use App\Model\Utils\PhoneNumbers;
 use Nette\Application\LinkGenerator;
+use Tracy\Debugger;
+use Tracy\ILogger;
 
 readonly class ProviderFacade
 {
 
+	private const PASSWORD_MIN_LENGTH = 8;
+	private const RESEND_COOLDOWN = '-5 minutes';
 
 	public function __construct(
 		private EntityManagerDecorator $em,
@@ -33,171 +39,316 @@ readonly class ProviderFacade
 	}
 
 	/**
-	 * @param array<string, mixed> $data
-	 * @throws Exception
+	 * Register a new provider in the `fresh` state.
+	 *
+	 * The account, its region/service-category relations and the activation token
+	 * are created in a single transaction. The activation email is sent afterwards;
+	 * a delivery failure does not roll back the account but is reported in the result
+	 * so the UI can offer a resend.
 	 */
-	public function createProvider(array $data): Provider
+	public function register(ProviderRegistrationData $dto): ProviderRegistrationResult
 	{
-		$this->validateInputs($data);
-		$regionIds = $data['region'];
-		$serviceCategoryIds = $data['serviceCategory'];
-		if (!is_array($regionIds) || !is_array($serviceCategoryIds)) {
-			throw new Exception('Invalid provider category or region data.');
+		$email = Emails::normalize($dto->email);
+		$this->validate($dto, $email);
+
+		$loginRole = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => LoginRole::ROLE_PROVIDER]);
+		if (!$loginRole instanceof LoginRole) {
+			throw new InvalidArgumentException('Provider login role was not found.');
 		}
 
-		$loginRole = $this->stringData($data, 'role', LoginRole::ROLE_PROVIDER);
-		$loginRoleEntity = $this->em->getRepository(LoginRole::class)->findOneBy(['name' => $loginRole]);
-		$stateProvider = $this->resolveInitialProviderState();
-		$city = $this->em->getRepository(City::class)->findOneBy(['id' => $data['city']]);
-		if (!$loginRoleEntity instanceof LoginRole) {
-			throw new Exception('Provider login role was not found.');
+		$stateFresh = $this->em->getRepository(StateProvider::class)->find(StateProviderRepository::STATE_FRESH);
+		if (!$stateFresh instanceof StateProvider) {
+			throw new InvalidArgumentException('Initial provider state (fresh) was not found.');
 		}
-		if (!$city instanceof City) {
-			throw new Exception('Provider city was not found.');
+
+		$city = $this->em->getRepository(City::class)->find($dto->getCityIdAsInt());
+		if (!$city instanceof City || !$city->getUse()) {
+			throw new RegistrationValidationException('Selected city does not exist.');
 		}
+
+		$regions = $this->resolveRegions($dto->getRegionIds());
+		$categories = $this->resolveCategories($dto->getServiceCategoryIds());
+
+		$token = ActivationToken::generate();
 
 		$provider = new Provider(
-			companyName: $this->stringData($data, 'companyName'),
-			contactName: $this->stringData($data, 'contactName'),
-			contactSurname: $this->stringData($data, 'contactSurname'),
-			contactTitle: $this->stringData($data, 'contactTitle'),
-			email: $this->stringData($data, 'email'),
-			phoneNumber: $this->stringData($data, 'phoneNumber'),
-			ico: $this->stringData($data, 'ico'),
-			dic: $this->stringData($data, 'dic'),
-			password: Passwords::create()->hash($this->stringData($data, 'password', md5(microtime()))),
-			streetNo: $this->stringData($data, 'streetNo'),
+			companyName: $dto->companyName,
+			contactName: $dto->getContactFirstName(),
+			contactSurname: $dto->getContactLastName(),
+			contactTitle: '',
+			email: $email,
+			phoneNumber: PhoneNumbers::normalize($dto->phone),
+			ico: $dto->ico,
+			dic: '',
+			password: Passwords::create()->hash($dto->password),
+			streetNo: $dto->getStreetNo(),
 			city: $city,
-			zipCode: $this->stringData($data, 'zipCode'),
-			stateProvider: $stateProvider,
-			loginRole: $loginRoleEntity,
-			hash: md5(microtime()),
+			zipCode: $dto->zip,
+			stateProvider: $stateFresh,
+			loginRole: $loginRole,
 		);
+		$provider->setActivationToken($token->hash, $token->expiresAt);
 
-		$this->em->persist($provider);
+		$this->em->wrapInTransaction(function () use ($provider, $regions, $categories): void {
+			$this->em->persist($provider);
 
-		foreach ($regionIds as $regionId) {
-			$region = $this->em->getRepository(Region::class)->find($regionId);
-			if ($region instanceof Region) {
-				$providerRegion = new ProviderRegion(
-					provider: $provider,
-					region: $region
-				);
-				$this->em->persist($providerRegion);
+			foreach ($regions as $region) {
+				$this->em->persist(new ProviderRegion(provider: $provider, region: $region));
 			}
+
+			foreach ($categories as $category) {
+				$this->em->persist(new ProviderServiceCategory(provider: $provider, serviceCategory: $category));
+			}
+
+			$this->em->flush();
+		});
+
+		$mailSent = $this->sendActivationMail($provider, $token->raw);
+
+		return new ProviderRegistrationResult($provider->getId(), $email, $mailSent);
+	}
+
+	/**
+	 * Look up a fresh provider by the raw activation token without mutating any state.
+	 * Returns null for missing, malformed, expired, consumed, or non-fresh tokens.
+	 */
+	public function findFreshProviderByRawToken(string $rawToken): ?Provider
+	{
+		$rawToken = trim($rawToken);
+		if ($rawToken === '') {
+			return null;
 		}
 
-		foreach ($serviceCategoryIds as $categoryId) {
-			$serviceCategory = $this->em->getRepository(CategoryService::class)->find($categoryId);
-			if ($serviceCategory instanceof CategoryService) {
-				$providerServiceCategory = new ProviderServiceCategory(
-					provider: $provider,
-					serviceCategory: $serviceCategory
-				);
-				$this->em->persist($providerServiceCategory);
-			}
+		$hash = ActivationToken::hashRaw($rawToken);
+		$provider = $this->em->getRepository(Provider::class)->findOneBy(['activationTokenHash' => $hash]);
+		if (!$provider instanceof Provider) {
+			return null;
 		}
 
-		$this->em->flush();
-
-		$link = (string) $this->linkGenerator->link('Front:ProviderSign:activateProvider', ['hash' => $provider->getHash()]);
-		$this->mailSender->sendActivationEmailProvider($provider->getEmail(), $provider->getFullName(), $link);
+		if ($provider->getDateDeleted() !== null || !$provider->isFresh() || !$provider->hasValidActivationToken($hash, new \DateTime())) {
+			return null;
+		}
 
 		return $provider;
 	}
 
 	/**
-	 * @param array<string, mixed> $data
-	 * @throws Exception
+	 * Validate the token again inside a transaction and activate the provider:
+	 * set state to activated, stamp the activation date and clear the token fields.
+	 *
+	 * @throws InvalidActivationTokenException
 	 */
-	private function validateInputs(array $data): void
+	public function activate(string $rawToken): Provider
 	{
-		$email = $this->stringData($data, 'email');
-		if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-			throw new Exception('Invalid email address');
-		}
+		$hash = ActivationToken::hashRaw(trim($rawToken));
 
-		if (($data['password'] ?? '') !== ($data['password2'] ?? '')) {
-			throw new Exception('Passwords do not match');
-		}
+		// Validate and mutate inside one transaction. Invalid tokens return null from the
+		// transaction (rather than throwing inside it, which would close the EntityManager)
+		// and the failure is raised afterwards.
+		$provider = $this->em->wrapInTransaction(function () use ($hash): ?Provider {
+			$provider = $this->em->getRepository(Provider::class)->findOneBy(['activationTokenHash' => $hash]);
+			$now = new \DateTime();
 
-		if (($data['region'] ?? []) === [] || !is_array($data['region'])) {
-			throw new Exception('Provider region is required');
-		}
+			if (!$provider instanceof Provider || $provider->getDateDeleted() !== null || !$provider->isFresh() || !$provider->hasValidActivationToken($hash, $now)) {
+				return null;
+			}
 
-		if (($data['serviceCategory'] ?? []) === [] || !is_array($data['serviceCategory'])) {
-			throw new Exception('Provider service category is required');
-		}
+			$activated = $this->em->getRepository(StateProvider::class)->find(StateProviderRepository::STATE_ACTIVATED);
+			if (!$activated instanceof StateProvider) {
+				throw new InvalidArgumentException('Activated provider state was not found.');
+			}
 
-		$existingProvider = $this->em->getRepository(Provider::class)->findOneBy(['email' => $email]);
-		if ($existingProvider instanceof Provider) {
-			throw new Exception('User with this email already exists');
-		}
-	}
+			$provider->setStateProvider($activated);
+			$provider->setDateActivated();
+			$provider->clearActivationToken();
+			$this->em->flush();
 
-	public function activateProvider(string $hash): void
-	{
-		$provider = $this->em->getRepository(Provider::class)->findOneBy(['hash' => $hash]);
+			return $provider;
+		});
+
 		if (!$provider instanceof Provider) {
-			throw new InvalidArgumentException('Provider with hash ' . $hash . ' not found');
-		}
-		if ($provider->getStateProvider()->getId() === StateProviderRepository::STATE_ACTIVATED) {
-			throw new UserAlreadyActiveException('User is already activated');
+			throw new InvalidActivationTokenException('Activation token is invalid, expired, or already used.');
 		}
 
-		$stateActivated = $this->em->getRepository(StateProvider::class)
-			->findOneBy(['id' => StateProviderRepository::STATE_ACTIVATED]);
-		if (!$stateActivated instanceof StateProvider) {
-			throw new InvalidArgumentException('Activated provider state not found');
-		}
-
-		$provider->setStateProvider($stateActivated);
-		$provider->setDateActivated();
-		$this->em->persist($provider);
-		$this->em->flush();
+		return $provider;
 	}
 
 	/**
-	 * @return array{providerId: int, userId: int, email: string, subscriptionStatus: string}
+	 * Issue a fresh activation token and resend the email.
+	 *
+	 * Always behaves identically regardless of whether the email exists, the account
+	 * state, or the cooldown, to prevent account enumeration. A new token is only
+	 * issued for a fresh provider that is past the per-account cooldown.
 	 */
-	public function registerWithSubscription(ProviderRegistrationData $dto): array
+	public function resendActivation(string $email): void
 	{
-		$provider = $this->createProvider($dto->toProviderData());
+		$normalized = Emails::normalize($email);
+		if ($normalized === '' || filter_var($normalized, FILTER_VALIDATE_EMAIL) === false) {
+			return;
+		}
 
-		return [
-			'providerId' => $provider->getId(),
-			'userId' => $provider->getId(),
-			'email' => $provider->getEmail(),
-			'subscriptionStatus' => 'pending_payment',
-		];
+		$provider = $this->em->getRepository(Provider::class)->findOneBy(['email' => $normalized]);
+		if (!$provider instanceof Provider || $provider->getDateDeleted() !== null || !$provider->isFresh()) {
+			return;
+		}
+
+		$sentAt = $provider->getActivationSentAt();
+		if ($sentAt !== null && $sentAt > (new \DateTime())->modify(self::RESEND_COOLDOWN)) {
+			return;
+		}
+
+		$token = ActivationToken::generate();
+		$this->em->wrapInTransaction(function () use ($provider, $token): void {
+			$provider->setActivationToken($token->hash, $token->expiresAt);
+			$this->em->flush();
+		});
+
+		$this->sendActivationMail($provider, $token->raw);
 	}
 
-	private function resolveInitialProviderState(): StateProvider
+	public function getProvider(int $id): ?Provider
 	{
-		$repository = $this->em->getRepository(StateProvider::class);
-		$pendingPayment = $repository->find(StateProviderRepository::STATE_PENDING_PAYMENT);
-		if ($pendingPayment instanceof StateProvider) {
-			return $pendingPayment;
-		}
+		$provider = $this->em->getRepository(Provider::class)->find($id);
 
-		$fresh = $repository->find(StateProviderRepository::STATE_FRESH);
-		if ($fresh instanceof StateProvider) {
-			return $fresh;
-		}
-
-		throw new Exception('Initial provider state was not found.');
+		return $provider instanceof Provider ? $provider : null;
 	}
 
 	/**
-	 * @param array<string, mixed> $data
+	 * @return Region[]
 	 */
-	private function stringData(array $data, string $key, string $default = ''): string
+	public function getProviderRegions(Provider $provider): array
 	{
-		$value = $data[$key] ?? $default;
-		if (!is_scalar($value)) {
-			return $default;
+		$relations = $this->em->getRepository(ProviderRegion::class)->findBy(['provider' => $provider, 'dateDeleted' => null]);
+
+		return array_values(array_map(
+			static fn(ProviderRegion $relation): Region => $relation->getRegion(),
+			$relations
+		));
+	}
+
+	/**
+	 * @return CategoryService[]
+	 */
+	public function getProviderServiceCategories(Provider $provider): array
+	{
+		$relations = $this->em->getRepository(ProviderServiceCategory::class)->findBy(['provider' => $provider, 'dateDeleted' => null]);
+
+		return array_values(array_map(
+			static fn(ProviderServiceCategory $relation): CategoryService => $relation->getCategoryService(),
+			$relations
+		));
+	}
+
+	/**
+	 * @throws DuplicateEmailException
+	 * @throws RegistrationValidationException
+	 */
+	private function validate(ProviderRegistrationData $dto, string $email): void
+	{
+		if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+			throw new RegistrationValidationException('A valid email address is required.');
 		}
 
-		return (string) $value;
+		if (mb_strlen($dto->password) < self::PASSWORD_MIN_LENGTH) {
+			throw new RegistrationValidationException('Password must be at least 8 characters long.');
+		}
+
+		if ($dto->password !== $dto->confirmPassword) {
+			throw new RegistrationValidationException('Passwords do not match.');
+		}
+
+		if (trim($dto->firstName) === '' || trim($dto->lastName) === '') {
+			throw new RegistrationValidationException('First and last name are required.');
+		}
+
+		if (!PhoneNumbers::isValid($dto->phone)) {
+			throw new RegistrationValidationException('A valid Slovak mobile or landline number is required.');
+		}
+
+		if (trim($dto->companyName) === '') {
+			throw new RegistrationValidationException('Company name is required.');
+		}
+
+		if (trim($dto->street) === '' || trim($dto->streetNumber) === '') {
+			throw new RegistrationValidationException('Street and street number are required.');
+		}
+
+		if (trim($dto->zip) === '') {
+			throw new RegistrationValidationException('Postcode is required.');
+		}
+
+		if ((int) $dto->cityId <= 0) {
+			throw new RegistrationValidationException('City is required.');
+		}
+
+		if ($dto->getServiceCategoryIds() === []) {
+			throw new RegistrationValidationException('At least one service category is required.');
+		}
+
+		if ($dto->getRegionIds() === []) {
+			throw new RegistrationValidationException('At least one region is required.');
+		}
+
+		$existing = $this->em->getRepository(Provider::class)->findOneBy(['email' => $email]);
+		if ($existing instanceof Provider) {
+			throw new DuplicateEmailException('A provider with this email already exists.');
+		}
+	}
+
+	/**
+	 * @param int[] $regionIds
+	 * @return Region[]
+	 */
+	private function resolveRegions(array $regionIds): array
+	{
+		$regions = [];
+		foreach ($regionIds as $regionId) {
+			$region = $this->em->getRepository(Region::class)->find($regionId);
+			if (!$region instanceof Region || !$region->getUse()) {
+				throw new RegistrationValidationException('Selected region does not exist.');
+			}
+			$regions[] = $region;
+		}
+
+		return $regions;
+	}
+
+	/**
+	 * @param int[] $categoryIds
+	 * @return CategoryService[]
+	 */
+	private function resolveCategories(array $categoryIds): array
+	{
+		$categories = [];
+		foreach ($categoryIds as $categoryId) {
+			$category = $this->em->getRepository(CategoryService::class)->find($categoryId);
+			if (!$category instanceof CategoryService || !$category->isSelectable()) {
+				throw new RegistrationValidationException('Selected service category does not exist.');
+			}
+			$categories[] = $category;
+		}
+
+		return $categories;
+	}
+
+	/**
+	 * Send the activation email. Never persists or logs the raw token: on failure only
+	 * a sanitized message is logged so the link (which carries the token) cannot leak.
+	 */
+	private function sendActivationMail(Provider $provider, string $rawToken): bool
+	{
+		try {
+			$link = (string) $this->linkGenerator->link('Front:ProviderSign:activate', ['token' => $rawToken]);
+			$this->mailSender->sendActivationEmailProvider($provider->getEmail(), $provider->getFullName(), $link);
+
+			return true;
+		} catch (\Throwable $e) {
+			Debugger::log(
+				sprintf('Failed to confirm provider activation email delivery for provider #%d.', $provider->getId()),
+				ILogger::ERROR
+			);
+
+			return false;
+		}
 	}
 }

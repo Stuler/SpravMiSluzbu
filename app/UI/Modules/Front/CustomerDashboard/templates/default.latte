@@ -1,0 +1,18 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>Moje dopyty</h1>
+<p><a n:href=":Front:Demand:create" class="bripeon-primary-link">Zadať nový dopyt</a></p>
+{if count($demands) === 0}<p>Zatiaľ tu nemáte žiadne dopyty.</p>{/if}
+{foreach $demands as $demand}
+<article class="bripeon-form-panel">
+<h2><a n:href=":Front:Demand:detail, reference => $demand->getReference()">{$demand->getCategory()?->getName() ?? 'Dopyt na službu'}</a></h2>
+<p>{$demand->getCity()->getFullname()} · {$demand->getCreatedAt()|date:'d. m. Y'}</p>
+<p>{$demand->getDescription()|truncate:180}</p>
+<p><strong>{$demand->getStatusLabel()}</strong></p>
+</article>
+{/foreach}
+<nav aria-label="Stránky dopytov">
+<a n:if="$page > 1" n:href="default, page => $page - 1">Predchádzajúca strana</a>
+<a n:if="$hasNext" n:href="default, page => $page + 1">Ďalšia strana</a>
+</nav>
+</div></section>

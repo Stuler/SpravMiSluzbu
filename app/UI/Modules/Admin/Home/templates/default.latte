@@ -1,8 +1,9 @@
-{block #content}
-<h1>SECRET PAGE!</h1>
-<a n:href="Sign:out" class="btn btn-danger">Logout</a>
-
-<hr>
-
-<h2>Orders</h2>
-{control orderForm}
+{block content}
+<h1>Prevádzkový prehľad</h1>
+<div class="row">
+<div class="col-md-6"><div class="card"><div class="card-body"><h2 class="card-title">Kontrola zadania</h2><p>{$overview['review']} dopytov</p><a n:href=":Admin:Demand:default, issue => 'review'">Otvoriť dopyty na kontrolu</a></div></div></div>
+<div class="col-md-6"><div class="card"><div class="card-body"><h2 class="card-title">Bez vhodných poskytovateľov</h2><p>{$overview['no_providers']} dopytov</p><a n:href=":Admin:Demand:default, issue => 'no_providers'">Otvoriť dopyty bez poskytovateľov</a></div></div></div>
+<div class="col-md-6"><div class="card"><div class="card-body"><h2 class="card-title">Nepotvrdené odoslania e-mailov</h2><p>{$overview['mail']} dopytov</p><a n:href=":Admin:Demand:default, issue => 'mail'">Overiť odoslania</a></div></div></div>
+<div class="col-md-6"><div class="card"><div class="card-body"><h2 class="card-title">Čaká na reakcie firiem</h2><p>{$overview['responses']} dopytov</p><a n:href=":Admin:Demand:default, issue => 'responses'">Otvoriť čakajúce dopyty</a></div></div></div>
+</div>
+<p><a n:href=":Admin:Provider:default">Poskytovatelia</a> · <a n:href=":Admin:Customer:default">Zákazníci</a> · <a n:href=":Admin:Demand:default">Všetky dopyty</a></p>

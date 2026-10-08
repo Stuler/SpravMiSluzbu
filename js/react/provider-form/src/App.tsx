@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Step1 from './components/Step1';
 import Step2 from './components/Step2';
 import Step3 from './components/Step3';
-import Step4 from './components/Step4';
+import {normalizePhone} from './components/step2Schema';
 
 type Option = { value: number; label: string };
 
@@ -48,112 +48,151 @@ const initialData: FormData = {
 	contactLastName: '',
 };
 
+const TOTAL_STEPS = 3;
+
 const App: React.FC = () => {
 	const [step, setStep] = useState(0);
 	const [formData, setFormData] = useState<FormData>(initialData);
 	const [stepValid, setStepValid] = useState(false);
-	const [clientSecret, setClientSecret] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submissionErrors, setSubmissionErrors] = useState<string[]>([]);
+	const submittingRef = useRef(false);
+	const errorRef = useRef<HTMLDivElement>(null);
 
-	const handleChange = (field: keyof FormData, value: any) => {
-		setFormData((prev) => ({...prev, [field]: value}));
+	const handleChange = useCallback((field: keyof FormData, value: FormData[keyof FormData]) => {
+		setFormData((prev) => Object.is(prev[field], value) ? prev : {...prev, [field]: value});
+	}, []);
+
+	const next = useCallback(() => {
+		setStepValid(false);
+		setStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
+	}, []);
+	const back = () => {
+		setStepValid(false);
+		setStep((prev) => Math.max(prev - 1, 0));
 	};
 
-	const next = async () => {
-		if (step === 2) { // Step3 -> Step4
-			try {
-				const registerRes = await fetch('/api/create-provider', {
-					method: 'POST',
-					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify(formData),
-				});
-
-				if (!registerRes.ok) {
-					throw new Error('Failed to register user.');
-				}
-
-				const registerData = await registerRes.json();
-				const userId = registerData.userId;
-
-				const paymentRes = await fetch('/api/create-payment-intent', {
-					method: 'POST',
-					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify({
-						userId,
-					}),
-				});
-
-				if (!paymentRes.ok) {
-					throw new Error('Failed to create payment intent.');
-				}
-
-				const paymentData = await paymentRes.json();
-				setClientSecret(paymentData.clientSecret);
-
-				setStep((prev) => prev + 1);
-
-			} catch (error) {
-				console.error('Error during registration or payment intent creation:', error);
-				alert('Nastala chyba pri registrácii alebo vytvorení platby.');
-			}
-		} else {
-			setStep((prev) => Math.min(prev + 1, 4));
+	// Keep errors and entered data on the page while Nette validates the CSRF token.
+	const submit = useCallback(async () => {
+		if (!stepValid || submittingRef.current) {
+			return;
 		}
-	};
 
-	const back = () => setStep((prev) => Math.max(prev - 1, 0));
+		const formEl = document.getElementById('providerRegistrationForm') as HTMLFormElement | null;
+		const payloadInput = formEl?.querySelector('input[name="payload"]') as HTMLInputElement | null;
+		const submitButton = document.getElementById('providerRegistrationSubmit') as HTMLButtonElement | null;
 
-	const handleSubmit = () => {
-		console.log('Bripeon provider form submitted:', formData);
-		// You may want to submit form data to your API first
-	};
+		if (!formEl || !payloadInput || !submitButton) {
+			setSubmissionErrors(['Formulár sa nepodarilo načítať. Načítajte stránku znova.']);
+			return;
+		}
+
+		const body = new window.FormData(formEl);
+		body.set('payload', JSON.stringify({...formData, phone: normalizePhone(formData.phone)}));
+		body.set(submitButton.name, submitButton.value);
+		submittingRef.current = true;
+		setIsSubmitting(true);
+		setSubmissionErrors([]);
+		try {
+			const response = await fetch(formEl.action, {
+				method: 'POST',
+				headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+				credentials: 'same-origin',
+				body,
+			});
+			const result = await response.json();
+			if (response.ok && typeof result.redirect === 'string') {
+				window.location.assign(result.redirect);
+				return;
+			}
+			const errors = Array.isArray(result.errors) ? result.errors.filter((error: unknown) => typeof error === 'string') : [];
+			setSubmissionErrors(errors.length ? errors : ['Registráciu sa nepodarilo dokončiť. Skúste to znova.']);
+		} catch {
+			setSubmissionErrors(['Registráciu sa nepodarilo odoslať. Skontrolujte pripojenie a skúste to znova.']);
+		} finally {
+			submittingRef.current = false;
+			setIsSubmitting(false);
+		}
+	}, [formData, stepValid]);
+
+	useEffect(() => {
+		const formEl = document.getElementById('providerRegistrationForm');
+		const handleSubmit = (event: Event) => {
+			event.preventDefault();
+			if (!stepValid || submittingRef.current) {
+				return;
+			}
+			if (step < TOTAL_STEPS - 1) {
+				next();
+			} else {
+				void submit();
+			}
+		};
+		formEl?.addEventListener('submit', handleSubmit);
+		return () => formEl?.removeEventListener('submit', handleSubmit);
+	}, [step, stepValid, next, submit]);
+
+	useEffect(() => {
+		if (submissionErrors.length) {
+			errorRef.current?.focus();
+		}
+	}, [submissionErrors]);
 
 	const steps = [
 		<Step1 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
 		<Step2 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
 		<Step3 data={formData} onChange={handleChange} onStepValid={setStepValid}/>,
-		clientSecret ? <Step4 clientSecret={clientSecret}/> : <p className="bripeon-form-help">Načítavam platobný formulár...</p>,
 	];
+
+	const isLastStep = step === TOTAL_STEPS - 1;
 
 	return (
 		<div className="bripeon-provider-wizard">
 			<div className="bripeon-wizard-header">
 				<div>
 					<span>Registrácia</span>
-					<h2>Krok {step + 1} z 4</h2>
+					<h2>Krok {step + 1} z {TOTAL_STEPS}</h2>
 				</div>
-				<div className="bripeon-progress" aria-label={`Krok ${step + 1} z 4`}>
-					<span style={{width: `${((step + 1) / 4) * 100}%`}}/>
+				<div className="bripeon-progress" aria-label={`Krok ${step + 1} z ${TOTAL_STEPS}`}>
+					<span style={{width: `${((step + 1) / TOTAL_STEPS) * 100}%`}}/>
 				</div>
 			</div>
 
-			{steps[step]}
+			{submissionErrors.length > 0 && (
+				<div className="bripeon-form-error" role="alert" tabIndex={-1} ref={errorRef}>
+					{submissionErrors.map((error, index) => <p key={index}>{error}</p>)}
+				</div>
+			)}
+			<fieldset className="bripeon-wizard-fields" disabled={isSubmitting}>
+				{steps[step]}
+			</fieldset>
 
 			<div className="bripeon-wizard-actions">
 				{step > 0 ? (
-					<button
-						onClick={back}
-						className="bripeon-secondary-button"
-					>
+					<button type="button" onClick={back} className="bripeon-secondary-button" disabled={isSubmitting}>
 						Späť
 					</button>
 				) : (
 					<div/>
 				)}
 
-				{step < steps.length - 1 ? (
+				{isLastStep ? (
 					<button
-						onClick={next}
-						disabled={!stepValid && step < 3} // Step 4 uses its own validation
+						type="button"
+						onClick={submit}
+						disabled={!stepValid || isSubmitting}
 						className="bripeon-primary-button"
 					>
-						Ďalej
+						{isSubmitting ? 'Odosielam…' : 'Odoslať'}
 					</button>
 				) : (
 					<button
-						onClick={handleSubmit}
+						type="button"
+						onClick={next}
+						disabled={!stepValid}
 						className="bripeon-primary-button"
 					>
-						Odoslať
+						Ďalej
 					</button>
 				)}
 			</div>

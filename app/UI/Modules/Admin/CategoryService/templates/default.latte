@@ -1,25 +1,7 @@
-{block #content}
-
-<section class="section">
-	<div class="row">
-		<div class="col-lg">
-			<div class="card-body">
-				<div class="pagetitle">
-					<h1>{$title}</h1>
-				</div><!-- End Page Title -->
-				<a n:href="CategoryService:edit" class="btn btn-primary">+ Pridať kategóriu</a>
-			</div>
-			<div class="col-12">
-				{foreach $mainCategories as $category}
-					<div class="card mt-4">
-						<div class="card-body">
-							<h5 class="card-title">{$category->getName()}</h5>
-							{var $category_id = $category->getId()}
-							{control "categoryServiceViewer-$category_id"}
-						</div>
-					</div>
-				{/foreach}
-			</div>
-		</div>
-	</div>
-</section>
+{block content}
+<h1>Kategórie služieb</h1>
+<p><a n:href="edit" class="btn btn-primary">Pridať kategóriu</a></p>
+<p>Vyradenie sa vzťahuje aj na všetkých potomkov. Historické údaje zostávajú zachované.</p>
+<table class="table"><thead><tr><th>Názov</th><th>Nadradená kategória</th><th>Stav</th><th></th></tr></thead><tbody>
+<tr n:foreach="$categories as $category"><td>{$category->getName()}</td><td>{$category->getParent()?->getName() ?? 'Koreňová kategória'}</td><td>{if $category->isSelectable()}Aktívna{else}Vyradená{/if}</td><td><a n:href="edit, id => $category->getId()">Upraviť</a></td></tr>
+</tbody></table>

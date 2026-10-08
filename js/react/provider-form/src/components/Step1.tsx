@@ -44,8 +44,10 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 	return (
 		<div className="bripeon-form-step">
 			<div>
-				<label>Aké služby ponúkate?</label>
+				<label htmlFor="provider-serviceCategories">Aké služby ponúkate?</label>
 				<Select
+					inputId="provider-serviceCategories"
+					aria-describedby="provider-services-help"
 					isMulti
 					options={categoryOptions}
 					value={data.serviceCategories}
@@ -57,8 +59,10 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 			</div>
 
 			<div>
-				<label>Kde pôsobíte?</label>
+				<label htmlFor="provider-coveredRegions">Kde pôsobíte?</label>
 				<Select
+					inputId="provider-coveredRegions"
+					aria-describedby="provider-services-help"
 					isMulti
 					options={regionOptions}
 					value={data.coveredRegions}
@@ -69,7 +73,7 @@ const Step1: React.FC<Props> = ({data, onChange, onStepValid}) => {
 				/>
 			</div>
 
-			<p className="bripeon-form-help">Vyberte aspoň jednu kategóriu a región, aby sme vedeli priradiť relevantné dopyty.</p>
+			<p id="provider-services-help" className="bripeon-form-help">Vyberte aspoň jednu kategóriu a región, aby sme vedeli priradiť relevantné dopyty.</p>
 		</div>
 	);
 };

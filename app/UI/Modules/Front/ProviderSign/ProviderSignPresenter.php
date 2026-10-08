@@ -2,26 +2,25 @@
 
 namespace App\UI\Modules\Front\ProviderSign;
 
-use App\Domain\CategoryService\CategoryService;
-use App\Domain\City\City;
+use App\Domain\Provider\DTO\ProviderRegistrationDataFactory;
+use App\Domain\Provider\Exception\DuplicateEmailException;
+use App\Domain\Provider\Exception\InvalidActivationTokenException;
+use App\Domain\Provider\Exception\ProviderBlockedException;
+use App\Domain\Provider\Exception\ProviderNotActivatedException;
+use App\Domain\Provider\Exception\RegistrationValidationException;
 use App\Domain\Provider\ProviderFacade;
-use App\Domain\Region\Region;
 use App\Model\App;
-use App\Model\Exception\Logic\InvalidArgumentException;
-use App\Model\Exception\Logic\UserAlreadyActiveException;
 use App\Model\Exception\Runtime\AuthenticationException;
-use App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormComp;
+use App\Model\Security\Authenticator\ProviderAuthenticator;
 use App\UI\Form\BaseForm;
 use App\UI\Form\FormFactory;
 use App\UI\Modules\Front\BaseFrontPresenter;
-use Doctrine\ORM\EntityManagerInterface;
 use Nette\DI\Attributes\Inject;
 use Tracy\Debugger;
+use Tracy\ILogger;
 
 final class ProviderSignPresenter extends BaseFrontPresenter
 {
-
-	public string $backlink;
 
 	#[Inject]
 	public FormFactory $formFactory;
@@ -30,202 +29,232 @@ final class ProviderSignPresenter extends BaseFrontPresenter
 	public ProviderFacade $providerFacade;
 
 	#[Inject]
-	public EntityManagerInterface $entityManager;
-
-	#[Inject]
-	public ProviderSignUpFormComp $providerSignUpFormComp;
+	public ProviderAuthenticator $providerAuthenticator;
 
 	public function checkRequirements(mixed $element): void
 	{
-		// Disable auth
+		// Public pages: registration, activation and sign-in are intentionally unsecured.
 	}
 
-	public function actionUp()
+	protected function startup(): void
 	{
+		parent::startup();
 
+		// CSRF-protected forms need the session available before the (large) layout
+		// flushes output, otherwise the session cannot be started mid-render.
+		if (!$this->session->isStarted()) {
+			$this->session->start();
+		}
+	}
+
+	// === Registration =======================================================
+
+	public function actionUp(): void
+	{
+		if ($this->user->isProvider()) {
+			$this->redirect(App::DESTINATION_PROVIDER_DASHBOARD);
+		}
 	}
 
 	/**
-	 * Basic registration form for service provider
+	 * CSRF-protected Nette form wrapper for the React registration widget.
+	 * The widget serializes its collected data into the hidden `payload` field.
 	 */
-	public function createComponentSignUpForm(): BaseForm
+	protected function createComponentRegistrationForm(): BaseForm
 	{
 		$form = $this->formFactory->forFrontend();
-
-
-		$form->addText('contactName', 'Meno')
-			->setRequired('Prosím, zadajte Vaše kontaktnej osoby.');
-
-		$form->addText('contactSurname', 'Priezvisko')
-			->setRequired('Prosím, zadajte Vaše priezvisko.');
-
-		$form->addText('contactTitle', 'Titul');
-
-		$form->addEmail('email', 'Email')
-			->setRequired('Prosím, zadajte Vašu platnú emailovú adresu.');
-
-		$form->addText('phoneNumber', 'Telefónne číslo')
-			->setRequired('Prosím, zadajte Vaše telefónne číslo.');
-
-		$form->addText('companyName', 'Názov spoločnosti')
-			->setRequired('Prosím, zadajte názov vašej spoločnosti.');
-
-		$form->addText('ico', 'IČO');
-
-		$form->addText('dic', 'DIČ');
-
-		$form->addText('streetNo', 'Ulica')
-			->setRequired('Prosím, zadajte Vašu ulicu.');
-
-		$cities = $this->entityManager->getRepository(City::class)->findAll();
-		$cityOptions = [];
-		foreach ($cities as $city) {
-			$cityOptions[$city->getId()] = $city->getFullname();
-		}
-
-		$form->addSelect('city', 'Obec', $cityOptions)
-			->setRequired('Prosím, vyberte Vašu obec.');
-
-		$form->addText('zipCode', 'PSČ')
-			->setRequired('Prosím, zadajte Vaše PSČ.');
-
-		$regions = $this->entityManager->getRepository(Region::class)->findAll();
-		$regionOptions = [];
-		foreach ($regions as $region) {
-			$regionOptions[$region->getId()] = $region->getName();
-		}
-
-		$form->addCheckboxList('region', 'Kraj', $regionOptions)
-			->setRequired('Prosím, vyberte Váš kraj pôsobnosti.');
-
-		$categories = $this->entityManager->getRepository(CategoryService::class)->findAll();
-		$categoryOptions = [];
-		foreach ($categories as $category) {
-			$categoryOptions[$category->getId()] = $category->getName();
-		}
-
-		$form->addCheckboxList('serviceCategory', 'Typ služby', $categoryOptions)
-			->setRequired('Prosím, vyberte aspoň jeden typ služby.');
-
-		$form->addPassword('password', 'Heslo')
-			->setRequired('Prosím, zadajte heslo.');
-
-		$form->addPassword('password2', 'Potvrdenie hesla')
-			->setRequired('Prosím, potvrďte heslo.')
-			->addRule($form::EQUAL, 'Heslá sa nezhodujú.', $form['password']);
-
+		$form->addProtection('Vypršala platnosť bezpečnostného tokenu. Načítajte stránku znova a skúste to ešte raz.');
+		$form->addHidden('payload');
 		$form->addSubmit('submit', 'Zaregistrovať sa');
-
-		$form->onSuccess[] = [$this, 'processSignUpForm'];
+		$form->onSuccess[] = [$this, 'processRegistrationForm'];
+		$form->onError[] = [$this, 'processRegistrationErrors'];
 
 		return $form;
 	}
 
-	public function handleChangeStep(int $step): void
+	public function processRegistrationErrors(BaseForm $form): void
 	{
-		$this['wizard']->setStep($step);
-
-		$this->redirect('wizard'); // Optional, hides parameter from URL
+		if ($this->isAjax()) {
+			$this->getHttpResponse()->setCode(422);
+			$this->sendJson(['errors' => $form->getErrors()]);
+		}
 	}
 
-	protected function createComponentWizard(): ProviderSignUpFormComp
+	public function processRegistrationForm(BaseForm $form): void
 	{
-		return $this->providerSignUpFormComp;
-	}
+		$payload = (string) $form->getValues()->payload;
+		$data = json_decode($payload, true);
+		if (!is_array($data)) {
+			$form->addError('Formulár sa nepodarilo spracovať. Skúste to znova.');
 
-	/**
-	 * Process registration form
-	 */
-	public function processSignUpForm(BaseForm $form): void
-	{
-		$values = $form->getValues();
-		try {
-			$this->providerFacade->createProvider((array)$values);
-		} catch (\Exception $e) {
-			$form->addError($e->getMessage());
 			return;
 		}
-		$this->flashSuccess('You have been successfully registered');
-		$this->redirect(App::DESTINATION_AFTER_SIGN_UP_USER);
+
+		$dto = ProviderRegistrationDataFactory::fromArray($data);
+
+		try {
+			$result = $this->providerFacade->register($dto);
+		} catch (DuplicateEmailException $e) {
+			$form->addError('Poskytovateľ s touto e-mailovou adresou už existuje. Skúste sa prihlásiť.');
+
+			return;
+		} catch (RegistrationValidationException $e) {
+			$form->addError('Zadané údaje nie sú úplné alebo platné. Skontrolujte formulár a skúste to znova.');
+
+			return;
+		} catch (\Throwable $e) {
+			Debugger::log($e, ILogger::EXCEPTION);
+			$form->addError('Pri registrácii nastala neočakávaná chyba. Skúste to znova neskôr.');
+
+			return;
+		}
+
+		$section = $this->session->getSection('providerRegistration');
+		$section->set('email', $result->email);
+		$section->set('mailSent', $result->activationMailSent);
+
+		$this->redirect('registered');
 	}
 
-	public function actionUpPro()
+	public function actionRegistered(): void
 	{
+		$section = $this->session->getSection('providerRegistration');
+		$email = $section->get('email');
+		$mailSent = $section->get('mailSent');
 
+		if (!is_string($email)) {
+			// Direct visit without a completed registration.
+			$this->redirect('up');
+		}
+
+		$this->template->registeredEmail = $email;
+		$this->template->mailSent = $mailSent !== false;
+
+		$this['resendActivationForm']->setDefaults(['email' => $email]);
 	}
 
-	public function createComponentFormSignUpPro()
+	// === Activation =========================================================
+
+	/**
+	 * Branded confirmation page opened from the activation email.
+	 * GET must not mutate any account state.
+	 */
+	public function actionActivate(string $token = ''): void
 	{
+		$this->getHttpResponse()->setHeader('Referrer-Policy', 'no-referrer');
 
+		$provider = $this->providerFacade->findFreshProviderByRawToken($token);
+		$this->template->tokenValid = $provider !== null;
+
+		if ($provider !== null) {
+			$this['confirmActivationForm']->setDefaults(['token' => $token]);
+		}
 	}
+
+	protected function createComponentConfirmActivationForm(): BaseForm
+	{
+		$form = $this->formFactory->forFrontend();
+		$form->addProtection('Vypršala platnosť bezpečnostného tokenu. Otvorte odkaz z e-mailu znova.');
+		$form->addHidden('token');
+		$form->addSubmit('submit', 'Aktivovať a prihlásiť sa');
+		$form->onSuccess[] = [$this, 'processConfirmActivationForm'];
+
+		return $form;
+	}
+
+	public function processConfirmActivationForm(BaseForm $form): void
+	{
+		$token = (string) $form->getValues()->token;
+
+		try {
+			$provider = $this->providerFacade->activate($token);
+		} catch (InvalidActivationTokenException $e) {
+			$this->flashError('Aktivačný odkaz je neplatný alebo jeho platnosť vypršala. Nechajte si poslať nový.');
+			$this->redirect('activate', ['token' => '']);
+		}
+
+		// Fresh session for the newly authenticated provider, then sign in.
+		$this->session->regenerateId();
+		$this->user->setExpiration('20 minutes');
+		$this->user->login($provider->toIdentity());
+
+		$this->flashSuccess('Váš účet bol aktivovaný a ste prihlásený.');
+		$this->redirect(App::DESTINATION_PROVIDER_DASHBOARD);
+	}
+
+	// === Resend activation ==================================================
+
+	protected function createComponentResendActivationForm(): BaseForm
+	{
+		$form = $this->formFactory->forFrontend();
+		$form->addProtection('Vypršala platnosť bezpečnostného tokenu. Skúste to znova.');
+		$form->addEmail('email', 'E-mail')
+			->setRequired('Zadajte e-mailovú adresu.');
+		$form->addSubmit('submit', 'Poslať nový aktivačný odkaz');
+		$form->onSuccess[] = [$this, 'processResendActivationForm'];
+
+		return $form;
+	}
+
+	public function processResendActivationForm(BaseForm $form): void
+	{
+		$this->providerFacade->resendActivation((string) $form->getValues()->email);
+
+		// Always generic to avoid revealing whether the account exists.
+		$this->flashSuccess('Ak pre zadanú adresu existuje neaktivovaný účet, poslali sme naň nový aktivačný odkaz.');
+		$this->redirect('this');
+	}
+
+	// === Sign in ============================================================
 
 	public function actionIn(): void
 	{
-		if ($this->user->isLoggedIn()) {
-			$this->redirect(App::DESTINATION_AFTER_SIGN_IN);
+		if ($this->user->isProvider()) {
+			$this->redirect(App::DESTINATION_PROVIDER_DASHBOARD);
 		}
-	}
-
-	public function actionOut(): void
-	{
-		if ($this->user->isLoggedIn()) {
-			$this->user->logout();
-			$this->flashSuccess('_front.sign.out.success');
-		}
-
-		$this->redirect(App::DESTINATION_AFTER_SIGN_OUT);
-	}
-
-	public function processLoginForm(BaseForm $form): void
-	{
-		try {
-			$this->user->setExpiration($form->values->remember ? '14 days' : '20 minutes');
-			$this->user->login($form->values->email, $form->values->password);
-		} catch (AuthenticationException $e) {
-			$form->addError('Invalid username or password');
-
-			return;
-		}
-
-		$this->redirect(App::DESTINATION_AFTER_SIGN_IN);
 	}
 
 	protected function createComponentSignInForm(): BaseForm
 	{
-		$form = $this->formFactory->forBackend();
-		$form->addEmail('email')
-			->setRequired();
-		$form->addPassword('password')
-			->setRequired();
-		$form->addCheckbox('remember')
-			->setDefaultValue(true);
-		$form->addSubmit('submit');
-		$form->onSuccess[] = [$this, 'processLoginForm'];
+		$form = $this->formFactory->forFrontend();
+		$form->addProtection('Vypršala platnosť bezpečnostného tokenu. Skúste to znova.');
+		$form->addEmail('email', 'E-mail')
+			->setRequired('Zadajte e-mailovú adresu.');
+		$form->addPassword('password', 'Heslo')
+			->setRequired('Zadajte heslo.');
+		$form->addCheckbox('remember', 'Zapamätať si ma')
+			->setDefaultValue(false);
+		$form->addSubmit('submit', 'Prihlásiť sa');
+		$form->onSuccess[] = [$this, 'processSignInForm'];
 
 		return $form;
 	}
 
-	/**
-	 * Activate provider account from email
-	 */
-	public function actionActivateProvider(string $hash): void
+	public function processSignInForm(BaseForm $form): void
 	{
+		$values = $form->getValues();
+
 		try {
-			$this->providerFacade->activateProvider($hash);
-		} catch (InvalidArgumentException $e) {
-			$this->flashError("Ľutujeme, poskytovateľ nebol nájdený v databáze. Obráťte sa na podporu.");
-			Debugger::log($e);
-			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
-		} catch (UserAlreadyActiveException $e) {
-			$this->flashWarning('Váš účet je už aktivovaný. Môžete sa prihlásiť.');
-			Debugger::log($e);
-			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
-		} catch (\Exception $e) {
-			$this->flashError('Nastala chyba pri aktivácii účtu. Obráťte sa na podporu.');
-			Debugger::log($e);
-			$this->redirect(App::DESTINATION_FRONT_HOMEPAGE);
+			$identity = $this->providerAuthenticator->authenticate((string) $values->email, (string) $values->password);
+		} catch (ProviderNotActivatedException $e) {
+			$form->addError('Váš účet ešte nie je aktivovaný. Skontrolujte si e-mail alebo si nechajte poslať nový aktivačný odkaz.');
+
+			return;
+		} catch (ProviderBlockedException $e) {
+			$form->addError('Váš účet je zablokovaný. Kontaktujte podporu.');
+
+			return;
+		} catch (AuthenticationException $e) {
+			$form->addError('Nesprávny e-mail alebo heslo.');
+
+			return;
 		}
-		$this->redirect(App::DESTINATION_AFTER_ACTIVATION_USER);
+
+		$this->session->regenerateId();
+		$this->user->setExpiration($values->remember ? '14 days' : '20 minutes');
+		$this->user->login($identity);
+
+		$this->redirect(App::DESTINATION_PROVIDER_DASHBOARD);
 	}
 
 }

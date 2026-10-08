@@ -20,6 +20,15 @@ class User
 {
 	use TId, TDateCreated, TDateModified, TDateDeleted, TCreatedBy, TDeletedBy;
 
+	#[ORM\Column(type: 'integer', options: ['default' => 1])]
+	private int $customerSessionVersion = 1;
+	#[ORM\Column(type: 'boolean', options: ['default' => false])]
+	private bool $administrativelyBlocked = false;
+
+	public function isBlocked(): bool { return $this->administrativelyBlocked || $this->stateUser->getId() === StateUserRepository::STATE_BLOCKED; }
+	public function setAdministrativelyBlocked(bool $blocked): void { $this->administrativelyBlocked = $blocked; $this->revokeCustomerSessions(); }
+	public function updateName(string $name, string $surname): void { $this->name = $name; $this->surname = $surname; }
+
 	public function __construct(
 		#[ORM\Column(type: 'string', length: 255, nullable: false)]
 		private string     $name,
@@ -27,7 +36,7 @@ class User
 		#[ORM\Column(type: 'string', length: 255, nullable: false)]
 		private string     $surname,
 
-		#[ORM\Column(type: 'string', length: 100, nullable: false)]
+		#[ORM\Column(type: 'string', length: 100, nullable: false, unique: true)]
 		private string     $email,
 
 		#[ORM\Column(type: 'string', length: 100, nullable: false)]
@@ -41,14 +50,14 @@ class User
 		#[ORM\JoinColumn(name: 'state_user_id', referencedColumnName: 'id')]
 		private StateUser  $stateUser,
 
-		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string     $streetNo,
+		#[ORM\Column(type: 'string', length: 100, nullable: true)]
+		private ?string    $streetNo,
 
-		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string     $city,
+		#[ORM\Column(type: 'string', length: 100, nullable: true)]
+		private ?string    $city,
 
-		#[ORM\Column(type: 'string', length: 100, nullable: false)]
-		private string     $zipCode,
+		#[ORM\Column(type: 'string', length: 100, nullable: true)]
+		private ?string    $zipCode,
 
 		#[ORM\Column(type: 'string', length: 255, nullable: false)]
 		private string     $hash,
@@ -154,12 +163,14 @@ class User
 
 	public function isActivated(): bool
 	{
-		return $this->stateUser->getId() === StateUserRepository::STATE_ACTIVATED;
+		return !$this->isBlocked() && $this->stateUser->getId() === StateUserRepository::STATE_ACTIVATED;
 	}
 
 	public function toIdentity(): Identity
 	{
 		return new Identity($this->getId(), [$this->loginRole->getName()], [
+			'accountType' => $this->loginRole->getName() === LoginRole::ROLE_MEMBER ? Identity::ACCOUNT_TYPE_CUSTOMER : 'user',
+			'customerSessionVersion' => $this->customerSessionVersion,
 			'email' => $this->email,
 			'name' => $this->name,
 			'surname' => $this->surname,
@@ -172,4 +183,7 @@ class User
 	{
 		return 'https://www.gravatar.com/avatar/' . md5($this->email);
 	}
+
+	public function getCustomerSessionVersion(): int { return $this->customerSessionVersion; }
+	public function revokeCustomerSessions(): void { $this->customerSessionVersion++; }
 }

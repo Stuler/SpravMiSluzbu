@@ -1,0 +1,20 @@
+{block content}
+<h1>{$provider->getCompanyName()}</h1>
+<p><a n:href="default">Všetci poskytovatelia</a></p>
+<p>{$provider->getFullName()} · {$provider->getPhoneNumber()} · IČO: {$provider->getIco()} · DIČ: {$provider->getDic()}</p>
+<p>{$provider->getStreetNo()}, {$provider->getZipCode()} {$provider->getCity()->getFullname()}</p>
+<p>Prijímanie dopytov: {if $provider->acceptsDemands()}zapnuté{else}pozastavené{/if}</p>
+<p style="white-space: pre-wrap">{$provider->getServiceDescription()}</p>
+<h2>Služby a regióny</h2>
+<ul><li n:foreach="$categories as $category">{$category->getName()}{if !$category->isSelectable()} (vyradená){/if}</li></ul>
+<ul><li n:foreach="$regions as $region">{$region->getName()}</li></ul>
+{include '../../templates/accountStatus.latte'}
+<h2>Úprava profilu a pôsobnosti</h2>
+<p>Vyradené služby sa zobrazujú v detaile. Pri uložení vyberte aktuálne služby.</p>
+{control profileForm}
+<h2>História oslovení</h2>
+<table class="table"><thead><tr><th>Dopyt</th><th>Prijaté</th><th>Odoslanie</th><th>Reakcia</th></tr></thead><tbody>
+<tr n:foreach="$list['items'] as $i"><td><a n:href=":Admin:Demand:detail, reference => $i->getDemand()->getReference()">{$i->getDemand()->getReference()}</a></td><td>{$i->getCreatedAt()|date:'d. m. Y H:i'}</td><td>{$i->getDeliveryLabel()}</td><td>{$i->getResponseLabel()}</td></tr>
+</tbody></table>
+{include '../../templates/pagination.latte'}
+{include '../../templates/audit.latte'}

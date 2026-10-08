@@ -10,6 +10,8 @@ services:
       COMPOSER_ALLOW_SUPERUSER: "1"
       NETTE_DEBUG: "1"
       NETTE_ENV: dev
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-}"
     healthcheck:
       test: ["CMD-SHELL", "php -r '$$socket = @fsockopen(\"127.0.0.1\", 9000); if (!$$socket) { exit(1); } fclose($$socket);'"]
       interval: 10s

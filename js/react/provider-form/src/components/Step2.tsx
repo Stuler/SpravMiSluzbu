@@ -21,6 +21,16 @@ const labels: Record<string, string> = {
 	phone: 'Telefónne číslo',
 };
 
+const fields: (keyof FormData)[] = ['firstName', 'lastName', 'email', 'password', 'confirmPassword', 'phone'];
+const autocomplete: Record<keyof FormData, string> = {
+	firstName: 'given-name',
+	lastName: 'family-name',
+	email: 'email',
+	password: 'new-password',
+	confirmPassword: 'new-password',
+	phone: 'tel',
+};
+
 type Props = {
 	data: FormData;
 	onChange: (field: keyof FormData, value: string) => void;
@@ -42,36 +52,45 @@ const Step2: React.FC<Props> = ({data, onChange, onStepValid}) => {
 		onStepValid(isValid);
 	}, [isValid, onStepValid]);
 
-	const values = watch();
-
-	// Sync all fields with parent formData state
 	useEffect(() => {
-		Object.entries(values).forEach(([field, value]) =>
-			onChange(field as keyof FormData, value)
-		);
-	}, [values, onChange]);
+		const subscription = watch((values, {name}) => {
+			if (name && fields.includes(name) && typeof values[name] === 'string') {
+				onChange(name, values[name]);
+			}
+		});
+		return () => subscription.unsubscribe();
+	}, [watch, onChange]);
 
 	return (
-		<form className="bripeon-form-step" onSubmit={(e) => e.preventDefault()}>
-			{['firstName', 'lastName', 'email', 'password', 'confirmPassword', 'phone'].map((field) => (
+		<div className="bripeon-form-step">
+			{fields.map((field) => (
 				<div key={field}>
-					<label>{labels[field]}</label>
+					<label htmlFor={`provider-${field}`}>{labels[field]}</label>
 					<input
+						id={`provider-${field}`}
+						autoComplete={autocomplete[field]}
+						aria-invalid={Boolean(errors[field])}
+						aria-describedby={[
+							errors[field] ? `provider-${field}-error` : '',
+							field === 'phone' || field === 'password' ? `provider-${field}-help` : '',
+						].filter(Boolean).join(' ') || undefined}
 						type={
 							field === 'password' || field === 'confirmPassword'
 								? 'password'
 								: field === 'email'
 									? 'email'
-									: 'text'
+									: field === 'phone' ? 'tel' : 'text'
 						}
-						{...register(field as keyof FormData)}
+						{...register(field)}
 					/>
-					{errors[field as keyof FormData] && (
-						<p className="bripeon-field-error">{errors[field as keyof FormData]?.message}</p>
+					{field === 'phone' && <p id="provider-phone-help" className="bripeon-form-help">Mobil alebo pevná linka, napr. +421 905 123 456 alebo 02 1234 5678.</p>}
+					{field === 'password' && <p id="provider-password-help" className="bripeon-form-help">Použite aspoň 8 znakov.</p>}
+					{errors[field] && (
+						<p id={`provider-${field}-error`} className="bripeon-field-error" role="alert">{errors[field]?.message}</p>
 					)}
 				</div>
 			))}
-		</form>
+		</div>
 	);
 };
 

@@ -78,12 +78,6 @@ module.exports = (env, argv) => {
 				'window.jQuery': 'jquery',
 				'moment': 'moment'
 			}),
-			new webpack.DefinePlugin({
-				'process.env': {
-					STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY),
-				},
-			}),
-			// ✅ Removed React ProvidePlugin since it may not be necessary
 		].concat(isDev ? [
 			new webpack.HotModuleReplacementPlugin(),
 			new HtmlWebpackPlugin({

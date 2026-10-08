@@ -1,0 +1,94 @@
+{block #content}
+<section class="bripeon-provider-signup-page">
+	<div class="container">
+		<div class="bripeon-dashboard-header">
+			<div>
+				<p class="bripeon-eyebrow">Prehľad poskytovateľa</p>
+				<h1>Vitajte, {$provider->getCompanyName()}</h1>
+			</div>
+		</div>
+
+		<div class="bripeon-dashboard-grid">
+			<article class="bripeon-dashboard-card">
+				<h2>Stav účtu</h2>
+				<dl>
+					<dt>Stav</dt>
+					<dd>
+						{if $provider->isActivated()}
+							<span class="bripeon-badge bripeon-badge-success">Aktivovaný</span>
+						{else}
+							<span class="bripeon-badge">{$provider->getStateProvider()->getName()}</span>
+						{/if}
+					</dd>
+					<dt>Aktivovaný dňa</dt>
+					<dd>{if $provider->getDateActivated()}{$provider->getDateActivated()|date:'j. n. Y H:i'}{else}—{/if}</dd>
+					<dt>Registrovaný dňa</dt>
+					<dd>{$provider->getDateCreated()|date:'j. n. Y H:i'}</dd>
+				</dl>
+			</article>
+
+			<article class="bripeon-dashboard-card">
+				<h2>Firemné údaje</h2>
+				<dl>
+					<dt>Názov spoločnosti</dt>
+					<dd>{$provider->getCompanyName()}</dd>
+					<dt>IČO</dt>
+					<dd>{$provider->getIco()|default:'—'}</dd>
+					<dt>DIČ</dt>
+					<dd>{$provider->getDic()|default:'—'}</dd>
+				</dl>
+			</article>
+
+			<article class="bripeon-dashboard-card">
+				<h2>Kontaktné údaje</h2>
+				<dl>
+					<dt>Kontaktná osoba</dt>
+					<dd>{$provider->getFullName()|default:'—'}</dd>
+					<dt>E-mail</dt>
+					<dd>{$provider->getEmail()}</dd>
+					<dt>Telefón</dt>
+					<dd>{$provider->getPhoneNumber()|default:'—'}</dd>
+				</dl>
+			</article>
+
+			<article class="bripeon-dashboard-card">
+				<h2>Adresa</h2>
+				<dl>
+					<dt>Ulica a číslo</dt>
+					<dd>{$provider->getStreetNo()|default:'—'}</dd>
+					<dt>Mesto</dt>
+					<dd>{$provider->getCity()->getFullname()}</dd>
+					<dt>PSČ</dt>
+					<dd>{$provider->getZipCode()|default:'—'}</dd>
+				</dl>
+			</article>
+
+			<article class="bripeon-dashboard-card">
+				<h2>Kategórie služieb</h2>
+				{if $serviceCategories}
+					<ul class="bripeon-tag-list">
+						<li n:foreach="$serviceCategories as $category">{$category->getName()}</li>
+					</ul>
+				{else}
+					<p>Zatiaľ nie sú vybrané žiadne kategórie.</p>
+				{/if}
+			</article>
+
+			<article class="bripeon-dashboard-card">
+				<h2>Regióny pôsobenia</h2>
+				{if $regions}
+					<ul class="bripeon-tag-list">
+						<li n:foreach="$regions as $region">{$region->getName()}</li>
+					</ul>
+				{else}
+					<p>Zatiaľ nie sú vybrané žiadne regióny.</p>
+				{/if}
+			</article>
+		</div>
+
+		<div class="bripeon-dashboard-actions">
+			<p><a n:href=":Front:ProviderDemand:default" class="bripeon-primary-link">Dopyty a prijímanie zákaziek</a></p>
+			{control providerSignOutForm}
+		</div>
+	</div>
+</section>

@@ -1,1 +1,11 @@
-{block #content}
+{block content}
+<h1>Zákazníci</h1>
+{control filterForm}
+<p><a n:href="default">Zrušiť filtre</a></p>
+<p n:if="!$list['items']">Nenašli sa žiadni zákazníci.</p>
+<table class="table"><thead><tr><th>Meno</th><th>E-mail</th><th>Stav</th><th></th></tr></thead><tbody>
+<tr n:foreach="$list['items'] as $customer"><td>{$customer->getFullName()}</td><td>{$customer->getEmail()}</td>
+<td>{if $customer->isBlocked()}Blokovaný{elseif $customer->isActivated()}Aktívny{else}Neoverený{/if}</td>
+<td><a n:href="detail, id => $customer->getId()">Detail</a></td></tr>
+</tbody></table>
+{include '../../templates/pagination.latte'}

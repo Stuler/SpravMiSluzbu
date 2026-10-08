@@ -19,7 +19,8 @@ class RequestLoggerSubscriber implements EventSubscriberInterface
 
 	public function onRequest(RequestEvent $event): void
 	{
-		Debugger::barDump($event->getRequest());
+		// Request bodies and query parameters may contain passwords and bearer tokens.
+		Debugger::barDump(['presenter' => $event->getRequest()->getPresenterName(), 'method' => $event->getRequest()->getMethod()]);
 	}
 
 }

@@ -1,0 +1,15 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>Dopyty pre vašu firmu</h1>
+{if !$invitations}<p>Zatiaľ nemáte pridelené žiadne dopyty.</p>{/if}
+{foreach $invitations as $invitation}
+<article class="bripeon-form-panel">
+<h2><a n:href="detail, id => $invitation->getId()">{$invitation->getDemand()->getCity()->getFullname()}</a></h2>
+<p>{$invitation->getDemand()->getServiceSummary()|truncate:180}</p>
+<p>{$invitation->getResponseLabel()} · {$invitation->getDemand()->getStatusLabel()}</p>
+</article>
+{/foreach}
+<h2>Prijímanie dopytov</h2>
+<div class="bripeon-form-panel">{control profileForm}</div>
+<p><a n:href=":Front:ProviderDashboard:default">Späť na prehľad firmy</a></p>
+</div></section>

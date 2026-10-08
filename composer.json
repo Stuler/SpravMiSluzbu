@@ -42,8 +42,7 @@
     "ublaboo/datagrid": "^6.10",
     "nextras/mail-panel": "^2.6",
     "contributte/forms-bootstrap": "^0.8.1",
-    "contributte/forms-wizard": "^4.0",
-    "stripe/stripe-php": "^17.1"
+    "contributte/forms-wizard": "^4.0"
   },
   "require-dev": {
     "contributte/qa": "^0.3",

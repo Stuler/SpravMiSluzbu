@@ -1,0 +1,7 @@
+<h2>História administratívnych zásahov</h2>
+<p n:if="!$auditEntries">Zatiaľ bez zásahov.</p>
+<table n:if="$auditEntries" class="table"><thead><tr><th>Čas</th><th>Administrátor</th><th>Zásah</th></tr></thead><tbody>
+<tr n:foreach="$auditEntries as $entry"><td>{$entry->getCreatedAt()|date:'d. m. Y H:i'}</td><td>{$entry->getActor()->getFullName()}</td><td>{$entry->getOperationLabel()}</td></tr>
+</tbody></table>
+<a n:if="$auditPage > 1" n:href="this, auditPage => $auditPage - 1">Novšie zásahy</a>
+<a n:if="$auditHasNext" n:href="this, auditPage => $auditPage + 1">Staršie zásahy</a>

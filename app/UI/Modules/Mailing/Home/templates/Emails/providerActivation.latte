@@ -1,0 +1,25 @@
+{layout $_config->layout}
+
+{block #header}
+	Aktivácia účtu poskytovateľa
+{/block}
+
+{block #content}
+	<p>Dobrý deň{if $name} {$name}{/if},</p>
+
+	<p>ďakujeme za registráciu poskytovateľa na portáli Bripeon. Pre dokončenie
+		registrácie a prihlásenie aktivujte svoj účet kliknutím na tlačidlo:</p>
+
+	<p>
+		<a href="{$link}"
+		   style="display:inline-block;padding:12px 22px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">
+			Aktivovať účet
+		</a>
+	</p>
+
+	<p>Ak tlačidlo nefunguje, skopírujte tento odkaz do prehliadača:</p>
+	<p><a href="{$link}">{$link}</a></p>
+
+	<p>Aktivačný odkaz je platný {$expiresHours} hodín. Po jeho vypršaní si môžete
+		vyžiadať nový aktivačný e-mail.</p>
+{/block}

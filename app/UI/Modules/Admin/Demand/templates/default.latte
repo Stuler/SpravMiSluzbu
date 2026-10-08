@@ -1,0 +1,9 @@
+{block content}
+<h1>Dopyty zákazníkov</h1>
+{control filterForm}
+<p><a n:href="default">Zrušiť filtre</a></p>
+<p n:if="!$list['items']">Nenašli sa žiadne dopyty.</p>
+<table class="table"><thead><tr><th>Číslo</th><th>Prijaté</th><th>Miesto</th><th>Stav</th><th></th></tr></thead><tbody>
+<tr n:foreach="$list['items'] as $demand"><td>{$demand->getReference()}</td><td>{$demand->getCreatedAt()|date:'d. m. Y H:i'}</td><td>{$demand->getCity()->getFullname()}</td><td>{$demand->getStatusLabel()}</td><td><a n:href="detail, reference => $demand->getReference()">Detail</a></td></tr>
+</tbody></table>
+{include '../../templates/pagination.latte'}

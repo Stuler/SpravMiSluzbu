@@ -1,0 +1,25 @@
+{block #content}
+<section class="bripeon-provider-signup-page">
+	<div class="container bripeon-narrow">
+		<p class="bripeon-eyebrow">Aktivácia účtu</p>
+
+		{if $tokenValid}
+			<h1>Aktivujte svoj účet poskytovateľa</h1>
+			<p>Kliknutím na tlačidlo aktivujete svoj účet a rovno sa prihlásite.</p>
+
+			<div class="bripeon-form-panel">
+				{control confirmActivationForm}
+			</div>
+		{else}
+			<h1>Odkaz je neplatný</h1>
+			<p>Tento aktivačný odkaz je neplatný alebo jeho platnosť vypršala.
+				Nechajte si poslať nový aktivačný e-mail.</p>
+
+			<div class="bripeon-form-panel">
+				{control resendActivationForm}
+			</div>
+		{/if}
+
+		<p><a n:href="in">Späť na prihlásenie</a></p>
+	</div>
+</section>

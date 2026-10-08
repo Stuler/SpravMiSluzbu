@@ -2,7 +2,6 @@
 
 namespace App\Domain\ProviderRegion;
 
-use App\Domain\CategoryService\CategoryService;
 use App\Domain\Provider\Provider;
 use App\Domain\Region\Region;
 use App\Model\Database\Entity\TCreatedBy;
@@ -38,27 +37,20 @@ class ProviderRegion
 		return $this->id;
 	}
 
-	public function getProvider(): ?Provider
+	public function getProvider(): Provider
 	{
 		return $this->provider;
 	}
 
-	public function setProvider(?Provider $provider): self
+	public function setProvider(Provider $provider): self
 	{
 		$this->provider = $provider;
 
 		return $this;
 	}
 
-	public function getCategoryService(): ?CategoryService
+	public function getRegion(): Region
 	{
-		return $this->serviceCategory;
-	}
-
-	public function setCategoryService(?CategoryService $serviceCategory): self
-	{
-		$this->serviceCategory = $serviceCategory;
-
-		return $this;
+		return $this->region;
 	}
 }

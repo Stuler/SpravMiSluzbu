@@ -9,16 +9,23 @@
 			<div class="bripeon-provider-benefits">
 				<div><i class="bi bi-geo-alt"></i><span>Dopyty podľa regiónu pôsobenia</span></div>
 				<div><i class="bi bi-tools"></i><span>Služby rozdelené podľa kategórií</span></div>
-				<div><i class="bi bi-credit-card"></i><span>Pripravené na budúcu Stripe platobnú bránu</span></div>
+				<div><i class="bi bi-check2-circle"></i><span>Bezplatná registrácia a aktivácia účtu</span></div>
 			</div>
 		</div>
 
 		<div class="bripeon-provider-form-panel">
 			<div class="bripeon-form-panel-heading">
 				<span>Registrácia poskytovateľa</span>
-				<strong>4 kroky</strong>
+				<strong>3 kroky</strong>
 			</div>
-			<div id="providerSignUpForm"></div>
+
+			{var $registrationForm = $presenter['registrationForm']}
+			<div n:foreach="$registrationForm->getOwnErrors() as $error" class="bripeon-form-error">{$error}</div>
+
+			<form n:name="registrationForm" id="providerRegistrationForm">
+				<div id="providerSignUpForm"></div>
+				<button type="submit" n:name="submit" id="providerRegistrationSubmit" class="bripeon-hidden-submit" aria-hidden="true" tabindex="-1"></button>
+			</form>
 		</div>
 	</div>
 </section>

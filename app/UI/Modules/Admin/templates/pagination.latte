@@ -1,0 +1,5 @@
+<nav aria-label="Stránkovanie">
+<p>Počet záznamov: {$list['count']} · Strana {$list['page']} z {$list['pages']}</p>
+<a n:if="$list['page'] > 1" n:href="this, page => $list['page'] - 1" class="btn btn-outline-primary">Predchádzajúca</a>
+<a n:if="$list['page'] < $list['pages']" n:href="this, page => $list['page'] + 1" class="btn btn-outline-primary">Nasledujúca</a>
+</nav>

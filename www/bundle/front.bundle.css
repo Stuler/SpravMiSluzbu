@@ -273,8 +273,7 @@ a:hover {
 	color: #fff;
 }
 
-.bripeon-primary-button:disabled,
-.bripeon-payment-button:disabled {
+.bripeon-primary-button:disabled {
 	background: #c7d4cd;
 	color: #eef5f1;
 	cursor: not-allowed;
@@ -645,6 +644,13 @@ a:hover {
 	gap: 22px;
 }
 
+.bripeon-wizard-fields {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+}
+
 .bripeon-wizard-header {
 	display: grid;
 	gap: 12px;
@@ -746,15 +752,145 @@ a:hover {
 	padding-top: 4px;
 }
 
-.bripeon-payment-panel {
-	border: 1px solid var(--bripeon-border);
-	border-radius: 8px;
-	padding: 18px;
-	background: var(--bripeon-soft);
+.bripeon-hidden-submit {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
 }
 
-.bripeon-payment-button {
-	width: 100%;
+.bripeon-optional {
+	color: var(--bripeon-muted);
+	font-weight: 400;
+	font-size: 13px;
+}
+
+/* Provider sign-in / activation / dashboard ============================== */
+
+.bripeon-narrow {
+	max-width: 640px;
+}
+
+.bripeon-form-panel {
+	border: 1px solid var(--bripeon-border);
+	border-radius: 12px;
+	padding: 24px;
+	background: #fff;
+	margin: 18px 0;
+}
+
+.bripeon-form-error {
+	background: #fdecea;
+	color: #b42318;
+	border: 1px solid #f4c7c2;
+	border-radius: 8px;
+	padding: 10px 14px;
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 14px;
+}
+
+.bripeon-resend summary {
+	cursor: pointer;
+	font-weight: 600;
+	color: var(--bripeon-green);
+}
+
+.bripeon-nav-logout form {
+	margin: 0;
+}
+
+.bripeon-nav-logout button {
+	background: none;
+	border: 0;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+.bripeon-dashboard-header {
+	margin-bottom: 24px;
+}
+
+.bripeon-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 20px;
+}
+
+.bripeon-dashboard-card {
+	border: 1px solid var(--bripeon-border);
+	border-radius: 12px;
+	padding: 22px;
+	background: #fff;
+}
+
+.bripeon-dashboard-card h2 {
+	font-size: 18px;
+	font-weight: 800;
+	margin: 0 0 14px;
+	color: var(--bripeon-ink);
+}
+
+.bripeon-dashboard-card dl {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+	gap: 8px 14px;
+	margin: 0;
+}
+
+.bripeon-dashboard-card dt {
+	color: var(--bripeon-muted);
+	font-size: 14px;
+}
+
+.bripeon-dashboard-card dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 14px;
+	word-break: break-word;
+}
+
+.bripeon-tag-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.bripeon-tag-list li {
+	background: var(--bripeon-soft);
+	color: var(--bripeon-green);
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bripeon-badge {
+	display: inline-block;
+	border-radius: 999px;
+	padding: 4px 12px;
+	font-size: 13px;
+	font-weight: 700;
+	background: #eef1f4;
+	color: var(--bripeon-ink);
+}
+
+.bripeon-badge-success {
+	background: var(--bripeon-soft);
+	color: var(--bripeon-green);
+}
+
+.bripeon-dashboard-actions {
+	margin-top: 26px;
 }
 
 .bripeon-footer {

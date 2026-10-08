@@ -31,7 +31,17 @@ services:
 		factory: @App\Model\Router\RouterFactory::create
 
 	# Domain =================
+	- App\Domain\Admin\AdminAuditFacade
+	- App\Domain\Admin\AdminAccountFacade
+	- App\Domain\Admin\AdminReadFacade
+	- App\Domain\Admin\AdminDemandFacade
 	- App\Domain\User\UserFacade
+	- App\Domain\Customer\CustomerAccountFacade
+	- App\Domain\Demand\DemandFacade
+	- App\Domain\Matching\MatchingFacade(promptDirectory: %rootDir%/resources/prompts)
+	- App\Domain\Matching\InvitationFacade
+	- App\Infrastructure\OpenAI\ResponsesClient
+	- App\Model\Security\RateLimit\PublicRateLimiter(%tempDir%/public-rate-limit)
 	- App\Domain\Provider\ProviderFacade
 	- App\Model\Mail\MailSender
 	- App\Domain\CategoryService\CategoryServiceFacade
@@ -40,10 +50,12 @@ services:
 
 	# Services ===============
 	- App\Domain\User\UserService
-	- App\Infrastructure\Stripe\StripeService(%stripe%)
+	- App\Model\Security\Authenticator\ProviderAuthenticator
 
 	# Console ================
 	- App\Console\HelloCommand
+	- App\Console\DemandWorkerCommand
+	- App\Console\DemandEvaluateCommand(rootDirectory: %rootDir%)
 
 	- App\Model\Database\QueryManager
 	- App\Settings(
@@ -54,7 +66,6 @@ services:
 
 	# Components =============
 	- App\UI\Control\Component\CategoryServiceViewer\CategoryServiceViewerCompFactory
-	- App\UI\Control\Component\ProviderSignUpForm\ProviderSignUpFormComp
 
 latte:
 	macros:

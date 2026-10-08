@@ -1,0 +1,13 @@
+{block content}
+<h1>{$customer->getFullName()}</h1>
+<p><a n:href="default">Všetci zákazníci</a></p>
+{include '../../templates/accountStatus.latte'}
+<h2>Úprava mena</h2>
+{control profileForm}
+<h2>História dopytov</h2>
+<p>Dopyty hostí sa k účtu nepriraďujú podľa e-mailu.</p>
+<table class="table"><thead><tr><th>Prijaté</th><th>Obec</th><th>Stav</th><th></th></tr></thead><tbody>
+<tr n:foreach="$list['items'] as $demand"><td>{$demand->getCreatedAt()|date:'d. m. Y H:i'}</td><td>{$demand->getCity()->getFullname()}</td><td>{$demand->getStatusLabel()}</td><td><a n:href=":Admin:Demand:detail, reference => $demand->getReference()">Detail</a></td></tr>
+</tbody></table>
+{include '../../templates/pagination.latte'}
+{include '../../templates/audit.latte'}

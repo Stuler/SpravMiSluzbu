@@ -31,10 +31,12 @@ use Tester\Assert;
 $config = ORMSetup::createAttributeMetadataConfiguration([APP_DIR . '/Domain'], true, null,
     \Doctrine\Common\Cache\Psr6\CacheAdapter::wrap(new \Doctrine\Common\Cache\ArrayCache()));
 $config->setNamingStrategy(new \Doctrine\ORM\Mapping\UnderscoreNamingStrategy());
+$config->setAutoGenerateProxyClasses(\Doctrine\Common\Proxy\AbstractProxyFactory::AUTOGENERATE_EVAL);
 $em = new EntityManagerDecorator(EntityManager::create(['driver' => 'pdo_sqlite', 'memory' => true], $config));
 $classes = [User::class, LoginRole::class, StateUser::class, Region::class, District::class, City::class, CategoryService::class, CustomerToken::class, Demand::class,
     \App\Domain\Provider\Provider::class, \App\Domain\StateProvider\StateProvider::class, \App\Domain\ProviderRegion\ProviderRegion::class,
-    \App\Domain\ProviderServiceCategory\ProviderServiceCategory::class, \App\Domain\Matching\ProviderInvitation::class, \App\Domain\Matching\AiRun::class, \App\Domain\Admin\AdminAudit::class];
+    \App\Domain\ProviderServiceCategory\ProviderServiceCategory::class, \App\Domain\Matching\ProviderInvitation::class, \App\Domain\Matching\AiRun::class, \App\Domain\Admin\AdminAudit::class,
+    \App\Domain\Subscription\Subscription::class, \App\Domain\SubscriptionPlan\SubscriptionPlan::class, \App\Domain\StateSubscription\StateSubscription::class];
 $metadata = array_map(fn($class) => $em->getClassMetadata($class), $classes);
 (new SchemaTool($em))->createSchema($metadata);
 foreach ($metadata as $mapping) {
@@ -196,5 +198,6 @@ try {
 
 require __DIR__ . '/customer-ui-checks.php';
 require __DIR__ . '/../Matching/matching-checks.php';
+require __DIR__ . '/../Subscription/subscription-checks.php';
 require __DIR__ . '/../Admin/admin-checks.php';
 echo "Customer, demand, matching, invitation and UI checks passed.\n";

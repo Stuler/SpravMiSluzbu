@@ -31,30 +31,40 @@ class Subscription
 	#[ORM\JoinColumn(name: 'subscription_plan_id', referencedColumnName: 'id', nullable: false)]
 	private SubscriptionPlan $plan;
 
-	#[ORM\Column(type: 'string', enumType: StateSubscription::class)]
+	#[ORM\ManyToOne(targetEntity: StateSubscription::class, inversedBy: 'subscriptions')]
+	#[ORM\JoinColumn(name: 'state_subscription_id', referencedColumnName: 'id', nullable: false)]
 	private StateSubscription $status;
 
-	#[ORM\Column(type: 'datetime')]
-	private \DateTime $startedAt;
+	#[ORM\Column(type: 'datetime_immutable')]
+	private \DateTimeImmutable $startedAt;
 
-	#[ORM\Column(type: 'datetime', nullable: true)]
-	private ?\DateTime $endsAt = null;
+	#[ORM\Column(type: 'datetime_immutable', nullable: true)]
+	private ?\DateTimeImmutable $endsAt = null;
 
-	#[ORM\Column(type: 'datetime', nullable: true)]
-	private ?\DateTime $canceledAt = null;
+	#[ORM\Column(type: 'datetime_immutable', nullable: true)]
+	private ?\DateTimeImmutable $canceledAt = null;
 
-	#[ORM\Column(type: 'datetime')]
-	private \DateTime $createdAt;
-
-	public function __construct(Provider $provider, string $stripeSubscriptionId, SubscriptionPlan $plan)
+	public function __construct(Provider $provider, string $stripeSubscriptionId, SubscriptionPlan $plan,
+		StateSubscription $initialState, ?\DateTimeImmutable $now = null)
 	{
+		if (trim($stripeSubscriptionId) === '' || strlen($stripeSubscriptionId) > 100) {
+			throw new \InvalidArgumentException('Invalid subscription identifier.');
+		}
+		$now ??= new \DateTimeImmutable();
 		$this->provider = $provider;
 		$this->stripeSubscriptionId = $stripeSubscriptionId;
 		$this->plan = $plan;
-		$this->status = SubscriptionStatus::Pending;
-		$this->startedAt = new \DateTime();
-		$this->createdAt = new \DateTime();
+		$this->status = $initialState;
+		$this->startedAt = $now;
+		$this->dateCreated = \DateTime::createFromImmutable($now);
+		$initialState->addSubscription($this);
 	}
 
-	// Getters and setters...
+	public function getProvider(): Provider { return $this->provider; }
+	public function getStripeSubscriptionId(): string { return $this->stripeSubscriptionId; }
+	public function getPlan(): SubscriptionPlan { return $this->plan; }
+	public function getStatus(): StateSubscription { return $this->status; }
+	public function getStartedAt(): \DateTimeImmutable { return $this->startedAt; }
+	public function getEndsAt(): ?\DateTimeImmutable { return $this->endsAt; }
+	public function getCanceledAt(): ?\DateTimeImmutable { return $this->canceledAt; }
 }

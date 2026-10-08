@@ -33,12 +33,21 @@ class SubscriptionPlan
 
 	public function __construct(string $name, string $interval, int $intervalCount, int $price, string $stripePriceId)
 	{
+		if (trim($name) === '' || mb_strlen($name) > 100 || !in_array($interval, ['day', 'week', 'month', 'year'], true)
+			|| $intervalCount < 1 || $price < 0 || trim($stripePriceId) === '' || strlen($stripePriceId) > 100) {
+			throw new \InvalidArgumentException('Invalid subscription plan.');
+		}
 		$this->name = $name;
 		$this->interval = $interval;
 		$this->intervalCount = $intervalCount;
 		$this->price = $price;
 		$this->stripePriceId = $stripePriceId;
+		$this->dateCreated = new \DateTime();
 	}
 
-	// Getters and setters...
+	public function getName(): string { return $this->name; }
+	public function getInterval(): string { return $this->interval; }
+	public function getIntervalCount(): int { return $this->intervalCount; }
+	public function getPrice(): int { return $this->price; }
+	public function getStripePriceId(): string { return $this->stripePriceId; }
 }

@@ -19,9 +19,9 @@ class StateProviderRepository extends AbstractRepository
 		StateProviderRepository::STATE_BLOCKED,
 		StateProviderRepository::STATE_ACTIVATED,
 	];
-	public const STATE_FRESH = 1;
-	public const STATE_ACTIVATED = 2;
-	public const STATE_BLOCKED = 3;
+	public const STATE_FRESH = StateProvider::FRESH;
+	public const STATE_ACTIVATED = StateProvider::ACTIVATED;
+	public const STATE_BLOCKED = StateProvider::BLOCKED;
 
 	public function findById(int $id): ?StateProvider
 	{

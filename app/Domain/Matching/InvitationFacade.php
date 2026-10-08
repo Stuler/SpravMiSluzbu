@@ -72,16 +72,16 @@ final class InvitationFacade
 		$this->em->refresh($invitation->getProvider());
 		$provider = $invitation->getProvider();
 		if ($invitation->getDemand()->getStatus() === Demand::CLOSED || $this->activeProvider($provider->getId()) === null || !$provider->acceptsDemands()) {
-			$invitation->finishDelivery('cancelled');
+			$invitation->cancelDelivery();
 		} else {
 			try {
 				$this->mail->sendCustomerLink($provider->getEmail(), 'Nový dopyt na službu na Bripeone',
 					'Vo vašej oblasti je nový dopyt. Po prihlásení si pozrite zadanie a potvrďte záujem.',
 					$this->links->link('Front:ProviderDemand:detail', ['id' => $invitation->getId()]));
-				$invitation->finishDelivery('sent');
+				$invitation->markDelivered();
 			} catch (\Throwable $e) {
 				// SMTP failures may occur after delivery. Do not silently resend an ambiguous message.
-				$invitation->finishDelivery('unknown');
+				$invitation->markDeliveryUnknown();
 			}
 		}
 		$this->em->flush();

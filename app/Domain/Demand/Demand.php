@@ -33,8 +33,8 @@ class Demand
 	#[ORM\Column(type: 'text', nullable: true)]
 	private ?string $serviceSummary = null;
 
-	#[ORM\Column(type: 'string', length: 32)]
-	private string $status = self::PENDING;
+	#[ORM\Column(type: 'string', length: 32, enumType: DemandStatus::class)]
+	private DemandStatus $status = DemandStatus::PendingVerification;
 	#[ORM\Column(type: 'datetime_immutable')]
 	private \DateTimeImmutable $createdAt;
 	#[ORM\Column(type: 'datetime_immutable', nullable: true)]
@@ -86,13 +86,14 @@ class Demand
 	public function getContactEmail(): string { return $this->contactEmail; }
 	public function getContactPhone(): ?string { return $this->contactPhone; }
 	public function getCustomer(): ?User { return $this->customer; }
-	public function getStatus(): string { return $this->status; }
+	public function getStatus(): string { return $this->status->value; }
+	public function getStatusValue(): DemandStatus { return $this->status; }
 	public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 	public function getVerifiedAt(): ?\DateTimeImmutable { return $this->verifiedAt; }
 	public function getAccessTokenHash(): ?string { return $this->accessTokenHash; }
 	public function getStatusLabel(): string
 	{
-		return match ($this->status) {
+		return match ($this->status->value) {
 			self::PENDING => 'Čaká na overenie e-mailu',
 			self::READY => 'Čaká na spracovanie',
 			self::CLOSED => 'Uzavretý',
@@ -102,67 +103,95 @@ class Demand
 			default => 'Spracúva sa',
 		};
 	}
-	public function issueAccess(): string
+	public function issueAccess(?\DateTimeImmutable $now = null): string
 	{
+		if ($this->customer !== null) { throw new \InvalidArgumentException('Customer-owned demands do not use access tokens.'); }
+		$now ??= new \DateTimeImmutable();
 		$raw = bin2hex(random_bytes(32));
 		$this->accessTokenHash = hash('sha256', $raw);
-		$this->accessExpiresAt = new \DateTimeImmutable('+30 days');
+		$this->accessExpiresAt = $now->modify('+30 days');
 		return $raw;
 	}
-	public function acceptsAccessHash(string $hash): bool
+	public function acceptsAccessHash(string $hash, ?\DateTimeImmutable $now = null): bool
 	{
-		return $this->customer === null && $this->accessTokenHash !== null && $this->accessExpiresAt > new \DateTimeImmutable()
+		return $this->customer === null && $this->accessTokenHash !== null && $this->accessExpiresAt !== null
+			&& $this->accessExpiresAt > ($now ?? new \DateTimeImmutable())
 			&& hash_equals($this->accessTokenHash, $hash);
 	}
 	public function isOwnedBy(User $user): bool
 	{
 		return $this->customer !== null && $this->customer->getId() === $user->getId();
 	}
-	public function verify(): void
+	public function verify(?\DateTimeImmutable $now = null): void
 	{
-		if ($this->status === self::PENDING) {
-			$this->verifiedAt = new \DateTimeImmutable();
-			$this->status = self::READY;
+		if ($this->status === DemandStatus::PendingVerification) {
+			$this->verifiedAt = $now ?? new \DateTimeImmutable();
+			$this->status = DemandStatus::Ready;
 		}
 	}
-	public function close(): void
+	public function close(?\DateTimeImmutable $now = null): void
 	{
-		if ($this->status !== self::CLOSED) {
-			$this->status = self::CLOSED;
-			$this->closedAt = new \DateTimeImmutable();
+		if ($this->status !== DemandStatus::Closed) {
+			$this->status = DemandStatus::Closed;
+			$this->closedAt = $now ?? new \DateTimeImmutable();
+			$this->leaseToken = null;
+			$this->leaseUntil = null;
+			$this->processAfter = null;
 		}
 	}
 
-	public function claimProcessing(): string
+	public function claimProcessing(?\DateTimeImmutable $now = null): string
 	{
+		$now ??= new \DateTimeImmutable();
+		if ($this->status !== DemandStatus::Ready || $this->verifiedAt === null
+			|| ($this->processAfter !== null && $this->processAfter > $now)
+			|| ($this->leaseUntil !== null && $this->leaseUntil > $now)) {
+			throw new \InvalidArgumentException('Demand is not available for processing.');
+		}
 		$this->processingAttempts++;
-		$this->leaseUntil = new \DateTimeImmutable('+5 minutes');
+		$this->leaseUntil = $now->modify('+5 minutes');
 		return $this->leaseToken = bin2hex(random_bytes(16));
 	}
-	public function ownsLease(string $lease): bool
+	public function ownsLease(string $lease, ?\DateTimeImmutable $now = null): bool
 	{
-		return $this->status === self::READY && $this->leaseToken === $lease && $this->leaseUntil > new \DateTimeImmutable();
+		return $this->status === DemandStatus::Ready && $this->leaseToken === $lease && $this->leaseUntil !== null
+			&& $this->leaseUntil > ($now ?? new \DateTimeImmutable());
 	}
-	public function finishProcessing(string $status, string $note, ?string $summary = null): void
+	public function scheduleRetry(string $note, ?string $summary = null, ?\DateTimeImmutable $now = null): void
 	{
-		if ($this->status === self::CLOSED) { return; }
+		if ($this->status !== DemandStatus::Ready && $this->status !== DemandStatus::Closed) {
+			throw new \InvalidArgumentException('Only processing demands can be retried.');
+		}
+		$this->completeMatching(DemandStatus::Ready, $note, $summary, $now);
+	}
+	public function markNeedsReview(string $note, ?string $summary = null, ?\DateTimeImmutable $now = null): void
+	{ $this->completeMatching(DemandStatus::NeedsReview, $note, $summary, $now); }
+	public function markNoProviders(string $note, ?string $summary = null, ?\DateTimeImmutable $now = null): void
+	{ $this->completeMatching(DemandStatus::NoProviders, $note, $summary, $now); }
+	public function markProvidersInvited(string $note, ?string $summary = null, ?\DateTimeImmutable $now = null): void
+	{ $this->completeMatching(DemandStatus::ProvidersInvited, $note, $summary, $now); }
+
+	private function completeMatching(DemandStatus $status, string $note, ?string $summary, ?\DateTimeImmutable $now): void
+	{
+		if ($this->status === DemandStatus::Closed) { return; }
+		if ($this->verifiedAt === null) { throw new \InvalidArgumentException('Only verified demands can be matched.'); }
 		$this->status = $status;
 		$this->processingNote = mb_substr($note, 0, 255);
 		$this->serviceSummary = $summary ?? $this->serviceSummary;
 		$this->leaseToken = null;
 		$this->leaseUntil = null;
-		$this->processAfter = new \DateTimeImmutable('+10 minutes');
+		$this->processAfter = ($now ?? new \DateTimeImmutable())->modify('+10 minutes');
 	}
 	public function getProcessingAttempts(): int { return $this->processingAttempts; }
 	public function getProcessingNote(): ?string { return $this->processingNote; }
 	public function getServiceSummary(): ?string { return $this->serviceSummary; }
 	public function requeue(?CategoryService $category): void
 	{
-		if ($this->verifiedAt === null || $this->status === self::CLOSED) {
+		if ($this->verifiedAt === null || $this->status === DemandStatus::Closed) {
 			throw new \InvalidArgumentException('Only open verified demands can be requeued.');
 		}
 		$this->category = $category;
-		$this->status = self::READY;
+		$this->status = DemandStatus::Ready;
 		$this->processingAttempts = 0;
 		$this->processAfter = null;
 		$this->leaseToken = null;

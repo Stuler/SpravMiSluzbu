@@ -172,7 +172,7 @@ Assert::same($list['count'], $second['count']);
 Assert::notSame($list['items'][0]->getId(), $second['items'][0]->getId());
 [$response, $html] = $run('Admin:Demand', ['action' => 'default', 'status' => Demand::READY, 'locality' => 'Test city', 'page' => 1]);
 Assert::contains('page=2', html_entity_decode($html)); Assert::contains('status=ready', html_entity_decode($html));
-$d->finishProcessing(Demand::REVIEW, 'Test review'); $em->flush();
+$d->markNeedsReview('Test review'); $em->flush();
 Assert::true($read->overview()['review'] > 0); Assert::true($read->demands(['issue' => 'review'], 1)['count'] > 0);
 
 // A rejected operation on a closed demand keeps the manager usable and never reopens it.

@@ -35,7 +35,7 @@ $invitation->answer(true);
 $invitation->answer(false);
 Assert::same('accepted', $invitation->getResponse());
 $invitation->startDelivery();
-$invitation->finishDelivery('unknown');
+$invitation->markDeliveryUnknown();
 Assert::false($invitation->canRetryDelivery());
 Assert::exception(fn() => $invitation->retryDelivery(), InvalidArgumentException::class);
 

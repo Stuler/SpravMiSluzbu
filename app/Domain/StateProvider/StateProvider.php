@@ -14,6 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'state_provider')]
 class StateProvider
 {
+	public const FRESH = 1;
+	public const ACTIVATED = 2;
+	public const BLOCKED = 3;
 	use TId, TDateCreated, TDateModified, TDateDeleted, TCreatedBy, TDeletedBy;
 
 	#[ORM\Column(type: 'string', length: 32, unique: false, nullable: false)]

@@ -68,6 +68,12 @@ readonly class ProviderFacade
 
 		$regions = $this->resolveRegions($dto->getRegionIds());
 		$categories = $this->resolveCategories($dto->getServiceCategoryIds());
+		try {
+			new \App\Domain\Provider\ValueObject\ProviderProfile($dto->companyName, $dto->getContactFirstName(),
+				$dto->getContactLastName(), '', $dto->phone, $dto->ico, '', $dto->getStreetNo(), $city, $dto->zip);
+		} catch (\InvalidArgumentException $e) {
+			throw new RegistrationValidationException($e->getMessage(), 0, $e);
+		}
 
 		$token = ActivationToken::generate();
 
@@ -147,7 +153,7 @@ readonly class ProviderFacade
 		// and the failure is raised afterwards.
 		$provider = $this->em->wrapInTransaction(function () use ($hash): ?Provider {
 			$provider = $this->em->getRepository(Provider::class)->findOneBy(['activationTokenHash' => $hash]);
-			$now = new \DateTime();
+			$now = new \DateTimeImmutable();
 
 			if (!$provider instanceof Provider || $provider->getDateDeleted() !== null || !$provider->isFresh() || !$provider->hasValidActivationToken($hash, $now)) {
 				return null;
@@ -158,9 +164,7 @@ readonly class ProviderFacade
 				throw new InvalidArgumentException('Activated provider state was not found.');
 			}
 
-			$provider->setStateProvider($activated);
-			$provider->setDateActivated();
-			$provider->clearActivationToken();
+			$provider->activate($activated, $hash, $now);
 			$this->em->flush();
 
 			return $provider;

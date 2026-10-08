@@ -1,0 +1,82 @@
+<?php declare(strict_types=1);
+
+use App\Domain\City\City;
+use App\Domain\Demand\Demand;
+use App\Domain\Demand\DemandStatus;
+use App\Domain\LoginRole\LoginRole;
+use App\Domain\Matching\ProviderInvitation;
+use App\Domain\Provider\ActivationToken;
+use App\Domain\Provider\Exception\InvalidActivationTokenException;
+use App\Domain\Provider\Provider;
+use App\Domain\Provider\ValueObject\ProviderProfile;
+use App\Domain\StateProvider\StateProvider;
+use Tester\Assert;
+
+require __DIR__ . '/../../../../vendor/autoload.php';
+Tester\Environment::setup();
+$now = new DateTimeImmutable('2026-10-08 12:00:00');
+$city = new City(); $city->setUse(true);
+$makeDemand = fn() => new Demand(str_repeat('a', 32), str_repeat('b', 64), 'Clean a two-bedroom apartment.',
+    $city, null, 'Next week', 'Customer', 'customer@example.test', null, null);
+$demand = $makeDemand();
+Assert::exception(fn() => $demand->claimProcessing($now), InvalidArgumentException::class);
+Assert::exception(fn() => $demand->markNeedsReview('Review', null, $now), InvalidArgumentException::class);
+$raw = $demand->issueAccess($now);
+Assert::true($demand->acceptsAccessHash(hash('sha256', $raw), $now->modify('+29 days')));
+Assert::false($demand->acceptsAccessHash(hash('sha256', $raw), $now->modify('+30 days')));
+$demand->verify($now);
+$lease = $demand->claimProcessing($now);
+Assert::exception(fn() => $demand->claimProcessing($now->modify('+4 minutes')), InvalidArgumentException::class);
+Assert::false($demand->ownsLease($lease, $now->modify('+5 minutes')));
+$replacement = $demand->claimProcessing($now->modify('+5 minutes'));
+Assert::false($demand->ownsLease($lease, $now->modify('+5 minutes')));
+Assert::true($demand->ownsLease($replacement, $now->modify('+5 minutes')));
+$demand->scheduleRetry('Retry', null, $now->modify('+5 minutes'));
+Assert::exception(fn() => $demand->claimProcessing($now->modify('+14 minutes')), InvalidArgumentException::class);
+$demand->claimProcessing($now->modify('+15 minutes'));
+$demand->markNeedsReview('Review', null, $now);
+Assert::same(DemandStatus::NeedsReview, $demand->getStatusValue());
+Assert::exception(fn() => $demand->scheduleRetry('Retry', null, $now), InvalidArgumentException::class);
+$demand->requeue(null);
+Assert::same(0, $demand->getProcessingAttempts());
+$demand->close($now);
+$demand->markProvidersInvited('Stale result', null, $now);
+Assert::same(DemandStatus::Closed, $demand->getStatusValue());
+
+$fresh = new StateProvider(); $fresh->setId(StateProvider::FRESH);
+$active = new StateProvider(); $active->setId(StateProvider::ACTIVATED);
+$role = new LoginRole(); $role->setName(LoginRole::ROLE_PROVIDER);
+$provider = new Provider('Company', 'First', 'Last', '', 'provider@example.test', '+421900000001', '', '',
+    'hash', 'Street 1', $city, '90001', $fresh, $role);
+Assert::exception(fn() => new ProviderProfile('', 'First', 'Last', '', '+421900000001', '', '', 'Street', $city, '90001'), InvalidArgumentException::class);
+Assert::exception(fn() => $provider->updateProfile('', 'First', 'Last', '', '+421900000001', '', '', 'Street', $city, '90001'), InvalidArgumentException::class);
+Assert::same('Company', $provider->getCompanyName()); // Validation cannot partly mutate the profile.
+Assert::exception(fn() => $provider->setServiceDescription(str_repeat('a', 2001)), InvalidArgumentException::class);
+$token = ActivationToken::generate($now);
+Assert::equal($now->modify('+24 hours'), $token->expiresAt);
+$provider->setActivationToken($token->hash, $token->expiresAt, $now);
+Assert::exception(fn() => $provider->activate($active, $token->hash, $token->expiresAt), InvalidActivationTokenException::class);
+$provider->block(); $version = $provider->getSessionVersion(); $provider->block();
+Assert::same($version, $provider->getSessionVersion());
+Assert::exception(fn() => $provider->activate($active, $token->hash, $now), InvalidActivationTokenException::class);
+$provider->unblock();
+$provider->activate($active, $token->hash, $now);
+Assert::true($provider->isActivated());
+Assert::null($provider->getActivationTokenHash());
+Assert::equal(DateTime::createFromImmutable($now), $provider->getDateActivated());
+Assert::exception(fn() => $provider->activate($active, $token->hash, $now), InvalidActivationTokenException::class);
+
+$invitation = new ProviderInvitation($makeDemand(), $provider, 'Relevant service.');
+Assert::exception(fn() => $invitation->markDelivered(), InvalidArgumentException::class);
+$invitation->startDelivery($now);
+Assert::exception(fn() => $invitation->startDelivery($now), InvalidArgumentException::class);
+$invitation->markDeliveryUnknown();
+Assert::false($invitation->canRetryDelivery($now->modify('+4 minutes')));
+Assert::true($invitation->canRetryDelivery($now->modify('+5 minutes')));
+$invitation->retryDelivery($now->modify('+5 minutes'));
+$invitation->startDelivery($now->modify('+5 minutes'));
+$invitation->markDelivered();
+Assert::false($invitation->canRetryDelivery($now->modify('+1 hour')));
+$invitation->answer(false, $now); $invitation->answer(true, $now);
+Assert::same('declined', $invitation->getResponse());
+echo "Domain transitions and expiration boundaries passed.\n";

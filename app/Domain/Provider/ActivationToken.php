@@ -16,7 +16,7 @@ final class ActivationToken
 	private function __construct(
 		public readonly string $raw,
 		public readonly string $hash,
-		public readonly \DateTime $expiresAt,
+		public readonly \DateTimeImmutable $expiresAt,
 	)
 	{
 	}
@@ -24,14 +24,14 @@ final class ActivationToken
 	/**
 	 * Generate a fresh token with a 24 hour expiration.
 	 */
-	public static function generate(): self
+	public static function generate(?\DateTimeImmutable $now = null): self
 	{
 		$raw = self::base64UrlEncode(random_bytes(self::RANDOM_BYTES));
 
 		return new self(
 			$raw,
 			self::hashRaw($raw),
-			(new \DateTime())->modify('+' . self::TTL_HOURS . ' hours'),
+			($now ?? new \DateTimeImmutable())->modify('+' . self::TTL_HOURS . ' hours'),
 		);
 	}
 

@@ -66,8 +66,8 @@ final class MatchingFacade
 				$this->em->refresh($demand, LockMode::PESSIMISTIC_WRITE);
 				if (!$demand->ownsLease($lease)) { return; }
 				$review = $e instanceof AiUnavailableException || $demand->getProcessingAttempts() >= 3;
-				$demand->finishProcessing($review ? Demand::REVIEW : Demand::READY,
-					$review ? 'Automatické spracovanie vyžaduje kontrolu administrátora.' : 'Spracovanie sa dočasne nepodarilo. Pokus zopakujeme.');
+				if ($review) { $demand->markNeedsReview('Automatické spracovanie vyžaduje kontrolu administrátora.'); }
+				else { $demand->scheduleRetry('Spracovanie sa dočasne nepodarilo. Pokus zopakujeme.'); }
 			});
 		}
 		return true;
@@ -169,7 +169,13 @@ final class MatchingFacade
 			$count++;
 		}
 		$status = $count > 0 ? Demand::INVITED : ($result['status'] === Demand::INVITED ? Demand::REVIEW : $result['status']);
-		$demand->finishProcessing($status, $result['note'] ?: 'Zadanie vyžaduje kontrolu.', $result['summary']);
+		$note = $result['note'] ?: 'Zadanie vyžaduje kontrolu.';
+		match ($status) {
+			Demand::REVIEW => $demand->markNeedsReview($note, $result['summary']),
+			Demand::NO_PROVIDERS => $demand->markNoProviders($note, $result['summary']),
+			Demand::INVITED => $demand->markProvidersInvited($note, $result['summary']),
+			default => throw new \InvalidArgumentException('Invalid matching outcome.'),
+		};
 	}
 
 	private function call(Demand $demand, string $version, array $input, array $schema, bool $dryRun): array

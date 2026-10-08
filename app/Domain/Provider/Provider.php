@@ -5,7 +5,8 @@ namespace App\Domain\Provider;
 use App\Domain\City\City;
 use App\Domain\LoginRole\LoginRole;
 use App\Domain\StateProvider\StateProvider;
-use App\Domain\StateProvider\StateProviderRepository;
+use App\Domain\Provider\Exception\InvalidActivationTokenException;
+use App\Domain\Provider\ValueObject\ProviderProfile;
 use App\Model\Database\Entity\TCreatedBy;
 use App\Model\Database\Entity\TDateCreated;
 use App\Model\Database\Entity\TDateDeleted;
@@ -28,13 +29,24 @@ class Provider
 	#[ORM\Column(type: 'integer', options: ['default' => 1])]
 	private int $sessionVersion = 1;
 
-	public function setAdministrativelyBlocked(bool $blocked): void { $this->administrativelyBlocked = $blocked; $this->sessionVersion++; }
+	public function block(): void { $this->setAdministrativelyBlocked(true); }
+	public function unblock(): void { $this->setAdministrativelyBlocked(false); }
+	public function setAdministrativelyBlocked(bool $blocked): void
+	{
+		if ($this->administrativelyBlocked === $blocked) { return; }
+		$this->administrativelyBlocked = $blocked;
+		$this->sessionVersion++;
+	}
 	public function getSessionVersion(): int { return $this->sessionVersion; }
 	public function updateProfile(string $companyName, string $contactName, string $surname, string $title, string $phone, string $ico, string $dic, string $streetNo, City $city, string $zipCode): void
 	{
-		$this->companyName = $companyName; $this->contactName = $contactName; $this->contactSurname = $surname;
-		$this->contactTitle = $title; $this->phoneNumber = $phone; $this->ico = $ico; $this->dic = $dic;
-		$this->streetNo = $streetNo; $this->city = $city; $this->zipCode = $zipCode;
+		$this->changeProfile(new ProviderProfile($companyName, $contactName, $surname, $title, $phone, $ico, $dic, $streetNo, $city, $zipCode));
+	}
+	public function changeProfile(ProviderProfile $profile): void
+	{
+		$this->companyName = $profile->companyName; $this->contactName = $profile->contactName; $this->contactSurname = $profile->surname;
+		$this->contactTitle = $profile->title; $this->phoneNumber = $profile->phone; $this->ico = $profile->ico; $this->dic = $profile->dic;
+		$this->streetNo = $profile->streetNo; $this->city = $profile->city; $this->zipCode = $profile->zipCode;
 	}
 	#[ORM\Column(type: 'text', nullable: true)]
 	private ?string $serviceDescription = null;
@@ -42,7 +54,11 @@ class Provider
 	public function acceptsDemands(): bool { return $this->acceptsDemands; }
 	public function setAcceptsDemands(bool $accepts): void { $this->acceptsDemands = $accepts; }
 	public function getServiceDescription(): ?string { return $this->serviceDescription; }
-	public function setServiceDescription(?string $description): void { $this->serviceDescription = $description; }
+	public function setServiceDescription(?string $description): void
+	{
+		if ($description !== null && mb_strlen($description) > 2000) { throw new \InvalidArgumentException('Service description is too long.'); }
+		$this->serviceDescription = $description === null ? null : (trim($description) ?: null);
+	}
 
 	#[ORM\Column(name: 'activation_token_hash', type: 'string', length: 64, nullable: true)]
 	private ?string $activationTokenHash = null;
@@ -110,6 +126,7 @@ class Provider
 	)
 	{
 		$this->dateCreated = new \DateTime();
+		$this->updateProfile($companyName, $contactName, $contactSurname, $contactTitle, $phoneNumber, $ico, $dic, $streetNo, $city, $zipCode);
 	}
 
 	public function getCompanyName(): string
@@ -207,9 +224,16 @@ class Provider
 		return $this->dateActivated;
 	}
 
-	public function setDateActivated(): void
+	public function activate(StateProvider $activated, string $tokenHash, \DateTimeImmutable $now): void
 	{
-		$this->dateActivated = new \DateTime();
+		if ($activated->getId() !== StateProvider::ACTIVATED || $this->getDateDeleted() !== null
+			|| !$this->isFresh() || !$this->hasValidActivationToken($tokenHash, $now)) {
+			throw new InvalidActivationTokenException('Activation token is invalid, expired, or already used.');
+		}
+		$this->stateProvider = $activated;
+		$this->dateActivated = \DateTime::createFromImmutable($now);
+		$this->activationTokenHash = null;
+		$this->activationTokenExpiresAt = null;
 	}
 
 	// === Activation token ===================================================
@@ -218,17 +242,14 @@ class Provider
 	 * Store the hash of a freshly issued activation token. Any previous token is
 	 * invalidated. The raw token is never stored here.
 	 */
-	public function setActivationToken(string $tokenHash, \DateTime $expiresAt): void
+	public function setActivationToken(string $tokenHash, \DateTimeInterface $expiresAt, ?\DateTimeImmutable $now = null): void
 	{
+		if (!$this->isFresh() || $this->getDateDeleted() !== null || !preg_match('/^[a-f0-9]{64}$/D', $tokenHash)) {
+			throw new \InvalidArgumentException('Only a fresh provider can receive an activation token.');
+		}
 		$this->activationTokenHash = $tokenHash;
-		$this->activationTokenExpiresAt = $expiresAt;
-		$this->activationSentAt = new \DateTime();
-	}
-
-	public function clearActivationToken(): void
-	{
-		$this->activationTokenHash = null;
-		$this->activationTokenExpiresAt = null;
+		$this->activationTokenExpiresAt = \DateTime::createFromInterface($expiresAt);
+		$this->activationSentAt = \DateTime::createFromImmutable($now ?? new \DateTimeImmutable());
 	}
 
 	public function getActivationTokenHash(): ?string
@@ -249,7 +270,7 @@ class Provider
 	/**
 	 * Whether the currently stored activation token matches the given hash and is not expired.
 	 */
-	public function hasValidActivationToken(string $tokenHash, \DateTime $now): bool
+	public function hasValidActivationToken(string $tokenHash, \DateTimeInterface $now): bool
 	{
 		return $this->activationTokenHash !== null
 			&& hash_equals($this->activationTokenHash, $tokenHash)
@@ -258,11 +279,6 @@ class Provider
 	}
 
 	// === State ==============================================================
-
-	public function setStateProvider(StateProvider $state): void
-	{
-		$this->stateProvider = $state;
-	}
 
 	public function getStateProvider(): StateProvider
 	{
@@ -276,17 +292,17 @@ class Provider
 
 	public function isActivated(): bool
 	{
-		return !$this->isBlocked() && $this->getStateId() === StateProviderRepository::STATE_ACTIVATED;
+		return !$this->isBlocked() && $this->getStateId() === StateProvider::ACTIVATED;
 	}
 
 	public function isFresh(): bool
 	{
-		return !$this->isBlocked() && $this->getStateId() === StateProviderRepository::STATE_FRESH;
+		return !$this->isBlocked() && $this->getStateId() === StateProvider::FRESH;
 	}
 
 	public function isBlocked(): bool
 	{
-		return $this->administrativelyBlocked || $this->getStateId() === StateProviderRepository::STATE_BLOCKED;
+		return $this->administrativelyBlocked || $this->getStateId() === StateProvider::BLOCKED;
 	}
 
 	public function getLoginRole(): LoginRole

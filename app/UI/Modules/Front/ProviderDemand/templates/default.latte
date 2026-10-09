@@ -9,7 +9,25 @@
 <p>{$invitation->getResponseLabel()} · {$invitation->getDemand()->getStatusLabel()}</p>
 </article>
 {/foreach}
-<h2>Prijímanie dopytov</h2>
+<h2>Vaše realizácie</h2>
+{foreach $jobs as $job}
+<article class="bripeon-form-panel">
+<h3>{$job->getDemand()->getCity()->getFullname()} · {$job->getDemand()->getReference()}</h3>
+<p>{$job->getStatusLabel()} · {$job->getVerificationLabel()}</p>
+<p>{$job->getOutcomeLabel()} · {$job->getDescription()}</p>
+{if $job->getStatus() !== 'cancelled'}
+<p>Popretie spolupráce otvorí preverenie väzby na zákazku. Ak nesúhlasíte s hodnotením kvality, použite verejnú odpoveď pod recenziou.</p>
+{control "jobForm-{$job->getId()}"}
+{/if}
+{var $review = $reviewByJob[$job->getId()]}
+{if $review}
+<h4>Recenzia: {$review->getStatusLabel()}</h4><p>{$review->getRating()} / 5</p>
+<p style="white-space:pre-wrap">{$review->getText()}</p>
+{if $review->getReply()}<p>Vaša odpoveď: {$review->getReply()}</p>
+{elseif $review->getStatus() === 'published'}{control "replyForm-{$review->getId()}"}{/if}
+{/if}
+</article>
+{/foreach}<h2>Prijímanie dopytov</h2>
 <div class="bripeon-form-panel">{control profileForm}</div>
 <p><a n:href=":Front:ProviderDashboard:default">Späť na prehľad firmy</a></p>
 </div></section>

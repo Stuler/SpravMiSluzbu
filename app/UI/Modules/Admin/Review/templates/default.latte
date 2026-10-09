@@ -1,0 +1,14 @@
+{block #content}
+<h1>Recenzie na preverenie</h1>
+<p>Preverujte väzbu na zákazku cez podporu. Počet hviezdičiek a nesúhlas s kvalitou nie sú dôvodom na popretie spolupráce.</p>
+<p n:foreach="$reviews as $review"><a n:href="detail, id => $review->getId()">{$review->getJob()->getProvider()->getCompanyName()} · {$review->getRating()} / 5 · {$review->getJob()->getDemand()->getReference()}</a></p>
+<p><a n:if="$page > 1" n:href="this, page => $page - 1">Predchádzajúce</a> <a n:if="count($reviews) === 20" n:href="this, page => $page + 1">Ďalšie</a></p>
+<h2>Nahlásené spolupráce</h2>
+{foreach $jobs as $job}
+<article class="card p-3 mb-3"><h3>{$job->getProvider()->getCompanyName()}</h3>
+<p><a n:href=":Admin:Demand:detail, reference => $job->getDemand()->getReference()">{$job->getDemand()->getReference()}</a></p>
+<p>{$job->getStatusLabel()} · {$job->getVerificationLabel()}</p><p>{$job->getDisputeReason()}</p>
+{var $review = $reviewByJob[$job->getId()]}
+{if $review}<a n:href="detail, id => $review->getId()">Preveriť recenziu</a>{else}{control "resolveJobForm-{$job->getId()}"}{/if}
+</article>
+{/foreach}

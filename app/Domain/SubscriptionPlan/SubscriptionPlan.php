@@ -19,7 +19,7 @@ class SubscriptionPlan
 	#[ORM\Column(type: 'string', length: 100, unique: true)]
 	private string $name;
 
-	#[ORM\Column(type: 'string', length: 50)]
+	#[ORM\Column(name: '`interval`', type: 'string', length: 50)]
 	private string $interval; // e.g., monthly, yearly
 
 	#[ORM\Column(type: 'integer')]

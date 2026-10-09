@@ -41,6 +41,11 @@ services:
 	- App\Domain\User\UserFacade
 	- App\Domain\Customer\CustomerAccountFacade
 	- App\Domain\Demand\DemandFacade
+	- App\Infrastructure\Persistence\Doctrine\DoctrineJobRepository
+	- App\Infrastructure\Persistence\Doctrine\DoctrineReviewRepository
+	- App\Domain\Job\JobFacade
+	- App\Domain\Job\JobNotifications
+	- App\Domain\Review\ReviewFacade
 	- App\Domain\Matching\MatchingFacade(promptDirectory: %rootDir%/resources/prompts)
 	- App\Domain\Matching\InvitationFacade
 	- App\Infrastructure\OpenAI\ResponsesClient

@@ -28,11 +28,27 @@
 <li n:foreach="$invitations as $invitation">
 <strong>{$invitation->getProvider()->getCompanyName()}</strong>: {$invitation->getResponseLabel()}
 {if $invitation->getResponse() === 'accepted'}
-<p>{$invitation->getProvider()->getEmail()} · {$invitation->getProvider()->getPhoneNumber()}</p>
+<p>{$invitation->getProvider()->getEmail()} · {$invitation->getProvider()->getPhoneNumber()}</p><p><a n:href=":Front:ProviderProfile:detail, id => $invitation->getProvider()->getId()">Profil a recenzie</a></p>
+{if !$job && $demand->getStatus() !== 'closed'}{control "selectProviderForm-{$invitation->getId()}"}{/if}
 {/if}
 </li>
 </ul>
 {/if}
+<h2>Realizácia</h2>
+{if $job}
+<p><strong>{$job->getProvider()->getCompanyName()}</strong> · {$job->getStatusLabel()}</p>
+<p>{$job->getVerificationLabel()} · {$job->getOutcomeLabel()}</p>
+{if $job->getStatus() !== 'reported'}
+<p>Pri oznámení vykonaných alebo čiastočne vykonaných prác vyplňte dátum a opis. Voľba „Práce sa nezačali“ zruší dohodu.</p>
+{control workForm}
+{control cancelJobForm}
+{else}
+<p>{$job->getPerformedOn()|date:'d.m.Y'} · {$job->getDescription()}</p>
+{/if}
+{if $canReview}{control reviewForm}{/if}
+{if $review}<h3>Vaša recenzia: {$review->getStatusLabel()}</h3><p>{$review->getRating()} / 5</p><p style="white-space:pre-wrap">{$review->getText()}</p>{if $review->getDecisionReason()}<p>Dôvod rozhodnutia: {$review->getDecisionReason()}</p>{/if}{/if}
+{else}<p>Zatiaľ nemáte aktuálnu realizáciu. Vyberte poskytovateľa, s ktorým ste sa dohodli.</p>{/if}
+<details n:if="count($jobs)"><summary>História realizácií</summary><p n:foreach="$jobs as $pastJob">{$pastJob->getProvider()->getCompanyName()} · {$pastJob->getStatusLabel()}</p></details>
 {if $demand->getStatus() !== 'closed'}
 <details><summary>Službu už nepotrebujem</summary>
 <p>Uzavretím dopytu ukončíte jeho spracovanie.</p>

@@ -5,6 +5,11 @@ require __DIR__ . '/../../../../app/bootstrapConstants.php';
 \Tester\Environment::setup();
 
 $classes = [
+    \App\Domain\Job\JobFacade::class,
+    \App\Domain\Job\JobNotifications::class,
+    \App\Domain\Review\ReviewFacade::class,
+    \App\Infrastructure\Persistence\Doctrine\DoctrineJobRepository::class,
+    \App\Infrastructure\Persistence\Doctrine\DoctrineReviewRepository::class,
     \App\Domain\Customer\CustomerAccountFacade::class,
     \App\Domain\Demand\DemandFacade::class,
     \App\Domain\Matching\MatchingFacade::class,

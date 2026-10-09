@@ -10,9 +10,9 @@
 <h2>Pôvodné zadanie</h2>
 <p style="white-space: pre-wrap">{$demand->getDescription()}</p>
 <p>Požadovaný termín: {$demand->getRequestedTerm()}</p>
-{elseif $invitation->getResponse() === 'pending' && $demand->getStatus() !== 'closed'}
+{elseif $invitation->getResponse() === 'pending' && $demand->getStatus() !== 'closed' && !$demand->isMatchingStopped()}
 <p>Po potvrdení záujmu získate kontaktné údaje zákazníka. Záujem môžu potvrdiť najviac tri oslovené firmy.</p>
 <div class="bripeon-form-panel">{control responseForm}</div>
 {/if}
-<p><a n:href="default">Späť na dopyty</a></p>
+<p><a n:href="default">Dopyty, dohody a recenzie</a></p>
 </div></section>

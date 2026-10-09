@@ -27,6 +27,16 @@ $run = function (string $name, array $parameters, string $method = 'GET', array 
         $presenter->accounts = $accounts;
         $presenter->rateLimiter = $uiLimiter;
     }
+    $jobRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineJobRepository($em);
+    $reviewRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineReviewRepository($em);
+    $demandRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineDemandRepository($em);
+    $providerRepository = new \App\Infrastructure\Persistence\Doctrine\DoctrineProviderRepository($em);
+    $notifications = new \App\Domain\Job\JobNotifications(new \App\Model\Mail\MailSender($factory), $links);
+    $jobFacade = new \App\Domain\Job\JobFacade($em, $demands, $demandRepository, $jobRepository, new \App\Infrastructure\Persistence\Doctrine\DoctrineInvitationRepository($em), $invitations, $providerRepository, $reviewRepository, $notifications);
+    $reviewFacade = new \App\Domain\Review\ReviewFacade($em, $jobFacade, $jobRepository, $reviewRepository, $invitations, $providerRepository, $demandRepository, $demands, new \App\Domain\Admin\AdminAuditFacade($em, $security), $notifications);
+    if (property_exists($presenter, 'jobs')) { $presenter->jobs = $jobFacade; }
+    if (property_exists($presenter, 'reviews')) { $presenter->reviews = $reviewFacade; }
+    if ($presenter instanceof \App\UI\Modules\Front\ProviderProfile\ProviderProfilePresenter) { $presenter->providers = $invitations; }
     if (property_exists($presenter, 'demands')) { $presenter->demands = $demands; }
     if (property_exists($presenter, 'invitations')) { $presenter->invitations = $invitations; }
     if (property_exists($presenter, 'matching')) { $presenter->matching = $matching; }
@@ -161,4 +171,3 @@ $run('Front:UserSign', ['action' => 'reset', 'do' => 'resetForm-submit'], 'POST'
 $session->close();
 foreach (glob($uiRateDirectory . '/*.json') ?: [] as $file) { unlink($file); }
 if (is_dir($uiRateDirectory)) { rmdir($uiRateDirectory); }
-

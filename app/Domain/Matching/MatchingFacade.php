@@ -117,7 +117,7 @@ final class MatchingFacade
 		if ($categoryId && (!$category instanceof CategoryService || !$category->isSelectable())) { throw new \InvalidArgumentException('Unknown category.'); }
 		$requeued = $this->em->wrapInTransaction(function () use ($demand, $category): bool {
 			$this->demands->refreshForUpdate($demand);
-			if ($demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED) { return false; }
+			if ($demand->isMatchingStopped() || $demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED) { return false; }
 			$demand->requeue($category);
 			return true;
 		});
@@ -131,7 +131,7 @@ final class MatchingFacade
 		}
 		$approved = $this->em->wrapInTransaction(function () use ($demand, $providerIds): bool {
 			$this->demands->refreshForUpdate($demand);
-			if ($demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED || $demand->getCategory() === null) { return false; }
+			if ($demand->isMatchingStopped() || $demand->getVerifiedAt() === null || $demand->getStatus() === Demand::CLOSED || $demand->getCategory() === null) { return false; }
 			$this->applySelection($demand, ['status' => Demand::INVITED, 'note' => 'Poskytovateľov vybral administrátor.',
 				'summary' => $demand->getServiceSummary() ?: $demand->getCategory()->getName() . '. Zadanie skontroloval administrátor.',
 				'category_ids' => [$demand->getCategory()->getId()], 'selection' => array_map(fn($id): array => ['provider_id' => (int) $id, 'reason' => 'Vybral administrátor.'], $providerIds)]);
@@ -142,6 +142,7 @@ final class MatchingFacade
 
 	private function applySelection(Demand $demand, array $result): void
 	{
+		if ($demand->isMatchingStopped()) { throw new \InvalidArgumentException('Matching stopped after provider selection.'); }
 		$existing = $this->invitations($demand);
 		$existingIds = array_map(fn(ProviderInvitation $i): int => $i->getProvider()->getId(), $existing);
 		$eligible = [];

@@ -14,6 +14,9 @@ final class DemandPresenter extends CustomerBasePresenter
 	public DemandFacade $demands;
 	#[Inject]
 	public \App\Domain\Matching\InvitationFacade $invitations;
+	#[Inject] public \App\Domain\Job\JobFacade $jobs;
+	#[Inject] public \App\Domain\Review\ReviewFacade $reviews;
+	private ?\App\Domain\Job\Job $job = null;
 	private ?Demand $demand = null;
 
 	public function actionCreate(): void
@@ -52,6 +55,11 @@ final class DemandPresenter extends CustomerBasePresenter
 		}
 		$this->demand = $demand;
 		$this->template->demand = $demand;
+		$this->job = $this->jobs->current($demand);
+		$this->template->job = $this->job;
+		$this->template->jobs = $this->jobs->forDemand($demand);
+		$this->template->review = $this->job ? $this->reviews->forJob($this->job) : null;
+		$this->template->canReview = $this->job && $this->reviews->canReview($this->job, $this->currentCustomer(), $this->accessHash($reference));
 		$this->template->invitations = $this->invitations->forDemand($demand);
 	}
 
@@ -129,6 +137,56 @@ final class DemandPresenter extends CustomerBasePresenter
 		return $form;
 	}
 
+	    protected function createComponentSelectProviderForm(): \Nette\Application\UI\Multiplier
+    {
+        return new \Nette\Application\UI\Multiplier(function (string $id): BaseForm {
+            $form = $this->customerForm(); $form->addSubmit('submit', 'Dohodli sme sa');
+            $form->onSuccess[] = function (BaseForm $form) use ($id): void {
+                try { $this->jobs->select($this->demand, (int) $id, $this->currentCustomer(), $this->accessHash($this->demand->getReference())); }
+                catch (\InvalidArgumentException $e) { $form->addError('Poskytovateľa nemožno vybrať. Obnovte stránku a skontrolujte aktuálnu realizáciu.'); return; }
+                $this->redirect('this');
+            }; return $form;
+        });
+    }
+    protected function createComponentCancelJobForm(): BaseForm
+    {
+        $form = $this->customerForm(); $form->addSubmit('submit', 'Zrušiť dohodu a vybrať náhradu');
+        $form->onSuccess[] = function (BaseForm $form): void {
+            if ($this->job === null) { $form->addError('Realizácia už nie je aktuálna.'); return; }
+            try { $this->jobs->cancel($this->job->getId(), $this->currentCustomer(), $this->accessHash($this->demand->getReference())); }
+            catch (\InvalidArgumentException $e) { $form->addError('Dohodu už nemožno zrušiť.'); return; }
+            $this->redirect('this');
+        }; return $form;
+    }
+    protected function createComponentWorkForm(): BaseForm
+    {
+        $form = $this->customerForm();
+        $form->addRadioList('outcome', 'Ako prebiehajú práce?', ['completed' => 'Práce prebehli', 'partial' => 'Práce prebehli čiastočne', 'ongoing' => 'Práce ešte prebiehajú', 'not_started' => 'Práce sa nezačali'])->setRequired();
+        $form->addText('date', 'Dátum vykonaných prác')->setHtmlType('date');
+        $form->addTextArea('description', 'Stručný opis vykonaných prác')->addRule($form::MAX_LENGTH, 'Najviac 1 000 znakov.', 1000);
+        $form->addSubmit('submit', 'Uložiť výsledok');
+        $form->onSuccess[] = function (BaseForm $form): void {
+            if ($this->job === null) { $form->addError('Realizácia už nie je aktuálna.'); return; }
+            $v = $form->getValues();
+            try { $this->jobs->report($this->job->getId(), $this->currentCustomer(), $this->accessHash($this->demand->getReference()), $v->outcome, $v->date, $v->description); }
+            catch (\InvalidArgumentException $e) { $form->addError('Pri vykonaných prácach uveďte platný dátum, ktorý nie je v budúcnosti, a stručný opis.'); return; }
+            $this->flashSuccess('Výsledok realizácie je uložený.'); $this->redirect('this');
+        }; return $form;
+    }
+    protected function createComponentReviewForm(): BaseForm
+    {
+        $form = $this->customerForm();
+        $form->addRadioList('rating', 'Hodnotenie', [1 => '1 – Veľmi nespokojný', 2 => '2', 3 => '3', 4 => '4', 5 => '5 – Veľmi spokojný'])->setRequired();
+        $form->addTextArea('text', 'Vaša skúsenosť')->setRequired()->addRule($form::MAX_LENGTH, 'Najviac 3 000 znakov.', 3000);
+        $form->addSubmit('submit', 'Odoslať recenziu');
+        $form->onSuccess[] = function (BaseForm $form): void {
+            if ($this->job === null) { $form->addError('Realizácia nie je dostupná.'); return; }
+            $v = $form->getValues();
+            try { $this->reviews->submit($this->job->getId(), $this->currentCustomer(), $this->accessHash($this->demand->getReference()), (int) $v->rating, $v->text); }
+            catch (\InvalidArgumentException $e) { $form->addError('Recenziu možno odoslať až po oznámení vykonaných alebo čiastočne vykonaných prác.'); return; }
+            $this->flashSuccess('Recenzia bola uložená.'); $this->redirect('this');
+        }; return $form;
+    }
 	private function accessHash(string $reference): ?string
 	{
 		$value = $this->session->getSection('demandAccess')[$reference];

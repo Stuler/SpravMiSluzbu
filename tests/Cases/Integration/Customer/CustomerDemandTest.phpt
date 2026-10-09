@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
-// This suite creates a transient SQLite database. It never loads local.neon or sends mail.
+// Transient SQLite by default; explicit --local-mysql-docker uses a disposable local database.
+// This suite never loads local.neon, calls external APIs or sends real mail.
 require __DIR__ . '/../../../../vendor/autoload.php';
 require __DIR__ . '/../../../../app/bootstrapConstants.php';
 \Tester\Environment::setup();
@@ -32,8 +33,9 @@ $config = ORMSetup::createAttributeMetadataConfiguration([APP_DIR . '/Domain'], 
     \Doctrine\Common\Cache\Psr6\CacheAdapter::wrap(new \Doctrine\Common\Cache\ArrayCache()));
 $config->setNamingStrategy(new \Doctrine\ORM\Mapping\UnderscoreNamingStrategy());
 $config->setAutoGenerateProxyClasses(\Doctrine\Common\Proxy\AbstractProxyFactory::AUTOGENERATE_EVAL);
-$em = new EntityManagerDecorator(EntityManager::create(['driver' => 'pdo_sqlite', 'memory' => true], $config));
-$classes = [User::class, LoginRole::class, StateUser::class, Region::class, District::class, City::class, CategoryService::class, CustomerToken::class, Demand::class,
+$mysqlDatabase = in_array('--local-mysql-docker', $argv, true) ? new \Tests\Toolkit\LocalMysqlDatabase() : null;
+$em = new EntityManagerDecorator(EntityManager::create($mysqlDatabase?->parameters() ?? ['driver' => 'pdo_sqlite', 'memory' => true], $config));
+$classes = [\App\Domain\Job\Job::class, \App\Domain\Review\Review::class, User::class, LoginRole::class, StateUser::class, Region::class, District::class, City::class, CategoryService::class, CustomerToken::class, Demand::class,
     \App\Domain\Provider\Provider::class, \App\Domain\StateProvider\StateProvider::class, \App\Domain\ProviderRegion\ProviderRegion::class,
     \App\Domain\ProviderServiceCategory\ProviderServiceCategory::class, \App\Domain\Matching\ProviderInvitation::class, \App\Domain\Matching\AiRun::class, \App\Domain\Admin\AdminAudit::class,
     \App\Domain\Subscription\Subscription::class, \App\Domain\SubscriptionPlan\SubscriptionPlan::class, \App\Domain\StateSubscription\StateSubscription::class];
@@ -202,7 +204,10 @@ try {
 require __DIR__ . '/customer-ui-checks.php';
 require __DIR__ . '/../Matching/matching-checks.php';
 require __DIR__ . '/../Subscription/subscription-checks.php';
+ob_start();
 require __DIR__ . '/../Admin/admin-checks.php';
+require __DIR__ . '/../Review/review-checks.php';
 require __DIR__ . '/../DDD/transaction-checks.php';
 require __DIR__ . '/../DDD/registration-conflict-checks.php';
 echo "Customer, demand, matching, invitation and UI checks passed.\n";
+ob_end_flush();

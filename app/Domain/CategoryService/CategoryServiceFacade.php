@@ -67,7 +67,9 @@ readonly class CategoryServiceFacade
     {
         $categories = $this->em->createQueryBuilder()->select('c')->from(CategoryService::class, 'c')->orderBy('c.id', 'ASC')
             ->getQuery()->setLockMode(LockMode::PESSIMISTIC_WRITE)->getResult();
-        foreach ($categories as $category) { $this->em->refresh($category); }
+        // Under REPEATABLE READ an ordinary refresh can reuse a snapshot from before
+        // another hierarchy edit committed. Validate against current locked rows.
+        foreach ($categories as $category) { $this->em->refresh($category, LockMode::PESSIMISTIC_WRITE); }
         return $categories;
     }
     private function change(callable $operation): void

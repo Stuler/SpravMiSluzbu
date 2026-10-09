@@ -17,7 +17,7 @@ class Region
 	#[ORM\Column(type: 'string', length: 2)]
 	private string $shortcut;
 
-	#[ORM\Column(type: 'boolean', options: ['default' => 1])]
+	#[ORM\Column(name: '`use`', type: 'boolean', options: ['default' => 1])]
 	private bool $use;
 
 	// Getters and setters...

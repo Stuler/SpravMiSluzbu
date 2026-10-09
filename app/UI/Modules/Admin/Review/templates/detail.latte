@@ -1,0 +1,11 @@
+{block #content}
+{var $job = $review->getJob()}
+<h1>Preverenie recenzie</h1>
+<p><a n:href=":Admin:Demand:detail, reference => $job->getDemand()->getReference()">Dopyt {$job->getDemand()->getReference()}</a> · {$job->getProvider()->getCompanyName()}</p>
+<p>Výber: {$job->getSelectedAt()|date:'d.m.Y H:i'} · Potvrdenie: {$job->getConfirmedAt()?->format('d.m.Y H:i') ?? 'Nepotvrdené'}</p>
+<p>{$job->getStatusLabel()} · {$job->getVerificationLabel()} · {$job->getOutcomeLabel()}</p>
+<p>Dátum prác: {$job->getPerformedOn()?->format('d.m.Y')}</p><p>{$job->getDescription()}</p><p>{$job->getDisputeReason()}</p>
+<p><strong>{$review->getRating()} / 5 · {$review->getStatusLabel()}</strong></p><p style="white-space:pre-wrap">{$review->getText()}</p>
+{if $review->getStatus() === 'pending'}{control decisionForm}{/if}
+{if $review->getDecidedBy()}<p>Rozhodol: {$review->getDecidedBy()->getFullName()} · {$review->getDecidedAt()|date:'d.m.Y H:i'} · {$review->getDecisionReason()}</p>{/if}
+<p><a n:href="default">Späť na preverenie</a></p>

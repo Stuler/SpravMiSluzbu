@@ -36,12 +36,12 @@ final class InvitationFacade
 	public function respond(int $id, Provider $provider, bool $accept): void
 	{
 		$invitation = $this->findForProvider($id, $provider);
-		if ($invitation === null || $invitation->getDemand()->getStatus() === Demand::CLOSED) { throw new \InvalidArgumentException('Invitation access denied.'); }
+		if ($invitation === null || ($invitation->getDemand()->isMatchingStopped() || $invitation->getDemand()->getStatus() === Demand::CLOSED)) { throw new \InvalidArgumentException('Invitation access denied.'); }
 		$answered = $this->em->wrapInTransaction(function () use ($invitation, $provider, $accept): bool {
 			$this->demands->refreshForUpdate($invitation->getDemand());
 			$this->invitationRepository->refreshForUpdate($invitation);
 			$this->providers->refreshForUpdate($provider);
-			if ($this->activeProvider($provider->getId()) === null || $invitation->getDemand()->getStatus() === Demand::CLOSED) {
+			if ($this->activeProvider($provider->getId()) === null || ($invitation->getDemand()->isMatchingStopped() || $invitation->getDemand()->getStatus() === Demand::CLOSED)) {
 				return false;
 			}
 			$invitation->answer($accept);
@@ -69,35 +69,38 @@ final class InvitationFacade
 			return $i;
 		});
 		if ($invitation === null) { return false; }
-		$this->em->refresh($invitation->getDemand());
-		$this->em->refresh($invitation->getProvider());
-		$provider = $invitation->getProvider();
-		if ($invitation->getDemand()->getStatus() === Demand::CLOSED || $this->activeProvider($provider->getId()) === null || !$provider->acceptsDemands()) {
-			$invitation->cancelDelivery();
-		} else {
-			try {
-				$this->mail->sendCustomerLink($provider->getEmail(), 'Nový dopyt na službu na Bripeone',
-					'Vo vašej oblasti je nový dopyt. Po prihlásení si pozrite zadanie a potvrďte záujem.',
-					$this->links->link('Front:ProviderDemand:detail', ['id' => $invitation->getId()]));
-				$invitation->markDelivered();
-			} catch (\Throwable $e) {
-				// SMTP failures may occur after delivery. Do not silently resend an ambiguous message.
-				$invitation->markDeliveryUnknown();
+		// Serialize delivery with selection: a committed selection must prevent new outreach.
+		$this->em->wrapInTransaction(function () use ($invitation): void {
+			$this->demands->refreshForUpdate($invitation->getDemand());
+			$this->invitationRepository->refreshForUpdate($invitation);
+			$this->providers->refreshForUpdate($invitation->getProvider());
+			$provider = $invitation->getProvider();
+			if (($invitation->getDemand()->isMatchingStopped() || $invitation->getDemand()->getStatus() === Demand::CLOSED) || $this->activeProvider($provider->getId()) === null || !$provider->acceptsDemands()) {
+				$invitation->cancelDelivery();
+			} else {
+				try {
+					$this->mail->sendCustomerLink($provider->getEmail(), 'Nový dopyt na službu na Bripeone',
+						'Vo vašej oblasti je nový dopyt. Po prihlásení si pozrite zadanie a potvrďte záujem.',
+						$this->links->link('Front:ProviderDemand:detail', ['id' => $invitation->getId()]));
+					$invitation->markDelivered();
+				} catch (\Throwable $e) {
+					// SMTP failures may occur after delivery. Do not silently resend an ambiguous message.
+					$invitation->markDeliveryUnknown();
+				}
 			}
-		}
-		$this->em->flush();
+		});
 		return true;
 	}
 	public function retryDelivery(int $id, Demand $demand): void
 	{
 		$i = $this->invitationRepository->find($id);
-		if (!$i instanceof ProviderInvitation || $i->getDemand()->getId() !== $demand->getId() || $demand->getStatus() === Demand::CLOSED) {
+		if (!$i instanceof ProviderInvitation || $i->getDemand()->getId() !== $demand->getId() || ($demand->isMatchingStopped() || $demand->getStatus() === Demand::CLOSED)) {
 			throw new \InvalidArgumentException('Invalid invitation.');
 		}
 		$retried = $this->em->wrapInTransaction(function () use ($i, $demand): bool {
 			$this->demands->refreshForUpdate($demand);
 			$this->invitationRepository->refreshForUpdate($i);
-			if ($demand->getStatus() === Demand::CLOSED || !$i->canRetryDelivery()) { return false; }
+			if (($demand->isMatchingStopped() || $demand->getStatus() === Demand::CLOSED) || !$i->canRetryDelivery()) { return false; }
 			$i->retryDelivery();
 			return true;
 		});

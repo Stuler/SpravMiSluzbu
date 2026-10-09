@@ -13,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 class Demand
 {
 	use TId;
+	#[ORM\Column(type: 'boolean', options: ['default' => false])]
+	private bool $matchingStopped = false;
+	public function isMatchingStopped(): bool { return $this->matchingStopped; }
+	public function stopMatching(): void { $this->matchingStopped = true; $this->leaseToken = null; $this->leaseUntil = null; $this->processAfter = null; }
 	public const PENDING = 'pending_verification';
 	public const READY = 'ready';
 	public const CLOSED = 'closed';
@@ -93,6 +97,7 @@ class Demand
 	public function getAccessTokenHash(): ?string { return $this->accessTokenHash; }
 	public function getStatusLabel(): string
 	{
+		if ($this->matchingStopped && $this->status !== DemandStatus::Closed) { return 'Poskytovateľ vybraný'; }
 		return match ($this->status->value) {
 			self::PENDING => 'Čaká na overenie e-mailu',
 			self::READY => 'Čaká na spracovanie',
@@ -142,7 +147,7 @@ class Demand
 	public function claimProcessing(?\DateTimeImmutable $now = null): string
 	{
 		$now ??= new \DateTimeImmutable();
-		if ($this->status !== DemandStatus::Ready || $this->verifiedAt === null
+		if ($this->matchingStopped || $this->status !== DemandStatus::Ready || $this->verifiedAt === null
 			|| ($this->processAfter !== null && $this->processAfter > $now)
 			|| ($this->leaseUntil !== null && $this->leaseUntil > $now)) {
 			throw new \InvalidArgumentException('Demand is not available for processing.');
@@ -153,7 +158,7 @@ class Demand
 	}
 	public function ownsLease(string $lease, ?\DateTimeImmutable $now = null): bool
 	{
-		return $this->status === DemandStatus::Ready && $this->leaseToken === $lease && $this->leaseUntil !== null
+		return !$this->matchingStopped && $this->status === DemandStatus::Ready && $this->leaseToken === $lease && $this->leaseUntil !== null
 			&& $this->leaseUntil > ($now ?? new \DateTimeImmutable());
 	}
 	public function scheduleRetry(string $note, ?string $summary = null, ?\DateTimeImmutable $now = null): void
@@ -172,7 +177,7 @@ class Demand
 
 	private function completeMatching(DemandStatus $status, string $note, ?string $summary, ?\DateTimeImmutable $now): void
 	{
-		if ($this->status === DemandStatus::Closed) { return; }
+		if ($this->matchingStopped || $this->status === DemandStatus::Closed) { return; }
 		if ($this->verifiedAt === null) { throw new \InvalidArgumentException('Only verified demands can be matched.'); }
 		$this->status = $status;
 		$this->processingNote = mb_substr($note, 0, 255);
@@ -186,7 +191,7 @@ class Demand
 	public function getServiceSummary(): ?string { return $this->serviceSummary; }
 	public function requeue(?CategoryService $category): void
 	{
-		if ($this->verifiedAt === null || $this->status === DemandStatus::Closed) {
+		if ($this->matchingStopped || $this->verifiedAt === null || $this->status === DemandStatus::Closed) {
 			throw new \InvalidArgumentException('Only open verified demands can be requeued.');
 		}
 		$this->category = $category;

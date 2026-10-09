@@ -25,7 +25,7 @@ class District
 	#[ORM\JoinColumn(name: 'region_id', referencedColumnName: 'id')]
 	private Region $region;
 
-	#[ORM\Column(type: 'boolean', options: ['default' => 1])]
+	#[ORM\Column(name: '`use`', type: 'boolean', options: ['default' => 1])]
 	private bool $use;
 
 	// Getters and setters...

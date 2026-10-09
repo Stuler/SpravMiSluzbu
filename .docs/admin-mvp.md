@@ -14,18 +14,19 @@ Administrative blocking is stored independently from email verification. Blockin
 
 Audit records contain actor, timestamp, target, operation and explicit metadata such as changed category/region IDs. They contain no passwords, tokens or token-bearing links. Email audit operations record a request, not a guarantee of delivery; provider activation retains the existing five-minute cooldown and ambiguous delivery handling.
 
-## Manual migration sequence
+## Migration sequence
 
-On a separately approved test environment, take a backup and apply the existing migration chain in order, including:
+Apply the existing migration chain in order, including the versions below. Local migration execution requires authorization and a backup. Beta runs pending migrations during deployment; this strategy was explicitly approved on 2026-10-09. Production remains manual.
 
 1. `Version20260618120000`: provider activation tokens.
 2. `Version20261007120000`: customer tokens, session versions and demands.
 3. `Version20261007130000`: provider availability, matching, AI runs and invitations.
 4. `Version20261007140000`: independent administrative blocks, provider session versions and administrative audit.
+5. `Version20261008140000`: jobs/reviews required by the current integrated checkout; see `verified-provider-reviews.md`.
 
 The new migration moves legacy blocked states into the independent block flag. An existing activation timestamp restores the verification state to active; without that timestamp the account remains fresh. Every legacy blocked account stays blocked after migration. Review these conservative conversions before applying the migration. The migration has no automatic down path because verification and audit history must not be discarded.
 
-No migration, test-environment deployment or production operation was performed as part of this implementation. Existing CI migration behaviour was not changed.
+Initial implementation did not apply migrations. On 2026-10-09, following explicit authorization, the four pending migrations from `Version20261007120000` through `Version20261008140000` were manually applied to local Docker database `sprav_mi_sluzbu` on MySQL 8.0.46. A private pre-migration dump was saved in the host's temporary directory as `bripeon-before-mvp-20261009.sql`. All 15 available migrations are recorded as executed. No beta/production deployment or migration was performed; CI migration behaviour was not changed.
 
 ## Automated checks
 
@@ -39,15 +40,33 @@ It includes `Admin/admin-checks.php`, covering real presenter/Latte rendering, p
 
 The isolated suite completed successfully on PHP 8.3.7, including real rendering of all new admin screens and protected administrator login/logout. PHP syntax checks also passed. Docker Compose configuration validation passed. No real email was sent.
 
-## Remaining environment verification
+## Docker and MySQL verification, 2026-10-09
 
-Docker Desktop's Linux engine was unavailable and localhost:8082 was not serving the application. Docker Compose configuration was validated, but PHP checks and the isolated suite use the available PHP 8.3.7 runtime rather than Docker PHP 8.2. The runtime reports the existing duplicate Xdebug loading warning.
+Checks now pass on Docker PHP 8.2.31 and MySQL 8.0.46:
 
-Before release, verify in the real Docker PHP 8.2 and target MySQL/MariaDB environment:
+- The complete customer/matching/admin/review/transaction integration suite passes on both SQLite and a disposable MySQL database, with synthetic data, fake AI and captured mail. Real presenters, forms and templates are exercised; no application account or credential is needed.
+- Actual service configuration compiles in `ServiceWiringTest.phpt`; scoped PHPStan level 6 passes. This is not repository-wide level 9 coverage.
+- `AdminMysqlTest.phpt` executes the actual admin migration against synthetic legacy tables. Both verified and unverified blocked accounts retain their block; active/fresh accounts remain unchanged. The application database had no legacy blocked rows, so this conversion required synthetic fixtures.
+- Two independent PHP processes verify competing reciprocal category moves and retirement racing with a category move at MySQL REPEATABLE READ isolation. The test originally reproduced a cycle: ordinary ORM refresh reused an older snapshot after a locking read. Refresh now also uses a write lock, so validation sees current committed rows. Reciprocal moves are rejected and retirement includes the newly moved descendant.
+- The full MySQL suite exposed unquoted reserved column names `use` in location entities and `interval` in the inactive subscription model. Explicit Doctrine quoting fixes writes without renaming columns or enabling billing.
+- The existing Nginx container had no network attachment. Recreating only Nginx restored the local site without replacing the database volume. Public form/login routes return HTTP 200; unauthenticated protected admin routes redirect to admin login.
+- `HttpWorkflowTest.phpt` starts an isolated loopback PHP HTTP server using actual application configuration plus explicit synthetic-database/file-mail overrides; it never loads `local.neon`. Real HTTP cookies and CSRF forms exercise administrator login, provider profile/coverage editing, guest demand creation, a captured email verification link, administrative provider selection, a captured invitation, provider login/acceptance and administrator inspection. Contact fields are hidden before acceptance and visible afterwards. This tests the manual-selection branch, not live AI or external SMTP. It is an HTTP regression test, not visual/browser-JavaScript coverage.
 
-- Migration syntax and legacy block conversion using an approved test database backup.
-- All admin routes and public/provider session revocation, including two concurrent category edits.
-- Approved test email delivery and recovery, including the activation cooldown and ambiguous SMTP outcomes.
-- Full flow: update provider -> create demand -> select providers -> send invitation -> respond -> review in administration.
+Repeatable opt-in checks inside the local project Docker environment:
 
-Use a separate test domain, database, secrets and mail recipients. Apply migrations manually only after the test environment and migration operation are explicitly agreed. This implementation does not enable automatic migrations or production mail.
+```sh
+docker compose exec -T php php tests/Cases/Integration/MySql/AdminMysqlTest.phpt --local-docker
+docker compose exec -T php php tests/Cases/Integration/Customer/CustomerDemandTest.phpt --local-mysql-docker
+docker compose exec -T php php tests/Cases/Integration/MySql/HttpWorkflowTest.phpt --local-docker
+```
+
+These commands use the explicit local Compose endpoint and development credentials, never `config/local.neon`. They create randomly named `bripeon_admin_test_*` / `bripeon_workflow_test_*` databases and delete only their own database afterwards. Do not run them on a shared or production Docker network. The default customer-suite command still uses SQLite. Application schema migration is separate from these synthetic tests.
+
+## Remaining rollout verification
+
+- Real SMTP delivery to designated test accounts, including provider activation cooldown, ambiguous delivery recovery, and the full flow through the browser with those accounts.
+- Live AI quality evaluation remains separate from deterministic fake-AI workflow tests.
+- Deployment-specific checks on beta/production, and MariaDB verification if that is the selected deployment engine. Local MySQL results do not establish MariaDB compatibility.
+- Authenticated routes were exercised through both presenters and an isolated HTTP server with synthetic MySQL fixtures; the HTTP smoke check on the migrated application used anonymous requests only.
+
+Use a separate test domain, database, secrets and mail recipients. Automatic migrations on beta are approved; see `rosti-test-deploy.md` for the existing deployment workflow. Production migrations and real email verification still require separately agreed operations.

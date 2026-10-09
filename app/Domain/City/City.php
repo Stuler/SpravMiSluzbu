@@ -30,7 +30,7 @@ class City
 	#[ORM\JoinColumn(name: 'district_id', referencedColumnName: 'id')]
 	private District $district;
 
-	#[ORM\Column(type: 'boolean', options: ['default' => 1])]
+	#[ORM\Column(name: '`use`', type: 'boolean', options: ['default' => 1])]
 	private bool $use;
 
 	// Getters and setters...

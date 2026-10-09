@@ -1,0 +1,18 @@
+{block #content}
+<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<h1>{$provider->getCompanyName()}</h1>
+<p style="white-space:pre-wrap">{$provider->getServiceDescription()}</p>
+<h2>Overené recenzie</h2>
+{if $summary['count']}<p>Priemer {$summary['average']|number:1} / 5 · Počet recenzií: {$summary['count']}</p>
+{else}<p>Poskytovateľ zatiaľ nemá zverejnené recenzie.</p>{/if}
+{foreach $reviews as $review}
+{var $job = $review->getJob()}
+<article class="bripeon-form-panel">
+<p><strong>{$review->getRating()} / 5</strong> · {$job->getPerformedOn()|date:'m/Y'} · {$job->getDemand()->getCategory()?->getName() ?? 'Služba'}</p>
+<p>{$job->getOutcomeLabel()} · {$job->getVerificationLabel()}</p>
+<p style="white-space:pre-wrap">{$review->getText()}</p>
+{if $review->getReply()}<h3>Odpoveď poskytovateľa</h3><p style="white-space:pre-wrap">{$review->getReply()}</p>{/if}
+</article>
+{/foreach}
+<p><a n:if="$page > 1" n:href="this, page => $page - 1">Predchádzajúce recenzie</a> <a n:if="$page * 20 < $summary['count']" n:href="this, page => $page + 1">Ďalšie recenzie</a></p>
+</div></section>

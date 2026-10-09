@@ -1,6 +1,6 @@
 # Implementačný plán: prevádzková administrácia MVP
 
-Stav: implementované v pracovnom strome. Izolované integračné testy a kontroly syntaxe prešli na PHP 8.3.7. Overenie v Docker PHP 8.2, MySQL/MariaDB a nasadenie do dohodnutého testovacieho prostredia zostávajú otvorené. Podrobnosti a poradie migrácií: [admin-mvp.md](admin-mvp.md).
+Stav: implementované a lokálne overené v Docker PHP 8.2.31 a MySQL 8.0.46. Dňa 9. 10. 2026 boli po autorizácii a zálohe aplikované chýbajúce migrácie na lokálnu databázu. Prešli integračné testy so zachytávanými e-mailmi, prevod pôvodných blokovaných účtov na syntetických dátach aj test súbežných úprav kategórií. Reálne SMTP, živé AI a nasadenie mimo lokálneho Dockeru zostávajú otvorené. Podrobnosti: [admin-mvp.md](admin-mvp.md).
 
 ## Cieľ
 
@@ -124,12 +124,14 @@ Pred implementáciou stavových operácií preveriť aktuálny model aktivácie 
 ### Testovacie prostredie
 
 - [x] Pripraviť potrebné migrácie v `db/Migrations` a zdokumentovať ich poradie.
-- [ ] Migrácie aplikovať manuálne až v dohodnutom testovacom prostredí.
-- [ ] Overiť správanie s cieľovou verziou MySQL/MariaDB a reálnym aplikačným kontajnerom.
+- [x] Migrácie aplikovať manuálne v odsúhlasenom lokálnom Dockeri po zálohe.
+- [x] Overiť správanie v Docker PHP 8.2 a MySQL 8.0; prípadné nasadenie na MariaDB potrebuje samostatné overenie.
 - [ ] Overiť e-maily iba s určenými testovacími účtami.
-- [ ] Prejsť celý scenár: úprava poskytovateľa → dopyt → výber → pozvánka → reakcia → kontrola administrátorom.
+- [x] Overiť scenáre poskytovateľa, dopytu, výberu, pozvánok, reakcií a administrácie na syntetickej MySQL databáze s falošnou AI a zachytávanými e-mailmi.
+- [x] Overiť celý HTTP scenár s prihlásením, cookies, CSRF, úpravou firmy, dopytom hosťa, overovacím e-mailom, ručným výberom firmy, pozvánkou a reakciou. E-maily sa zachytávajú do súborov; tento test neoveruje SMTP ani vizuálne správanie prehliadača.
+- [ ] Prejsť celý scenár cez prehliadač s určenými testovacími účtami a reálnym doručením e-mailov.
 
-Automatické migrácie na testovacom ani produkčnom prostredí nie sú súčasťou plánu. Testovacie prostredie musí používať vlastnú databázu a tajné údaje.
+Automatické migrácie pri nasadení vetvy `beta` na Roští boli výslovne odsúhlasené 2026-10-09. Produkčné migrácie zostávajú manuálne. Testovacie prostredie musí používať vlastnú databázu a tajné údaje.
 
 ## Mimo rozsahu tejto etapy
 

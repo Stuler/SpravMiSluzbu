@@ -23,7 +23,7 @@ final class DoctrineDemandRepository implements DemandRepository
     public function nextReadyForUpdate(\DateTimeImmutable $now): ?Demand
     {
         $demand = $this->em->createQueryBuilder()->select('d')->from(Demand::class, 'd')
-            ->where('d.status = :status AND d.verifiedAt IS NOT NULL')
+            ->where('d.status = :status AND d.verifiedAt IS NOT NULL AND d.matchingStopped = false')
             ->andWhere('(d.processAfter IS NULL OR d.processAfter <= :now) AND (d.leaseUntil IS NULL OR d.leaseUntil <= :now)')
             ->setParameter('status', Demand::READY)->setParameter('now', $now)->orderBy('d.id', 'ASC')->setMaxResults(1)
             ->getQuery()->setLockMode(LockMode::PESSIMISTIC_WRITE)->getOneOrNullResult();

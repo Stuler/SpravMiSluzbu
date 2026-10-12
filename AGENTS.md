@@ -311,6 +311,7 @@ Read the relevant feature document before changing its workflow:
 - [DDD implementation series](.docs/ddd-pr1-4.md): completed refactor scope, repeatable checks, and remaining concurrency verification.
 - [Verified provider reviews](.docs/verified-provider-reviews.md): pending Job/Review implementation, migration, pilot gates, and limitations.
 - [Roští test deployment](.docs/rosti-test-deploy.md): beta configuration and operations.
+- [Public site design](.docs/frontend-design.md): front-end tokens, fonts, components, and behavior that tests and deploy checks depend on.
 - [README](README.md) and [architecture overview](architecture.md): general orientation; older billing/workflow descriptions need to be checked against current code and the feature documents above.
 
 Keep workflow documentation aligned with code changes. Distinguish implemented

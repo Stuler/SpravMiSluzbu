@@ -4,65 +4,71 @@
 	<!-- Favicons -->
 	<link href="{$basePath}/assets_front/img/favicon.png" rel="icon">
 	<link href="{$basePath}/assets_front/img/apple-touch-icon.png" rel="apple-touch-icon">
+	<meta name="theme-color" content="#0d6f50">
 
-	<!-- Fonts -->
-	<link href="https://fonts.googleapis.com" rel="preconnect">
-	<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-
-	<!-- Main CSS File -->
+	<!-- Main CSS File (fonts are bundled, no third-party font host) -->
 	<link href="{$basePath}/bundle/front.bundle.css" rel="stylesheet">
 {/}
 
 {block #main}
-	<header id="header" class="header bripeon-header sticky-top">
-		<div class="branding bripeon-branding">
-			<div class="container position-relative d-flex align-items-center justify-content-between">
-				<a n:href="Home:" class="bripeon-logo-link d-flex align-items-center" aria-label="Bripeon domov">
-					<span class="bripeon-logo-mark">B</span>
-					<span class="sitename">Bripeon</span>
-				</a>
+	{include '@icons.latte'}
 
-				<nav id="navmenu" class="navmenu bripeon-nav">
-					<ul>
-						<li><a href="{link Home:}#ako-to-funguje">Ako to funguje</a></li>
-						<li><a href="{link Home:}#sluzby">Služby</a></li>
-						<li><a href="{link Home:}#kalkulacka">Kalkulačka</a></li>
-						<li><a n:href=":Front:ProviderSign:up">Pre poskytovateľov</a></li>
-						<li class="dropdown bripeon-account"><a href="#"><span>Môj účet</span><i class="bi bi-person-circle toggle-dropdown"></i></a>
-							<ul>
-								{if $_user->isProvider()}
-									<li><a n:href=":Front:ProviderDashboard:default">Môj prehľad</a></li>
-									<li><a n:href=":Front:ProviderDemand:default">Dopyty pre firmu</a></li>
-									<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
-								{elseif $_user->isCustomer()}
-									<li><a n:href=":Front:CustomerDashboard:default">Moje dopyty</a></li>
-									<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
-								{else}
-									<li><a n:href=":Front:UserSign:in">Prihlásenie zákazníka</a></li>
-									<li><a n:href=":Front:ProviderSign:in">Prihlásenie poskytovateľa</a></li>
-									<li><a n:href=":Front:ProviderSign:up">Registrácia poskytovateľa</a></li>
-									<li><a n:href=":Front:UserSign:up">Vytvoriť účet</a></li>
-								{/if}
-							</ul>
-						</li>
-						<li><a class="bripeon-nav-cta" n:href=":Front:Demand:create">Zadať dopyt</a></li>
+	<header id="header" class="bripeon-header">
+		<div class="container bripeon-header-bar">
+			<a n:href="Home:" class="bripeon-logo-link" aria-label="Bripeon domov">
+				<span class="bripeon-logo-mark">B</span>
+				<span class="sitename">Bripeon</span>
+			</a>
+
+			<nav id="navmenu" class="bripeon-nav" aria-label="Hlavná navigácia">
+				<a href="{link Home:}#ako-to-funguje">Ako to funguje</a>
+				<a href="{link Home:}#sluzby">Služby</a>
+				<a href="{link Home:}#dovera">Hodnotenia</a>
+				<a n:href=":Front:ProviderSign:up">Pre firmy</a>
+
+				<div class="bripeon-account">
+					<button type="button" class="bripeon-account-toggle" aria-expanded="false" aria-controls="bripeon-account-menu">
+						{if $_user->isProvider() || $_user->isCustomer()}Môj účet{else}Prihlásiť sa{/if}
+						<svg class="bripeon-icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+					</button>
+					<ul class="bripeon-account-menu" id="bripeon-account-menu">
+						{if $_user->isProvider()}
+							<li class="bripeon-account-label">Účet poskytovateľa</li>
+							<li><a n:href=":Front:ProviderDashboard:default">Môj prehľad</a></li>
+							<li><a n:href=":Front:ProviderDemand:default">Dopyty pre firmu</a></li>
+							<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
+						{elseif $_user->isCustomer()}
+							<li class="bripeon-account-label">Zákaznícky účet</li>
+							<li><a n:href=":Front:CustomerDashboard:default">Moje dopyty</a></li>
+							<li class="bripeon-nav-logout">{control providerSignOutForm}</li>
+						{else}
+							<li class="bripeon-account-label">Prihlásenie a registrácia</li>
+							<li><a n:href=":Front:UserSign:in">Prihlásenie zákazníka</a></li>
+							<li><a n:href=":Front:ProviderSign:in">Prihlásenie poskytovateľa</a></li>
+							<li><a n:href=":Front:UserSign:up">Vytvoriť zákaznícky účet</a></li>
+							<li><a n:href=":Front:ProviderSign:up">Registrácia poskytovateľa</a></li>
+						{/if}
 					</ul>
-					<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-				</nav>
-			</div>
+				</div>
+
+				<a class="bripeon-button bripeon-button-primary" n:href=":Front:Demand:create">Zadať dopyt</a>
+			</nav>
+
+			<button type="button" class="bripeon-menu-toggle" aria-expanded="false" aria-controls="navmenu" aria-label="Otvoriť menu">
+				<svg class="bripeon-icon bripeon-icon-open" aria-hidden="true"><use href="#i-menu"/></svg>
+				<svg class="bripeon-icon bripeon-icon-close" aria-hidden="true"><use href="#i-close"/></svg>
+			</button>
 		</div>
 	</header>
 
-	<main role="main" class="main bripeon-main">
+	<main role="main" class="bripeon-main">
 		{include #content}
 	</main>
 
-	<footer id="footer" class="footer bripeon-footer">
+	<footer id="footer" class="bripeon-footer">
 		<div class="container bripeon-footer-grid">
 			<div>
-				<a n:href="Home:" class="bripeon-logo-link bripeon-footer-logo d-inline-flex align-items-center">
+				<a n:href="Home:" class="bripeon-logo-link">
 					<span class="bripeon-logo-mark">B</span>
 					<span class="sitename">Bripeon</span>
 				</a>
@@ -71,38 +77,26 @@
 			<div>
 				<h3>Zákazníci</h3>
 				<a href="{link Home:}#sluzby">Kategórie služieb</a>
-				<a href="{link Home:}#kalkulacka">Orientačné ceny</a>
 				<a n:href=":Front:Demand:create">Zadať dopyt</a>
+				<a href="{link Home:}#dovera">Overené hodnotenia</a>
 			</div>
 			<div>
 				<h3>Poskytovatelia</h3>
 				<a n:href="ProviderSign:up">Registrácia firmy</a>
 				<a href="{link Home:}#pre-poskytovatelov">Ako získavať zákazky</a>
-				<a href="{link Home:}#dovera">Dôvera a kvalita</a>
+				<a n:href="ProviderSign:in">Prihlásenie</a>
 			</div>
 		</div>
 		<div class="container bripeon-footer-bottom">
 			<p>© <span>2026</span> <strong>Bripeon</strong>. <span>Všetky práva vyhradené.</span></p>
+			<p>Služby po celom Slovensku</p>
 		</div>
-  	</footer>
+	</footer>
 
-  	<!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+	<div class="bripeon-sticky-cta">
+		<a class="bripeon-button bripeon-button-primary" n:href=":Front:Demand:create">Zadať dopyt</a>
+	</div>
 
-  <!-- Preloader -->
-  <div id="preloader">
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
-
-  <!-- Vendor JS Files -->
-  <script src="https://kit.fontawesome.com/ceef537ffd.js" crossorigin="anonymous"></script>
-  <script src="{$basePath}/assets_front/vendor/aos/aos.js"></script>
-  <script src="{$basePath}/assets_front/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="{$basePath}/assets_front/vendor/purecounter/purecounter_vanilla.js"></script>
-  <!-- Main JS File -->
-  <script src="{$basePath}/bundle/front.bundle.js"></script>
-
+	<!-- Main JS File -->
+	<script src="{$basePath}/bundle/front.bundle.js"></script>
 {/}

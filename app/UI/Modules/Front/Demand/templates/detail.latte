@@ -1,7 +1,10 @@
 {block #content}
 <section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+{var $tones = ['pending_verification' => 'warning', 'needs_review' => 'warning', 'ready' => 'info', 'providers_invited' => 'info', 'no_providers' => 'neutral', 'closed' => 'neutral']}
+<div class="bripeon-detail-head">
 <h1>Váš dopyt</h1>
-<p><strong>{$demand->getStatusLabel()}</strong></p>
+<span class="bripeon-badge bripeon-badge-{$demand->isMatchingStopped() && $demand->getStatus() !== 'closed' ? 'success' : ($tones[$demand->getStatus()] ?? 'neutral')}">{$demand->getStatusLabel()}</span>
+</div>
 <div class="bripeon-form-panel">
 <dl>
 <dt>Číslo dopytu</dt><dd>{$demand->getReference()}</dd>

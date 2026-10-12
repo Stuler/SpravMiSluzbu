@@ -12,7 +12,6 @@ module.exports = (env, argv) => {
 				path.resolve(__dirname, "www", "assets_admin", "admin.js"),
 			],
 			front: [
-				path.resolve(__dirname, "www", "assets_front", "scss", "main.scss"),
 				path.resolve(__dirname, "www", "assets_front", "front.tsx"),
 			],
 		},

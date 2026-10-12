@@ -1,17 +1,20 @@
 {block #content}
 <section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+{var $tones = ['pending_verification' => 'warning', 'needs_review' => 'warning', 'ready' => 'info', 'providers_invited' => 'info', 'no_providers' => 'neutral', 'closed' => 'neutral']}
+<div class="bripeon-detail-head">
 <h1>Moje dopyty</h1>
-<p><a n:href=":Front:Demand:create" class="bripeon-primary-link">Zadať nový dopyt</a></p>
-{if count($demands) === 0}<p>Zatiaľ tu nemáte žiadne dopyty.</p>{/if}
+<a n:href=":Front:Demand:create" class="bripeon-primary-link">Zadať nový dopyt</a>
+</div>
+{if count($demands) === 0}<p class="bripeon-empty-state">Zatiaľ tu nemáte žiadne dopyty.</p>{/if}
 {foreach $demands as $demand}
 <article class="bripeon-form-panel">
 <h2><a n:href=":Front:Demand:detail, reference => $demand->getReference()">{$demand->getCategory()?->getName() ?? 'Dopyt na službu'}</a></h2>
-<p>{$demand->getCity()->getFullname()} · {$demand->getCreatedAt()|date:'d. m. Y'}</p>
+<p class="bripeon-list-meta">{$demand->getCity()->getFullname()} · {$demand->getCreatedAt()|date:'d. m. Y'}</p>
 <p>{$demand->getDescription()|truncate:180}</p>
-<p><strong>{$demand->getStatusLabel()}</strong></p>
+<p><span class="bripeon-badge bripeon-badge-{$demand->isMatchingStopped() && $demand->getStatus() !== 'closed' ? 'success' : ($tones[$demand->getStatus()] ?? 'neutral')}">{$demand->getStatusLabel()}</span></p>
 </article>
 {/foreach}
-<nav aria-label="Stránky dopytov">
+<nav class="bripeon-page-nav" aria-label="Stránky dopytov">
 <a n:if="$page > 1" n:href="default, page => $page - 1">Predchádzajúca strana</a>
 <a n:if="$hasNext" n:href="default, page => $page + 1">Ďalšia strana</a>
 </nav>

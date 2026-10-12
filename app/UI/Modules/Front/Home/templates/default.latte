@@ -2,148 +2,163 @@
 <section class="bripeon-hero" id="dopyt">
 	<div class="container bripeon-hero-grid">
 		<div class="bripeon-hero-copy">
-			<p class="bripeon-eyebrow">Domáce a firemné služby bez zbytočného obvolávania</p>
+			<p class="bripeon-eyebrow">Domáce a firemné služby bez obvolávania</p>
 			<h1>Nájdite spoľahlivého majstra vtedy, keď ho potrebujete.</h1>
-			<p class="bripeon-hero-lead">Bripeon prepája zákazníkov s overenými poskytovateľmi služieb. Zadáte dopyt, porovnáte ponuky a vyberiete si človeka, ktorému chcete zveriť prácu.</p>
+			<p class="bripeon-lead">Popíšete prácu a Bripeon osloví najviac tri overené firmy z vášho regiónu. Firma uvidí vaše kontaktné údaje až po tom, čo potvrdí záujem.</p>
 
-			<p><a n:href=":Front:Demand:create" class="bripeon-primary-link"><i class="bi bi-search"></i> Zadať dopyt</a></p>
-
-			<div class="bripeon-trust-row" aria-label="Výhody služby">
-				<span><i class="bi bi-shield-check"></i> Overení poskytovatelia</span>
-				<span><i class="bi bi-ui-checks-grid"></i> Viac ponúk na porovnanie</span>
-				<span><i class="bi bi-receipt"></i> Bezplatné zadanie dopytu</span>
+			<div class="bripeon-hero-actions">
+				<a n:href=":Front:Demand:create" class="bripeon-button bripeon-button-primary">Zadať dopyt <svg class="bripeon-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+				<a href="#ako-to-funguje" class="bripeon-button bripeon-secondary-button">Ako to funguje</a>
 			</div>
+
+			<ul class="bripeon-trust-row" aria-label="Výhody služby">
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-shield"/></svg>Overení poskytovatelia</li>
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-users"/></svg>Najviac 3 oslovené firmy</li>
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-free"/></svg>Zadanie zadarmo, bez registrácie</li>
+			</ul>
 		</div>
 
-		<div class="bripeon-hero-visual" aria-label="Bripeon spája zákazníkov s poskytovateľmi služieb">
-			<img src="{$basePath}/assets_front/img/bripeon-hero.png" alt="Zákazníčka konzultuje renováciu s poskytovateľom služby">
-			<div class="bripeon-offer-card bripeon-offer-card-top">
-				<span>Nový dopyt</span>
-				<strong>Rekonštrukcia kuchyne</strong>
-				<small>Bratislava • 3 ponuky</small>
+		<aside class="bripeon-sample-card" aria-label="Ukážka stavu dopytu">
+			<span class="bripeon-sample-label">Ukážka stavu dopytu</span>
+			<div class="bripeon-sample-head">
+				<div>
+					<h3>Maľovanie bytu</h3>
+					<small>Žilina · zadané dnes</small>
+				</div>
+				<span class="bripeon-badge bripeon-badge-info">Firmy reagujú</span>
 			</div>
-			<div class="bripeon-offer-card bripeon-offer-card-bottom">
-				<span>Odhad ceny</span>
-				<strong>od 650 €</strong>
-				<small>orientačne podľa rozsahu</small>
-			</div>
-		</div>
+			<ol class="bripeon-timeline">
+				<li class="is-done"><span class="bripeon-timeline-dot"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-check"/></svg></span><div><strong>Dopyt odoslaný</strong><small>E-mail potvrdený</small></div></li>
+				<li class="is-done"><span class="bripeon-timeline-dot"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-check"/></svg></span><div><strong>Oslovili sme 3 firmy</strong><small>Podľa služby a regiónu</small></div></li>
+				<li class="is-current"><span class="bripeon-timeline-dot"></span><div><strong>Čakáme na reakcie</strong><small>Prvá firma už prejavila záujem</small></div></li>
+				<li class="is-todo"><span class="bripeon-timeline-dot"></span><div><strong>Výber poskytovateľa</strong></div></li>
+				<li class="is-todo"><span class="bripeon-timeline-dot"></span><div><strong>Realizácia a hodnotenie</strong></div></li>
+			</ol>
+			<div class="bripeon-lock-note"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-lock"/></svg><span>Kontakt na firmu sa zobrazí po prijatí dopytu.</span></div>
+		</aside>
 	</div>
 </section>
 
-<section class="bripeon-category-strip" id="sluzby">
+<section class="bripeon-section bripeon-category-strip" id="sluzby">
 	<div class="container">
-		<div class="bripeon-section-heading">
-			<p class="bripeon-eyebrow">Najčastejšie dopyty</p>
-			<h2>Služby, ktoré ľudia riešia najčastejšie</h2>
+		<div class="bripeon-section-heading bripeon-section-heading-row">
+			<div>
+				<p class="bripeon-eyebrow">Služby</p>
+				<h2>Čo sa u nás hľadá najčastejšie</h2>
+			</div>
+			<a n:href=":Front:Demand:create" class="bripeon-button bripeon-secondary-button bripeon-button-small">Iná služba</a>
 		</div>
 		<div class="bripeon-category-grid">
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-hammer"></i><span>Rekonštrukcie</span></a>
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-lightning-charge"></i><span>Elektro</span></a>
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-droplet"></i><span>Voda a kúrenie</span></a>
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-brush"></i><span>Maľovanie</span></a>
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-tree"></i><span>Záhrada</span></a>
-			<a href="#dopyt" class="bripeon-category-item"><i class="bi bi-house-check"></i><span>Upratovanie</span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-hammer"/></svg></span><span>Rekonštrukcie<small>Byty, domy, kúpeľne</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-bolt"/></svg></span><span>Elektro<small>Rozvody, svetlá, revízie</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-drop"/></svg></span><span>Voda a kúrenie<small>Inštalácie, kotly, poruchy</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-roller"/></svg></span><span>Maľovanie<small>Interiér aj fasády</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-tree"/></svg></span><span>Záhrada<small>Údržba, výsadba, kosenie</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span>Upratovanie<small>Domácnosti a firmy</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-wrench"/></svg></span><span>Opravy a montáže<small>Nábytok, zariadenia</small></span></a>
+			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-grid"/></svg></span><span>Niečo iné<small>Zaradíme to za vás</small></span></a>
 		</div>
 	</div>
 </section>
 
-<section class="bripeon-how" id="ako-to-funguje">
-	<div class="container bripeon-two-column">
+<section class="bripeon-section bripeon-how" id="ako-to-funguje">
+	<div class="container">
 		<div class="bripeon-section-heading">
 			<p class="bripeon-eyebrow">Jednoduchý postup</p>
 			<h2>Od dopytu po dohodnutú prácu v troch krokoch</h2>
-			<p>Zákazník potrebuje rýchlu orientáciu, poskytovateľ potrebuje kvalitný lead. Bripeon stavia proces okolo oboch strán.</p>
+			<p class="bripeon-lead">Zadanie trvá približne dve minúty. Potom už len sledujete, ako firmy reagujú.</p>
 		</div>
-		<div class="bripeon-steps">
-			<div class="bripeon-step">
-				<span>1</span>
+		<ol class="bripeon-steps">
+			<li class="bripeon-step">
+				<span class="bripeon-step-number">1</span>
 				<h3>Popíšete prácu</h3>
-				<p>Vyberiete službu, lokalitu, termín a rozsah. Čím presnejší dopyt, tým presnejšie ponuky.</p>
-			</div>
-			<div class="bripeon-step">
-				<span>2</span>
-				<h3>Dostanete reakcie</h3>
-				<p>Relevantní poskytovatelia vidia dopyt a pošlú ponuku alebo doplňujúcu otázku.</p>
-			</div>
-			<div class="bripeon-step">
-				<span>3</span>
+				<p>Vyberiete službu, mesto a termín, pridáte krátky popis a potvrdíte e-mail. Čím presnejší dopyt, tým lepšie ponuky.</p>
+			</li>
+			<li class="bripeon-step">
+				<span class="bripeon-step-number">2</span>
+				<h3>Firmy reagujú</h3>
+				<p>Oslovíme najviac tri overené firmy podľa služby a oblasti pôsobenia. Každá dopyt prijme alebo odmietne.</p>
+			</li>
+			<li class="bripeon-step">
+				<span class="bripeon-step-number">3</span>
 				<h3>Vyberiete si</h3>
-				<p>Porovnáte cenu, dostupnosť, hodnotenia a dohodnete realizáciu priamo s vybraným poskytovateľom.</p>
-			</div>
-		</div>
+				<p>Po prijatí uvidíte kontakt aj profil firmy a dohodnete sa priamo. Po dokončení práce môžete firmu ohodnotiť.</p>
+			</li>
+		</ol>
 	</div>
 </section>
 
-<section class="bripeon-calculator" id="kalkulacka">
-	<div class="container bripeon-calculator-grid">
+<section class="bripeon-section" id="dovera">
+	<div class="container bripeon-trust-grid">
 		<div>
-			<p class="bripeon-eyebrow">Pripravujeme</p>
-			<h2>Orientačná kalkulačka cien pre rozhodovanie pred dopytom</h2>
-			<p>V ďalšej fáze bude Bripeon vedieť odhadnúť cenu podľa typu služby, lokality, rozsahu práce a verejných cenových vstupov. Zákazník tak príde s realistickým očakávaním a poskytovateľ dostane lepšie pripravený dopyt.</p>
+			<p class="bripeon-eyebrow">Overené hodnotenia</p>
+			<h2>Hodnotenia, ktoré nemožno napísať bez zákazky</h2>
+			<p class="bripeon-lead">Recenziu môže napísať len zákazník, ktorý si firmu cez Bripeon naozaj najal. Hodnotenie sa preto vždy viaže na skutočnú zákazku.</p>
+			<ul class="bripeon-check-list">
+				<li><span class="bripeon-check-list-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-doc"/></svg></span><div><strong>Naviazané na zákazku</strong><span>Hodnotiť môžete až po výbere firmy a nahlásení vykonaných prác.</span></div></li>
+				<li><span class="bripeon-check-list-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-eye"/></svg></span><div><strong>Preverí administrátor</strong><span>Každá recenzia sa pred zverejnením skontroluje.</span></div></li>
+				<li><span class="bripeon-check-list-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-msg"/></svg></span><div><strong>Firma môže odpovedať</strong><span>Verejná odpoveď pod recenziou ukáže aj jej pohľad.</span></div></li>
+			</ul>
 		</div>
-		<div class="bripeon-calculator-panel" aria-label="Ukážka budúcej kalkulačky">
-			<div class="bripeon-calc-row">
-				<span>Služba</span>
-				<strong>Maľovanie bytu</strong>
+
+		<div class="bripeon-review-sample" aria-label="Ukážka overenej recenzie">
+			<span class="bripeon-sample-label">Ukážka vzhľadu recenzie</span>
+			<div class="bripeon-review-head">
+				<span class="bripeon-avatar" aria-hidden="true">JK</span>
+				<div><strong>Jana K.</strong><small>Maľovanie bytu · Žilina</small></div>
+				<span class="bripeon-verified"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-shield"/></svg>Overená zákazka</span>
 			</div>
-			<div class="bripeon-calc-row">
-				<span>Rozsah</span>
-				<strong>72 m²</strong>
-			</div>
-			<div class="bripeon-calc-row">
-				<span>Lokalita</span>
-				<strong>Žilina</strong>
-			</div>
-			<div class="bripeon-calc-result">
-				<span>Odhad</span>
-				<strong>480 € - 790 €</strong>
-			</div>
+			<span class="bripeon-stars" role="img" aria-label="5 z 5 hviezdičiek"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-star"/></svg><svg class="bripeon-icon" aria-hidden="true"><use href="#i-star"/></svg><svg class="bripeon-icon" aria-hidden="true"><use href="#i-star"/></svg><svg class="bripeon-icon" aria-hidden="true"><use href="#i-star"/></svg><svg class="bripeon-icon" aria-hidden="true"><use href="#i-star"/></svg></span>
+			<p>Prišli v dohodnutý deň, po sebe poupratovali a cena sedela s ponukou. Odporúčam.</p>
+			<div class="bripeon-review-reply"><b>Odpoveď firmy</b>Ďakujeme za dôveru, rado sa stalo.</div>
+			<p class="bripeon-review-note">Bripeon práve začína. Skutočné hodnotenia nájdete na profile firmy, hneď ako pribudnú prvé dokončené zákazky.</p>
 		</div>
 	</div>
 </section>
 
-<section class="bripeon-provider-promo" id="pre-poskytovatelov">
+<section class="bripeon-section bripeon-provider-promo" id="pre-poskytovatelov">
 	<div class="container bripeon-provider-grid">
-		<div>
+		<div class="bripeon-provider-copy">
 			<p class="bripeon-eyebrow">Pre firmy a živnostníkov</p>
 			<h2>Získavajte dopyty od ľudí, ktorí už vedia, čo potrebujú.</h2>
-			<p>Bripeon má byť praktický kanál pre remeselníkov, servisné firmy a lokálnych špecialistov. Profil, regióny a kategórie služieb pomôžu posielať správne dopyty správnym poskytovateľom.</p>
-			<a n:href="ProviderSign:up" class="bripeon-primary-link"><i class="bi bi-briefcase"></i> Registrovať poskytovateľa</a>
+			<p class="bripeon-lead">Profil, regióny a kategórie služieb zabezpečia, že vám prídu len relevantné dopyty.</p>
+			<ul class="bripeon-plain-list">
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-check"/></svg>Dopyty podľa vašich služieb a regiónov</li>
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-check"/></svg>Dopyt prijmete alebo odmietnete jedným krokom</li>
+				<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-check"/></svg>Verejný profil s overenými hodnoteniami</li>
+			</ul>
+			<a n:href="ProviderSign:up" class="bripeon-button bripeon-button-light">Registrovať firmu <svg class="bripeon-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
 		</div>
 		<div class="bripeon-lead-preview" aria-label="Ukážka dopytov pre poskytovateľa">
-			<div class="bripeon-lead-item">
-				<span class="bripeon-status">Nové</span>
-				<strong>Montáž sprchového kúta</strong>
-				<small>Trnava • termín do 14 dní</small>
-			</div>
-			<div class="bripeon-lead-item">
-				<span class="bripeon-status">Zodpovedané</span>
-				<strong>Servis plynového kotla</strong>
-				<small>Nitra • pravidelná údržba</small>
-			</div>
-			<div class="bripeon-lead-item">
-				<span class="bripeon-status">Top dopyt</span>
-				<strong>Pokládka vinylovej podlahy</strong>
-				<small>Košice • 58 m²</small>
-			</div>
+			<span class="bripeon-sample-label">Ukážka dopytov vo vašom prehľade</span>
+			<div class="bripeon-lead-item"><div class="bripeon-lead-item-row"><strong>Montáž sprchového kúta</strong><span class="bripeon-status">Nový</span></div><small>Trnava · termín do 14 dní</small></div>
+			<div class="bripeon-lead-item"><div class="bripeon-lead-item-row"><strong>Servis plynového kotla</strong><span class="bripeon-status">Prijatý</span></div><small>Nitra · pravidelná údržba</small></div>
+			<div class="bripeon-lead-item"><div class="bripeon-lead-item-row"><strong>Pokládka vinylovej podlahy</strong><span class="bripeon-status bripeon-status-waiting">Čaká na odpoveď</span></div><small>Košice · 58 m²</small></div>
 		</div>
 	</div>
 </section>
 
-<section class="bripeon-proof" id="dovera">
-	<div class="container bripeon-proof-grid">
-		<div>
-			<strong>2 min</strong>
-			<span>na zadanie základného dopytu</span>
+<section class="bripeon-section">
+	<div class="container">
+		<div class="bripeon-section-heading">
+			<p class="bripeon-eyebrow">Časté otázky</p>
+			<h2>Než zadáte prvý dopyt</h2>
 		</div>
-		<div>
-			<strong>3+</strong>
-			<span>ponuky ako cieľ pri porovnaní</span>
+		<div class="bripeon-faq">
+			<details open><summary>Koľko stojí zadanie dopytu?</summary><p>Nič. Dopyt môžete zadať zadarmo a bez registrácie.</p></details>
+			<details><summary>Kto uvidí moje kontaktné údaje?</summary><p>Dopyt nie je verejný inzerát. Kontaktné údaje uvidí len firma, ktorá dopyt prijme, a to až po tom, čo potvrdí záujem.</p></details>
+			<details><summary>Koľko firiem Bripeon osloví?</summary><p>Najviac tri. Vyberáme registrované a aktívne firmy podľa služby a oblasti, v ktorej pôsobia.</p></details>
+			<details><summary>Čo ak sa nenájde vhodná firma?</summary><p>Dopyt zostane evidovaný a skontroluje ho administrátor. Ak treba niečo doplniť, ozveme sa vám e-mailom.</p></details>
 		</div>
-		<div>
-			<strong>SK</strong>
-			<span>lokálne regióny a služby</span>
+	</div>
+</section>
+
+<section class="bripeon-section" style="padding-top:0">
+	<div class="container">
+		<div class="bripeon-final-cta">
+			<h2>Máte prácu, ktorú treba spraviť?</h2>
+			<p class="bripeon-lead">Popíšte ju za dve minúty. Zvyšok zabezpečíme.</p>
+			<a n:href=":Front:Demand:create" class="bripeon-button bripeon-button-primary">Zadať dopyt <svg class="bripeon-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
 		</div>
 	</div>
 </section>

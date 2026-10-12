@@ -1,8 +1,29 @@
 {block #content}
-<section class="bripeon-provider-signup-page"><div class="container bripeon-narrow">
+<section class="bripeon-provider-signup-page"><div class="container">
+<div class="bripeon-demand-layout">
+<div>
+<div class="bripeon-demand-intro">
+<p class="bripeon-eyebrow">Nový dopyt</p>
 <h1>Zadať dopyt na službu</h1>
 <p>Popíšte, čo potrebujete a kde na Slovensku. Registrácia nie je potrebná.</p>
-<p>Oslovíme najviac tri registrované firmy podľa služby a oblasti pôsobenia. Firma uvidí vaše kontaktné údaje po potvrdení záujmu. Dopyt nie je verejný inzerát.</p>
-<div class="bripeon-form-panel">{control demandForm}</div>
+</div>
+<ol class="bripeon-stepper" data-demand-stepper aria-label="Postup zadania dopytu" hidden>
+<li><span>1. </span>Služba a miesto</li>
+<li><span>2. </span>Popis a termín</li>
+<li><span>3. </span>Kontakt</li>
+</ol>
+<div class="bripeon-form-panel" data-demand-panel>{control demandForm}</div>
 <p><a n:href=":Front:UserSign:in">Máte zákaznícky účet? Prihláste sa pred zadaním dopytu.</a></p>
+</div>
+<aside class="bripeon-demand-aside" aria-label="Ako to prebieha">
+<div class="bripeon-aside-card">
+<h2>Ako to prebieha</h2>
+<ul class="bripeon-aside-list">
+<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-users"/></svg><div><b>Najviac 3 firmy</b><span>Oslovíme registrované firmy podľa služby a oblasti pôsobenia.</span></div></li>
+<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-lock"/></svg><div><b>Vaše údaje sú v bezpečí</b><span>Firma uvidí vaše kontaktné údaje po potvrdení záujmu. Dopyt nie je verejný inzerát.</span></div></li>
+<li><svg class="bripeon-icon" aria-hidden="true"><use href="#i-free"/></svg><div><b>Zadarmo</b><span>Zadanie dopytu nič nestojí a k ničomu vás nezaväzuje.</span></div></li>
+</ul>
+</div>
+</aside>
+</div>
 </div></section>

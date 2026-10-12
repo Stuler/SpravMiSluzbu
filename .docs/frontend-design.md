@@ -37,8 +37,9 @@ badges: `bripeon-badge-success|warning|info|neutral`.
 
 ## Known gaps and follow-ups
 
-- Category tiles on the home page are static and link to the demand form without
-  preselecting a category. A data-driven list with prefill needs presenter support.
+- The home page lists the main categories and their services from the database
+  (`DemandFacade::categoryGroups()`); each service links to `/demand/create?categoryId=<id>`.
+  Group icons are mapped by main category name in the template and fall back to a grid icon.
 - The home page shows a labelled sample review. Replace it with real published
   reviews once there is a repository query for them.
 - Terms, privacy policy, cookies and contact pages do not exist yet, so the footer

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Demand;
 
+use App\Domain\CategoryService\CategoryCatalogue;
 use App\Domain\CategoryService\CategoryService;
 use App\Domain\City\City;
 use App\Domain\Customer\CustomerAccountFacade;
@@ -139,6 +140,16 @@ final class DemandFacade
 			$result[$category->getId()] = ($category->getParent() ? $category->getParent()->getName() . ' / ' : '') . $category->getName();
 		}
 		return $result;
+	}
+
+	/**
+	 * Public service catalogue: main categories with the services customers can choose.
+	 *
+	 * @return list<array{id: int, name: string, description: ?string, standalone: bool, categories: array<int, string>}>
+	 */
+	public function categoryGroups(): array
+	{
+		return CategoryCatalogue::groups($this->em->getRepository(CategoryService::class)->findBy(['dateDeleted' => null], ['name' => 'ASC']));
 	}
 
 	private function sendAccess(Demand $demand, string $raw): void

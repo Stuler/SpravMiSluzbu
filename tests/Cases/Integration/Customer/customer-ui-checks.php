@@ -65,11 +65,21 @@ $run = function (string $name, array $parameters, string $method = 'GET', array 
 };
 
 // Render real routes, including the shared layout and Nette forms.
-foreach ([['Front:UserSign', 'up'], ['Front:UserSign', 'in'], ['Front:UserSign', 'forgot'], ['Front:UserSign', 'reset'], ['Front:UserSign', 'activateUser'], ['Front:Demand', 'create'], ['Front:Demand', 'recover']] as [$name, $action]) {
+foreach ([['Front:UserSign', 'up'], ['Front:UserSign', 'in'], ['Front:UserSign', 'forgot'], ['Front:UserSign', 'reset'], ['Front:UserSign', 'activateUser'], ['Front:Demand', 'create'], ['Front:Demand', 'recover'], ['Front:Home', 'default']] as [$name, $action]) {
     [$response, $html] = $run($name, ['action' => $action]);
     \Tester\Assert::type(\Nette\Application\Responses\TextResponse::class, $response);
     \Tester\Assert::contains('<h1>', $html);
     \Tester\Assert::notContains('n:href', $html);
+}
+// Catalogue links preselect the service; unknown or malformed hints leave the form unselected.
+[, $html] = $run('Front:Home', ['action' => 'default']);
+\Tester\Assert::contains('categoryId=' . $category->getId(), $html);
+[, $html] = $run('Front:Demand', ['action' => 'create', 'categoryId' => (string) $category->getId()]);
+\Tester\Assert::same(1, preg_match('/<option(?=[^>]*\svalue="' . $category->getId() . '")(?=[^>]*\sselected)[^>]*>/', $html));
+foreach (['999999', 'abc', '-1', ''] as $hint) {
+    [$response, $html] = $run('Front:Demand', ['action' => 'create', 'categoryId' => $hint]);
+    \Tester\Assert::type(\Nette\Application\Responses\TextResponse::class, $response);
+    \Tester\Assert::same(0, preg_match('/<option[^>]*\sselected/', $html), "Category hint '$hint' must not preselect an option.");
 }
 [$response] = $run('Front:CustomerDashboard', ['action' => 'default']);
 \Tester\Assert::type(\Nette\Application\Responses\RedirectResponse::class, $response);

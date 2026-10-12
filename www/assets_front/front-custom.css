@@ -746,35 +746,37 @@ body .container {
 	.bripeon-section { padding: 88px 0; }
 }
 
-.bripeon-category-grid {
+.bripeon-category-groups {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 12px;
+	gap: 16px;
 }
 
-.bripeon-category-item {
+.bripeon-category-group {
 	display: grid;
 	align-content: start;
-	gap: 14px;
+	gap: 18px;
 	min-width: 0;
-	padding: 18px;
+	padding: 24px;
 	border: 1px solid var(--bripeon-border);
 	border-radius: var(--bripeon-radius);
 	background: var(--bripeon-surface);
-	color: var(--bripeon-ink);
-	font-weight: 600;
-	transition: border-color .15s, box-shadow .15s, transform .15s;
 }
 
-.bripeon-category-item:hover {
-	border-color: var(--bripeon-primary);
-	box-shadow: var(--bripeon-shadow);
-	color: var(--bripeon-ink);
-	transform: translateY(-2px);
+.bripeon-category-group-head {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.bripeon-category-group-head small {
+	display: block;
+	color: var(--bripeon-muted);
+	font-size: .8125rem;
 }
 
 .bripeon-category-icon {
 	display: grid;
+	flex: none;
 	place-items: center;
 	width: 44px;
 	height: 44px;
@@ -785,16 +787,37 @@ body .container {
 
 .bripeon-category-icon .bripeon-icon { width: 24px; height: 24px; }
 
-.bripeon-category-item small {
-	display: block;
-	margin-top: 2px;
-	color: var(--bripeon-muted);
-	font-size: .8125rem;
-	font-weight: 400;
+.bripeon-service-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
-@media (min-width: 720px) {
-	.bripeon-category-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.bripeon-service-links a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 40px;
+	padding: 0 14px;
+	border: 1.5px solid var(--bripeon-border);
+	border-radius: 999px;
+	background: var(--bripeon-surface);
+	color: var(--bripeon-ink);
+	font-size: .9375rem;
+	font-weight: 500;
+	transition: border-color .15s, background-color .15s, color .15s;
+}
+
+.bripeon-service-links a:hover {
+	border-color: var(--bripeon-primary);
+	background: var(--bripeon-tint);
+	color: var(--bripeon-primary);
+}
+
+@media (min-width: 820px) {
+	.bripeon-category-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 }
 
 .bripeon-how {

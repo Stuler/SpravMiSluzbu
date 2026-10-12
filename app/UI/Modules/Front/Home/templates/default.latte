@@ -39,24 +39,31 @@
 	</div>
 </section>
 
-<section class="bripeon-section bripeon-category-strip" id="sluzby">
+<section n:if="$categoryGroups" class="bripeon-section bripeon-category-strip" id="sluzby">
 	<div class="container">
 		<div class="bripeon-section-heading bripeon-section-heading-row">
 			<div>
 				<p class="bripeon-eyebrow">Služby</p>
-				<h2>Čo sa u nás hľadá najčastejšie</h2>
+				<h2>Vyberte službu a rovno zadajte dopyt</h2>
+				<p class="bripeon-lead">Kliknutím na službu otvoríte formulár s už vybranou kategóriou.</p>
 			</div>
-			<a n:href=":Front:Demand:create" class="bripeon-button bripeon-secondary-button bripeon-button-small">Iná služba</a>
+			<a n:href=":Front:Demand:create" class="bripeon-button bripeon-secondary-button bripeon-button-small">Neviem, kam to patrí</a>
 		</div>
-		<div class="bripeon-category-grid">
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-hammer"/></svg></span><span>Rekonštrukcie<small>Byty, domy, kúpeľne</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-bolt"/></svg></span><span>Elektro<small>Rozvody, svetlá, revízie</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-drop"/></svg></span><span>Voda a kúrenie<small>Inštalácie, kotly, poruchy</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-roller"/></svg></span><span>Maľovanie<small>Interiér aj fasády</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-tree"/></svg></span><span>Záhrada<small>Údržba, výsadba, kosenie</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span>Upratovanie<small>Domácnosti a firmy</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-wrench"/></svg></span><span>Opravy a montáže<small>Nábytok, zariadenia</small></span></a>
-			<a n:href=":Front:Demand:create" class="bripeon-category-item"><span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#i-grid"/></svg></span><span>Niečo iné<small>Zaradíme to za vás</small></span></a>
+		{var $icons = ['Interiér' => 'i-home', 'Exteriér' => 'i-building', 'Záhrada' => 'i-tree', 'Ostatné' => 'i-grid']}
+		<div class="bripeon-category-groups">
+			<article n:foreach="$categoryGroups as $group" class="bripeon-category-group">
+				{var $count = count($group['categories'])}
+				<header class="bripeon-category-group-head">
+					<span class="bripeon-category-icon"><svg class="bripeon-icon" aria-hidden="true"><use href="#{$icons[$group['name']] ?? 'i-grid'}"/></svg></span>
+					<div>
+						<h3>{$group['name']}</h3>
+						<small>{$count} {if $count === 1}služba{elseif $count < 5}služby{else}služieb{/if}</small>
+					</div>
+				</header>
+				<ul class="bripeon-service-links">
+					<li n:foreach="$group['categories'] as $id => $name"><a n:href=":Front:Demand:create, categoryId => $id">{$name}</a></li>
+				</ul>
+			</article>
 		</div>
 	</div>
 </section>

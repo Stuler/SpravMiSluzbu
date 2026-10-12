@@ -19,7 +19,10 @@ rotation/fairness and finer geographical coverage are follow-up improvements.
 
 - /user-sign/up, /user-sign/in, /user-sign/forgot: customer accounts.
 - /customer-dashboard/default: current customer's paginated demands.
-- /demand/create: shared guest/customer form, with optional category hint.
+- /demand/create: shared guest/customer form. `?categoryId=<id>` preselects an active service
+  (used by the home page catalogue); unknown, retired or malformed values are ignored. The form
+  offers services grouped under their main category; a main category with active services is
+  not selectable itself, one without services stays selectable (`CategoryCatalogue`).
 - /demand/recover: replace a guest link using reference and email.
 - /demand/detail?reference=...: private detail, progress and provider responses.
 - /provider-demand/default: provider inbox, availability and service description.
@@ -135,6 +138,16 @@ transactional: back up and inspect partial application before retrying. Rollback
 protect populated demands/invitations; export AI history before any rollback as well.
 Existing providers default to accepting demands, but activation and region/category
 coverage are still required. No automated test/production migration was introduced.
+
+3. db/Migrations/Version20261012120000.php seeds the public service catalogue (main categories
+   Interiér, Exteriér, Záhrada, Ostatné and 52 services). It only inserts rows that have no
+   active row with the same name under the same parent: existing rows (and their provider and
+   demand links) are reused, and retired rows are never revived. It can be re-run safely and
+   has no automatic rollback. Beta applies it with the other pending migrations during deploy;
+   production still requires the manual migration procedure. The SQL was exercised in a SQLite
+   simulation against the 2025-09-04 dump rows (empty and populated tables, repeated run), not
+   on MySQL/MariaDB. Leftover test rows in older databases (for example "Brány a dvere 2" or a
+   "Test" category) stay active until they are retired in administration.
 
 Configure canonical HTTPS links (including contributte.console.url for CLI-generated
 links), SMTP, OpenAI environment variables, and the existing catalogue/state/role seeds.

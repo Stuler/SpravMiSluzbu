@@ -2,6 +2,7 @@
 
 namespace App\UI\Modules\Front\Demand;
 
+use App\Domain\CategoryService\CategoryCatalogue;
 use App\Domain\Demand\Demand;
 use App\Domain\Demand\DemandFacade;
 use App\UI\Form\BaseForm;
@@ -18,9 +19,12 @@ final class DemandPresenter extends CustomerBasePresenter
 	#[Inject] public \App\Domain\Review\ReviewFacade $reviews;
 	private ?\App\Domain\Job\Job $job = null;
 	private ?Demand $demand = null;
+	private ?int $categoryHint = null;
 
-	public function actionCreate(): void
+	/** @param string|null $categoryId Optional service preselected from a catalogue link; invalid values are ignored. */
+	public function actionCreate(?string $categoryId = null): void
 	{
+		$this->categoryHint = $categoryId !== null && ctype_digit($categoryId) ? (int) $categoryId : null;
 		$section = $this->session->getSection('demandSubmission');
 		if (!is_string($section['key'])) { $section['key'] = bin2hex(random_bytes(32)); }
 		$section->setExpiration('2 hours');
@@ -72,7 +76,11 @@ final class DemandPresenter extends CustomerBasePresenter
 			->addRule($form::MIN_LENGTH, 'Uveďte aspoň 15 znakov.', 15)->addRule($form::MAX_LENGTH, 'Opis môže mať najviac 5 000 znakov.', 5000)
 			->setHtmlAttribute('rows', 6)->setHtmlAttribute('placeholder', 'Napríklad: Potrebujem vymaľovať dve izby v byte, spolu približne 35 m².');
 		$form->addSelect('cityId', 'Obec alebo mesto', $this->demands->cityOptions())->setPrompt('Vyberte obec alebo mesto')->setRequired('Vyberte obec alebo mesto.');
-		$form->addSelect('categoryId', 'Druh služby', $this->demands->categoryOptions())->setPrompt('Neviem zaradiť');
+		$groups = $this->demands->categoryGroups();
+		$category = $form->addSelect('categoryId', 'Druh služby', CategoryCatalogue::selectOptions($groups))->setPrompt('Neviem zaradiť');
+		if ($this->categoryHint !== null && isset(array_replace([], ...array_column($groups, 'categories'))[$this->categoryHint])) {
+			$category->setDefaultValue($this->categoryHint);
+		}
 		$form->addText('requestedTerm', 'Kedy službu potrebujete?')->setRequired('Uveďte termín alebo „Podľa dohody“.')
 			->addRule($form::MAX_LENGTH, 'Termín je príliš dlhý.', 255)->setHtmlAttribute('placeholder', 'Napríklad: budúci týždeň alebo podľa dohody');
 		$form->addText('contactName', 'Vaše meno')->setRequired()->addRule($form::MAX_LENGTH, 'Meno je príliš dlhé.', 255)->setDefaultValue($customer?->getFullName());

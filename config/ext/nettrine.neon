@@ -28,7 +28,7 @@ nettrine.dbal:
 		password: %database.password%
 		dbname: %database.dbname%
 		port: %database.port%
-		serverVersion: 10.0
+		# Let DBAL detect MySQL/MariaDB and its actual version from the connection.
 
 nettrine.orm:
 	entityManagerDecoratorClass: App\Model\Database\EntityManagerDecorator

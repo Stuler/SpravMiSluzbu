@@ -38,6 +38,12 @@ php bin/console migrations:status --no-interaction
 
 ### Migration conventions
 
+DBAL detects the actual database engine/version from the connection. Do not set
+an unqualified `serverVersion: 10.0`: DBAL interprets it as MySQL, even when the
+server is MariaDB, and migration metadata comparison can fail on every run.
+If overriding the version in environment configuration, use the actual vendor
+and version reported by that server.
+
 - Store every schema change as a new migration in `db/Migrations` under the `Database\\Migrations` namespace.
 - Generate migrations through Nettrine, then review and simplify the generated SQL before committing it:
 
@@ -56,6 +62,48 @@ php bin/console migrations:status --no-interaction
   ```
 
 - Automatic migrations apply only to the isolated Roští test database. Production migrations remain manual until a separate production deployment and rollback strategy is approved.
+
+### Legacy beta recovery, 2026-10-12
+
+The first automatic MVP deployment stopped in `Version20240601121738` because
+`forgotten_password` already existed. The beta database had an empty
+`doctrine_migrations` table despite an existing legacy schema. Inspection also
+found `Version20250214134949` only partially applied: the provider changes were
+present, but six other `deleted_by` columns were still nullable VARCHAR without
+their foreign keys. Merely marking all migrations as executed would hide these
+missing changes and skip the new MVP schema.
+
+After schema review and a private full backup in `/srv/backups/` outside the
+deployment directory, the six missing changes were applied using
+`db/ManualMigrations/20261012-rosti-beta-history.sql`. Each affected column
+contained only NULL; the operation preserved all application row counts and
+recorded only the ten verified historical versions through `Version20250214134949`.
+The SQL file is a one-time recovery record, not an automatic migration or a
+replayable bootstrap. Do not run it against another database. MySQL/MariaDB DDL
+commits implicitly; a partial failure requires inspecting the completed statements
+before resuming. Never use `migrations:version --add --all` as a deploy fix.
+
+The remaining five migrations, starting at `Version20260618120000`, are handled
+by the normal beta deployment. Confirm both the successful workflow result and
+`migrations:status` before considering rollout complete.
+
+The repair and all five subsequent migration SQL bodies pass on a disposable
+local MySQL 8 database with synthetic data:
+
+```bash
+docker compose exec -T php php tests/Cases/Integration/MySql/LegacyMigrationRecoveryTest.phpt --local-docker
+```
+
+The test imports only CREATE TABLE statements from the bootstrap dump, never its
+data, reproduces the partial legacy migration and empty history, and checks data
+preservation and the resulting new tables. Actual DI configuration also passes
+`ServiceWiringTest.phpt`. Read-only checks on beta MariaDB 11.4.10 confirmed that
+automatic engine detection resolves the metadata error without altering its table.
+
+The beta CLI currently runs PHP 8.5.5, while CI/local verification uses PHP 8.2.
+Its Nette nullable-parameter deprecation and stale `opcache.so` loading directive
+are separate runtime warnings, not the duplicate-table failure. Runtime alignment
+and dependency upgrades remain separate maintenance work; vendor files were not edited.
 
 Use `.docs/rosti-test-local.neon.example` as the starting point:
 

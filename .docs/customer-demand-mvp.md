@@ -153,6 +153,12 @@ coverage are still required. No automated test/production migration was introduc
    (the same soft delete as retirement in administration), so rows, provider links and demand
    history are preserved. It is safe to re-run and has no automatic rollback. Verified by a
    SQLite simulation against the 2025-09-04 dump rows, not on MySQL/MariaDB.
+5. db/Migrations/Version20261012140000.php retires categories whose names are double-encoded
+   UTF-8 (for example "InteriÃ©r", "ÄŒistenie"), a leftover of an import with a wrong client
+   charset, together with their direct children. Detection is byte based (UTF-8 sequences of
+   Ã, Â, Å, Ä), because the collation treats them as plain "a". Only date_deleted is set. A SQLite
+   simulation kept all 63 correct catalogue/dump names active; it was not run on MySQL/MariaDB.
+   Do not import dumps through a client whose charset differs from utf8mb4/utf8.
 
 Configure canonical HTTPS links (including contributte.console.url for CLI-generated
 links), SMTP, OpenAI environment variables, and the existing catalogue/state/role seeds.

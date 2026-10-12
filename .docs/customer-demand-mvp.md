@@ -146,8 +146,13 @@ coverage are still required. No automated test/production migration was introduc
    has no automatic rollback. Beta applies it with the other pending migrations during deploy;
    production still requires the manual migration procedure. The SQL was exercised in a SQLite
    simulation against the 2025-09-04 dump rows (empty and populated tables, repeated run), not
-   on MySQL/MariaDB. Leftover test rows in older databases (for example "Brány a dvere 2" or a
-   "Test" category) stay active until they are retired in administration.
+   on MySQL/MariaDB. A leftover row such as "Brány a dvere 2"
+   stays active until it is retired in administration.
+4. db/Migrations/Version20261012130000.php retires leftover test categories by name ("Test",
+   "Test 1", "Test 2", "Testovanie 2") and their direct children. It only sets date_deleted
+   (the same soft delete as retirement in administration), so rows, provider links and demand
+   history are preserved. It is safe to re-run and has no automatic rollback. Verified by a
+   SQLite simulation against the 2025-09-04 dump rows, not on MySQL/MariaDB.
 
 Configure canonical HTTPS links (including contributte.console.url for CLI-generated
 links), SMTP, OpenAI environment variables, and the existing catalogue/state/role seeds.

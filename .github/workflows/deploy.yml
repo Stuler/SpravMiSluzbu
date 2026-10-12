@@ -31,9 +31,18 @@ jobs:
                 with:
                     composer-options: '--prefer-dist --optimize-autoloader'
 
-            -   name: Remove node_modules
+            -   name: Set up Node.js for beta assets
+                if: github.ref == 'refs/heads/beta' || github.base_ref == 'beta'
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '22'
+                    cache: npm
+
+            -   name: Build beta JavaScript and CSS
+                if: github.ref == 'refs/heads/beta' || github.base_ref == 'beta'
                 run: |
-                    rm -rf node_modules
+                    npm ci --no-audit --no-fund
+                    npm run build
 
             -   name: Create Roští test local config
                 if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
@@ -100,7 +109,11 @@ jobs:
                     ROSTI_TEST_DEPLOY_PATH: /srv/app
                 run: |
                     ssh -i ~/.ssh/rosti_test -o IdentitiesOnly=yes -p "$ROSTI_TEST_SSH_PORT" "app@$ROSTI_TEST_SSH_HOST" \
-                        "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; rm -rf var/tmp/cache/nette.configurator; php bin/console migrations:migrate --no-interaction --allow-no-migration; php bin/console migrations:status --no-interaction"
+                        "set -e; cd '$ROSTI_TEST_DEPLOY_PATH'; mkdir -p var/tmp var/log; chmod -R 0777 var/tmp var/log; rm -rf var/tmp/cache/nette.configurator; php bin/console migrations:migrate --no-interaction --allow-no-migration; php bin/console migrations:status --no-interaction; php bin/console nette:latte:purge --no-interaction"
+
+            -   name: Verify deployed beta navigation and assets
+                if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
+                run: node .build/verify-beta-deploy.cjs https://test.spravmisluzbu.sk
 
             -   name: Deploy to production
                 if: github.ref == 'refs/heads/main' && github.event_name == 'push'

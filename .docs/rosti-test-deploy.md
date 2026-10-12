@@ -29,12 +29,30 @@ ROSTI_TEST_SSH_KEY_BASE64=<base64 encoded private deploy key for app@ssh.rosti.c
 ROSTI_TEST_LOCAL_NEON_BASE64=<base64 encoded config/local.neon for test>
 ```
 
-The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git. After deploying the `beta` branch, it runs pending Nettrine migrations and prints their status:
+The beta workflow (including pull requests targeting beta) builds the frontend
+with Node.js 22, `npm ci --no-audit --no-fund` and `npm run build` before uploading
+anything. Build failures stop deployment. The public datagrid Git dependency uses
+HTTPS and the same commit pinned by the lockfile, so CI needs no GitHub SSH key.
+The generated `www/bundle` files are uploaded; `node_modules` remains excluded.
+
+The workflow creates `/srv/app/config/local.neon` from `ROSTI_TEST_LOCAL_NEON_BASE64` before rsync upload. Do not keep the real test `local.neon` in Git. After deploying the `beta` branch, it runs pending Nettrine migrations, prints their status and clears compiled Latte templates:
 
 ```bash
 php bin/console migrations:migrate --no-interaction --allow-no-migration
 php bin/console migrations:status --no-interaction
+php bin/console nette:latte:purge --no-interaction
 ```
+
+Clearing only `var/tmp/cache/nette.configurator` is insufficient: production
+Latte can otherwise keep serving old navigation and placeholder forms even when
+the deployed `.latte` files are current. The template cache is cleared as the
+Roští application user; sessions, logs and mail captures are preserved.
+
+The final `node .build/verify-beta-deploy.cjs https://test.spravmisluzbu.sk` check
+requires current header/hero/footer links to `/demand/create`, a rendered demand
+form, and SHA-256 equality between all four public/admin JS/CSS bundles and this
+build. It sends only GET requests and does not submit demands or send email.
+Browser navigation is still checked separately when changing interactive behavior.
 
 ### Migration conventions
 

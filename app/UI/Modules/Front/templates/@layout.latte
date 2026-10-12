@@ -2,7 +2,8 @@
 
 {block #head}
 	<!-- Favicons -->
-	<link href="{$basePath}/assets_front/img/favicon.png" rel="icon">
+	<link href="{$basePath}/assets_front/img/favicon.svg" rel="icon" type="image/svg+xml">
+	<link href="{$basePath}/assets_front/img/favicon.png" rel="icon" type="image/png" sizes="32x32">
 	<link href="{$basePath}/assets_front/img/apple-touch-icon.png" rel="apple-touch-icon">
 	<meta name="theme-color" content="#0d6f50">
 
@@ -16,8 +17,7 @@
 	<header id="header" class="bripeon-header">
 		<div class="container bripeon-header-bar">
 			<a n:href="Home:" class="bripeon-logo-link" aria-label="Bripeon domov">
-				<span class="bripeon-logo-mark">B</span>
-				<span class="sitename">Bripeon</span>
+				<span class="sitename"><svg class="bripeon-logo-b" aria-hidden="true" focusable="false"><use href="#i-logo-b"/></svg>ripeon</span>
 			</a>
 
 			<nav id="navmenu" class="bripeon-nav" aria-label="Hlavná navigácia">
@@ -68,9 +68,8 @@
 	<footer id="footer" class="bripeon-footer">
 		<div class="container bripeon-footer-grid">
 			<div>
-				<a n:href="Home:" class="bripeon-logo-link">
-					<span class="bripeon-logo-mark">B</span>
-					<span class="sitename">Bripeon</span>
+				<a n:href="Home:" class="bripeon-logo-link" aria-label="Bripeon domov">
+					<span class="sitename"><svg class="bripeon-logo-b" aria-hidden="true" focusable="false"><use href="#i-logo-b"/></svg>ripeon</span>
 				</a>
 				<p>Trhovisko pre lokálne služby, ktoré spája zákazníkov s overenými poskytovateľmi.</p>
 			</div>

@@ -371,6 +371,13 @@ h6 {
 	margin-right: 6px;
 }
 
+.logo .logo-b {
+	flex: none;
+	width: 15px;
+	height: 20px;
+	margin-right: 1px;
+}
+
 .logo span {
 	font-size: 26px;
 	font-weight: 700;

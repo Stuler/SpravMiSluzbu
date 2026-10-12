@@ -1,7 +1,8 @@
 {layout '../../Base/templates/@layout.latte'}
 {block #head}
 	<!-- Favicons -->
-	<link href="{$basePath}/assets_admin/img/favicon.png" rel="icon">
+	<link href="{$basePath}/assets_admin/img/favicon.svg" rel="icon" type="image/svg+xml">
+	<link href="{$basePath}/assets_admin/img/favicon.png" rel="icon" type="image/png" sizes="32x32">
 	<link href="{$basePath}/assets_admin/img/apple-touch-icon.png" rel="apple-touch-icon">
 
 	<!-- Fonts -->
@@ -27,9 +28,8 @@
 	<header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
-      <a n:href=":Admin:Home:default" class="logo d-flex align-items-center">
-
-        <span class="d-none d-lg-block">Bripeon Admin</span>
+      <a n:href=":Admin:Home:default" class="logo d-flex align-items-center" aria-label="Bripeon Admin">
+        <svg class="logo-b" viewBox="16 8 37 48" aria-hidden="true" focusable="false"><g fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v40M20 12h15a9.5 9.5 0 0 1 0 19H20M20 31h18a10.5 10.5 0 0 1 0 21H20" stroke="#0d6f50"/><path d="M20 31h15" stroke="#f59e0b"/></g></svg><span class="d-none d-lg-block">ripeon Admin</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->

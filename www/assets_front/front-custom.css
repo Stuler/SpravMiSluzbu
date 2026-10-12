@@ -271,25 +271,21 @@ body .container {
 	color: var(--bripeon-ink);
 }
 
-.bripeon-logo-mark {
-	display: grid;
-	place-items: center;
-	width: 36px;
-	height: 36px;
-	border-radius: 10px;
-	background: var(--bripeon-primary);
-	color: #fff;
-	font-family: var(--bripeon-font-display);
-	font-size: 1.125rem;
-	font-weight: 800;
-	line-height: 1;
-}
-
 .bripeon-logo-link .sitename {
 	font-family: var(--bripeon-font-display);
-	font-size: 1.375rem;
+	font-size: 1.625rem;
 	font-weight: 800;
-	letter-spacing: -.02em;
+	letter-spacing: -.03em;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.bripeon-logo-b {
+	display: inline-block;
+	width: .57em;
+	height: .74em;
+	margin-right: .03em;
+	vertical-align: baseline;
 }
 
 .bripeon-menu-toggle {
